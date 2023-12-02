@@ -45,7 +45,7 @@
                 "workbench.colorTheme": "Monokai Pro (Filter Octagon)",
                 "workbench.iconTheme": "material-icon-theme",
                 "editor.inlayHints.enabled": "offUnlessPressed",
-                "editor.formatOnSave": true,
+                "editor.formatOnSave": false,
                 "debug.showInStatusBar": "never",
                 "editor.tabSize": 2,
                 "cmake.revealLog": "never",

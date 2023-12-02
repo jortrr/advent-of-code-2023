@@ -19,6 +19,7 @@
     "customizations": {
         "vscode": {
             "extensions": [
+                "hbenl.vscode-test-explorer@2.21.1",
                 "usernamehw.errorlens@3.15.0",
                 "spencerwmiles.vscode-task-buttons@1.1.3",
                 "spmeesseman.vscode-taskexplorer@2.13.2",
@@ -43,32 +44,11 @@
                 "workbench.colorTheme": "Monokai Pro (Filter Octagon)",
                 "workbench.iconTheme": "material-icon-theme",
                 "editor.inlayHints.enabled": "offUnlessPressed",
-                "explorer.confirmDragAndDrop": false,
                 "editor.formatOnSave": true,
                 "debug.showInStatusBar": "never",
-                "C_Cpp.inlayHints.parameterNames.enabled": true,
-                "cmake.configureOnEdit": false,
-                "cmake.configureOnOpen": false,
-                "cmake.autoSelectActiveFolder": false,
-                "cmake.automaticReconfigure": false,
                 "editor.tabSize": 2,
                 "cmake.revealLog": "never",
                 "VsCodeTaskButtons.showCounter": false,
-                /*"coverage-gutters.coverageFileNames": [
-                    "code_coverage.info"
-                ],*/
-                "folderformatter.extensions": [
-                    "cpp",
-                    "h",
-                    "c",
-                    "hpp",
-                    "json",
-                    "txt",
-                    "md"
-                ],
-                "[c][cpp]": {
-                    "editor.formatOnSave": true
-                },
                 //"coverage-gutters.showLineCoverage": true,
                 "VsCodeTaskButtons.tasks": [ //Icons: https://code.visualstudio.com/api/references/icons-in-labels#icon-listing 
                     {

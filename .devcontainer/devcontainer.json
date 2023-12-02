@@ -15,6 +15,7 @@
     ],
     "workspaceMount": "source=${localWorkspaceFolder},target=/mounted,type=bind",
     "workspaceFolder": "/mounted",
+    "postCreateCommand": "bash ci/install_dependencies.sh",
     // Configure tool-specific properties.
     "customizations": {
         "vscode": {
@@ -54,6 +55,10 @@
                     {
                         "label": "$(info) Toggle Error Lens",
                         "task": "Toggle Error Lens"
+                    },
+                    {
+                        "label": "$(eye) Open Advent of Code webpage",
+                        "task": "Open Advent of Code webpage"
                     }
                 ]
             }

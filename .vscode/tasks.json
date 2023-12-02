@@ -6,5 +6,11 @@
             "command": "${command:errorLens.toggle}",
             "problemMatcher": []
         },
+        {
+            "label": "Open Advent of Code webpage",
+            "type": "shell",
+            "command": "aocf brief -w",
+            "problemMatcher": []
+        }
     ]
 }

@@ -10,4 +10,6 @@ fn main() {
         println!("Input for day {:02}:\n", aoc.day.unwrap());
         println!("{}", i);
     }
+    
+    let sum = input.split("/n").collect::<Vec<&str>>().iter().map(|&line| line.chars().filter(|c|c.is_digit()).collect::<String>()).map(|&line|format!("{}{}",line.chars().next(),line.chars().last()).parse::<u32>().unwrap()).sum();
 }

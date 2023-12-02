@@ -1,0 +1,84 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+    "name": "AdventOfCode2023",
+    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+    "image": "mcr.microsoft.com/devcontainers/rust:1-1-bullseye",
+    // Features to add to the dev container. More info: https://containers.dev/features.
+    // "features": {},
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    // "forwardPorts": [],
+    // Use 'postCreateCommand' to run commands after the container is created.
+    "runArgs": [
+        "--name",
+        "AdventOfCode2023"
+    ],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/mounted,type=bind",
+    "workspaceFolder": "/mounted",
+    // Configure tool-specific properties.
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "usernamehw.errorlens@3.15.0",
+                "spencerwmiles.vscode-task-buttons@1.1.3",
+                "spmeesseman.vscode-taskexplorer@2.13.2",
+                "Gruntfuggly.todo-tree@0.0.226",
+                "PKief.material-icon-theme@4.30.1",
+                "DavidAnson.vscode-markdownlint@0.52.0",
+                "timonwong.shellcheck@0.34.0",
+                "tintinweb.graphviz-interactive-preview@0.3.5",
+                "jebbs.plantuml@2.17.5",
+                "redhat.vscode-yaml@1.14.0",
+                "MichaKaleta.folderformatter@0.0.1",
+                "wayou.vscode-todo-highlight@1.0.5",
+                "hbenl.vscode-test-explorer@2.21.1",
+                "JScearcy.rust-doc-viewer@4.2.0",
+                "ZhangYue.rust-mod-generator@1.0.10",
+                "lorenzopirro.rust-flash-snippets@3.1.0",
+                "swellaby.vscode-rust-test-adapter@0.11.0",
+                "Swellaby.rust-pack@0.3.38",
+                "monokai.theme-monokai-pro-vscode@1.2.1"
+            ],
+            "settings": {
+                "workbench.colorTheme": "Monokai Pro (Filter Octagon)",
+                "workbench.iconTheme": "material-icon-theme",
+                "editor.inlayHints.enabled": "offUnlessPressed",
+                "explorer.confirmDragAndDrop": false,
+                "editor.formatOnSave": true,
+                "debug.showInStatusBar": "never",
+                "C_Cpp.inlayHints.parameterNames.enabled": true,
+                "cmake.configureOnEdit": false,
+                "cmake.configureOnOpen": false,
+                "cmake.autoSelectActiveFolder": false,
+                "cmake.automaticReconfigure": false,
+                "editor.tabSize": 2,
+                "cmake.revealLog": "never",
+                "VsCodeTaskButtons.showCounter": false,
+                /*"coverage-gutters.coverageFileNames": [
+                    "code_coverage.info"
+                ],*/
+                "folderformatter.extensions": [
+                    "cpp",
+                    "h",
+                    "c",
+                    "hpp",
+                    "json",
+                    "txt",
+                    "md"
+                ],
+                "[c][cpp]": {
+                    "editor.formatOnSave": true
+                },
+                //"coverage-gutters.showLineCoverage": true,
+                "VsCodeTaskButtons.tasks": [ //Icons: https://code.visualstudio.com/api/references/icons-in-labels#icon-listing 
+                    {
+                        "label": "$(info) Toggle Error Lens",
+                        "task": "Toggle Error Lens"
+                    }
+                ]
+            }
+        }
+    }
+    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    // "remoteUser": "root"
+}

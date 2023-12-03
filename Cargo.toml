@@ -107,3 +107,7 @@ path = "src/day24.rs"
 [[bin]]
 name = "day25"
 path = "src/day25.rs"
+
+[lib]
+name = "aoc_input"
+path = "src/aoc_input.rs"

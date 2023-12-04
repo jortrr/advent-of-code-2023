@@ -46,4 +46,12 @@
 		],
 		"description": "Insert the Advent of Code Fetch main function"
 	},
+	"For-each iter print": {
+		"scope": "rust",
+		"prefix": "for-each-iter-print",
+		"body": [
+			".for_each(|f| println!(\"{:?}\", f));"
+		],
+		"description": "Print each iterator element"
+	},
 }

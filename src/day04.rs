@@ -7,7 +7,7 @@ fn main() {
                 let copies_of_this_card = *acc.1.get(&card).unwrap_or(&1);
                 println!("Processing card {}({}) , won: {:?}", card, copies_of_this_card, copies);
                 println!("Total amount of cards: {}", acc.0 .1);
-                copies.iter().for_each(|card_won| {
+                copies.iter().for_each(|card_won| { //TODO: Map copies to HashMap KVP's and return the chained HashMap, so the entire expression can become a oneliner
                     let card_won = *card_won;
                     let old = acc.1.get(&card_won).unwrap_or(&1);
                     let new = old + copies_of_this_card;

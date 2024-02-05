@@ -156,46 +156,10 @@ humidity-to-location map:
     println!();
     dbg!(&almanac);
 
-    let mut output = "".to_string();
-    output += "seeds:";
-    for seed in &seeds {
-        output += " ";
-        output += &seed.to_string();
-    }
-    output += "\n";
-    for map in &almanac {
-        output += &format!("\n{}-to-{} map:\n", map.from, map.to);
-        for transform in &map.transforms {
-            output += &format!(
-                "{} {} {}\n",
-                transform.destination_range_start,
-                transform.source_range_start,
-                transform.range_length
-            );
-        }
-    }
-
-    println!("output:\n[{}]", output);
-
     let mut locations: Vec<i64> = Vec::new();
     for seed in &seeds {
-        println!();
-        let mut from = "seed";
-        let mut from_value: i64 = *seed as i64;
-        println!("{} : {}", from, from_value);
-        while from != "location" {
-            for map in &almanac {
-                if map.from == from {
-                    let to = &map.to;
-                    let to_value = map.translate(from_value);
-                    println!("{} : {}", to, to_value);
-                    from = to;
-                    from_value = to_value;
-                    break;
-                }
-            }
-        }
-        locations.push(from_value);
+        let location = get_location_from_seed(*seed, &almanac);
+        locations.push(location);
     }
     locations.sort();
     println!();
@@ -203,4 +167,45 @@ humidity-to-location map:
     let lowest_location = locations.get(0).unwrap();
     println!();
     println!("Part 1: The lowest location number is {}", lowest_location);
+
+    let mut ranged_seeds: Vec<i64> = Vec::new();
+    for i in (0..seeds.len()).step_by(2) {
+        let start = seeds[i];
+        let range = seeds[i + 1];
+        let end = start + range - 1;
+        dbg!(start, range, end);
+        let start_location = get_location_from_seed(start, &almanac);
+        let end_location = get_location_from_seed(end, &almanac);
+        dbg!(start_location, end_location);
+        assert!(start_location + range - 1 == end_location);
+    }
+
+    let mut locations: Vec<i64> = Vec::new();
+    for seed in &ranged_seeds {
+        let location = get_location_from_seed(*seed, &almanac);
+        locations.push(location);
+    }
+    locations.sort();
+    let lowest_location = locations.get(0).unwrap();
+    println!("Part 2: The lowest location number is {}", lowest_location);
+}
+
+fn get_location_from_seed(seed: i64, almanac: &Vec<Map>) -> i64 {
+    //println!();
+    let mut from = "seed";
+    let mut from_value: i64 = seed;
+    //println!("{} : {}", from, from_value);
+    while from != "location" {
+        for map in almanac {
+            if map.from == from {
+                let to = &map.to;
+                let to_value = map.translate(from_value);
+                //println!("{} : {}", to, to_value);
+                from = to;
+                from_value = to_value;
+                break;
+            }
+        }
+    }
+    return from_value;
 }

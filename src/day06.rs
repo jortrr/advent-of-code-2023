@@ -1,12 +1,31 @@
+type Uint = u64;
+
 #[derive(Debug)]
 struct Race {
-    time: u32,
-    distance: u32,
+    time: Uint,
+    distance: Uint,
     wins: Vec<Race>,
 }
 
+impl Race {
+    pub fn generate_wins(&mut self) {
+        for i in 0..self.time {
+            let time_left = self.time - i;
+            let speed = i;
+            let distance_travelled = speed * time_left;
+            if distance_travelled > self.distance {
+                self.wins.push(Race {
+                    time: i,
+                    distance: distance_travelled,
+                    wins: Vec::new(),
+                })
+            }
+        }
+    }
+}
+
 fn main() {
-    println!("Hello, World! from src/day06.rs!");
+    println!("AOC src/day06.rs");
     let input: Vec<String> = aoc_input::get(2023, 6);
     let times = input.get(0).unwrap().split_ascii_whitespace().skip(1);
     let distances = input.get(1).unwrap().split_ascii_whitespace().skip(1);
@@ -17,22 +36,11 @@ fn main() {
     for (time, distance) in time_distance_tuples {
         println!("({}, {})", time, distance);
         let mut race = Race {
-            time: time.to_string().parse::<u32>().unwrap(),
-            distance: distance.to_string().parse::<u32>().unwrap(),
+            time: time.to_string().parse::<Uint>().unwrap(),
+            distance: distance.to_string().parse::<Uint>().unwrap(),
             wins: Vec::new(),
         };
-        for i in 0..race.time {
-            let time_left = race.time - i;
-            let speed = i;
-            let distance_travelled = speed * time_left;
-            if distance_travelled > race.distance {
-                race.wins.push(Race {
-                    time: i,
-                    distance: distance_travelled,
-                    wins: Vec::new(),
-                })
-            }
-        }
+        race.generate_wins();
         races.push(race);
     }
     dbg!(&races);
@@ -43,5 +51,28 @@ fn main() {
         }
         number_of_ways_to_beat_record *= race.wins.len();
     }
+    // Part 1
     dbg!(number_of_ways_to_beat_record);
+
+    //Part 2
+    let convert_to_number = |s: &String| -> Uint {
+        s.split_ascii_whitespace()
+            .skip(1)
+            .collect::<Vec<&str>>()
+            .join("")
+            .to_string()
+            .parse::<Uint>()
+            .unwrap()
+    };
+    let time = convert_to_number(input.get(0).unwrap());
+    let distance = convert_to_number(input.get(1).unwrap());
+
+    let mut race: Race = Race {
+        time,
+        distance,
+        wins: Vec::new(),
+    };
+    race.generate_wins();
+    let number_of_ways_to_beat_second_record = race.wins.len();
+    dbg!(number_of_ways_to_beat_second_record);
 }

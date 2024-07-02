@@ -209,6 +209,7 @@ fn main() {
     println!("Hello, World! from src/day07.rs!");
     let input: Vec<String> = aoc_input::get(2023, 7);
 
+    // Example
     let mut plays: Plays = vec![
         ("32T3K", "765"),
         ("T55J5", "684"),
@@ -227,4 +228,18 @@ fn main() {
         total_winnings, 6440,
         "Example failed, this value should be 6440."
     );
+
+    // Part 1
+    let mut plays: Plays = input
+        .iter()
+        .map(|s| s.split_ascii_whitespace().collect::<Vec<_>>())
+        .filter(|v| v.len() == 2)
+        .map(|t| (t[0], t[1]))
+        .map(|t| Play::from_tuple(&t))
+        .collect();
+    plays.sort();
+    dbg!(&plays);
+    dbg!(plays.len());
+    let total_winnings = get_total_winnings(&plays);
+    dbg!(total_winnings);
 }

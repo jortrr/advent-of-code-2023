@@ -1,5 +1,8 @@
+use core::{num, panic};
+
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 enum Card {
+    Joker,
     _2,
     _3,
     _4,
@@ -84,12 +87,41 @@ impl CardsType {
         use CardsType::*;
         let mut counts = HashMap::new();
         // Count the occurences of each card
-        for card in cards {
-            *counts.entry(card).or_insert(0) += 1;
-        }
+        cards
+            .iter()
+            .filter(|&card| *card != Card::Joker)
+            .for_each(|card| {
+                *counts.entry(card).or_insert(0) += 1;
+            });
 
-        let mut occurences: Vec<&i32> = counts.values().collect();
+        let mut occurences: Vec<i32> = counts.values().map(|x| *x).collect();
         occurences.sort();
+
+        //Account for Jokers, by letting Jokers contribute to the best possible CardType
+        let total: i32 = occurences.iter().sum();
+        if (total as usize) < cards.len() {
+            // There are Jokers
+            match occurences.len() {
+                0 => occurences.push(5),
+                1 => occurences[0] = 5,
+                2 => {
+                    occurences[1] = match occurences[0] {
+                        1 => 4,
+                        2 => 3,
+                        _ => panic!("This should never happen."),
+                    };
+                }
+                3 => {
+                    occurences[2] = match occurences[1] {
+                        1 => 3,
+                        2 => 2,
+                        _ => panic!("This should never happen."),
+                    };
+                }
+                4 => occurences[3] = 2,
+                _ => panic!("This is impossible."),
+            }
+        }
 
         return match &occurences[..] {
             [5] => Some(FiveOfAKind),
@@ -120,7 +152,7 @@ impl PartialOrd for CardsType {
     }
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 struct Hand {
     to_string: String,
     cards: Cards,
@@ -164,6 +196,17 @@ impl Hand {
             cards,
             cards_type,
         }
+    }
+
+    fn replace_all_j_with_joker(&self) -> Hand {
+        let mut result: Hand = self.clone();
+        result.cards.iter_mut().for_each(|card| {
+            if *card == Card::J {
+                *card = Card::Joker;
+            }
+        });
+        result.cards_type = CardsType::from_cards(&result.cards).unwrap();
+        result
     }
 }
 
@@ -238,8 +281,19 @@ fn main() {
         .map(|t| Play::from_tuple(&t))
         .collect();
     plays.sort();
-    dbg!(&plays);
-    dbg!(plays.len());
     let total_winnings = get_total_winnings(&plays);
     dbg!(total_winnings);
+
+    // Part 2
+    // Replace J with Joker
+    plays = plays
+        .iter()
+        .map(|play| Play {
+            bid: play.bid,
+            hand: play.hand.replace_all_j_with_joker(),
+        })
+        .collect();
+    plays.sort();
+    let total_winnings_with_jokers = get_total_winnings(&plays);
+    dbg!(total_winnings_with_jokers);
 }

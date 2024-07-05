@@ -47,6 +47,22 @@ impl Node {
     }
 }
 
+// Return the greatest common multiple of a and b
+fn gcd(a: u64, b: u64) -> u64 {
+    if b == 0 {
+        a
+    } else {
+        gcd(b, a % b)
+    }
+}
+
+/// Return the least common multiple of a and b
+fn lcm(a: u64, b: u64) -> u64 {
+    a * b / gcd(a, b)
+}
+
+type StepsFromNode<'a> = (&'a Node, i32);
+
 #[derive(Debug)]
 struct Network {
     nodes: Vec<Node>,
@@ -57,23 +73,62 @@ impl Network {
         self.nodes.iter().find(|node| node.label == label)
     }
 
-    fn steps_until_zzz_is_reached(&self, instructions: &Instructions) -> i32 {
+    fn find_node_from_string_end(&self, label_end: &str) -> Vec<&Node> {
+        self.nodes
+            .iter()
+            .filter(|node| node.label.ends_with(label_end))
+            .collect()
+    }
+
+    fn camel_steps_until_zzz_is_reached(&self, instructions: &Instructions) -> i32 {
+        let start_node = self.find_node_from_string("AAA").unwrap();
+        let end_node_ends_with = "ZZZ";
+
+        self.steps_until_zzz_is_reached(instructions, start_node, &end_node_ends_with)
+    }
+
+    fn ghost_steps_until_zzz_is_reached(&self, instructions: &Instructions) -> u64 {
+        let start_nodes = self.find_node_from_string_end("A");
+        let end_node_ends_with = "Z";
+        //dbg!(&start_nodes);
+        let steps_from_nodes: Vec<StepsFromNode> = start_nodes
+            .iter()
+            .map(|node| {
+                (
+                    *node,
+                    self.steps_until_zzz_is_reached(instructions, node, end_node_ends_with),
+                )
+            })
+            .collect();
+        dbg!(&steps_from_nodes);
+        let mut least_common_multiple = 1;
+        for (_, steps) in steps_from_nodes {
+            least_common_multiple = lcm(least_common_multiple, steps as u64);
+        }
+        least_common_multiple
+    }
+
+    fn steps_until_zzz_is_reached(
+        &self,
+        instructions: &Instructions,
+        start_node: &Node,
+        end_node_ends_with: &str,
+    ) -> i32 {
         let mut steps: i32 = 0;
-        let mut current_node: &Node = self.find_node_from_string("AAA").unwrap();
+        let mut current_node: &Node = start_node;
         loop {
-            for (i, instruction) in instructions.iter().enumerate() {
-                //dbg!((steps, i));
-                //dbg!(instruction);
-                //dbg!(current_node);
+            for instruction in instructions {
+                if current_node.label.ends_with(end_node_ends_with) {
+                    return steps;
+                }
+
                 let new_node = match instruction {
                     Instruction::Left => &current_node.left,
                     Instruction::Right => &current_node.right,
                 };
+
                 current_node = self.find_node_from_string(new_node).unwrap();
                 steps += 1;
-                if current_node.label == "ZZZ" {
-                    return steps;
-                }
             }
         }
     }
@@ -104,18 +159,21 @@ fn main() {
     .collect();
     let instructions = instructions_from_string(&input[0]);
     let network = Network::from_strings(&input);
-    let steps_until_zzz_is_reached = network.steps_until_zzz_is_reached(&instructions);
-    dbg!(steps_until_zzz_is_reached);
+    let camel_steps_until_zzz_is_reached = network.camel_steps_until_zzz_is_reached(&instructions);
+    dbg!(camel_steps_until_zzz_is_reached);
     assert_eq!(
-        6, steps_until_zzz_is_reached,
-        "This value should always be 2."
+        6, camel_steps_until_zzz_is_reached,
+        "This value should always be 6."
     );
     //Part 1
     let input = aoc_input::get(2023, 8);
     let instructions = instructions_from_string(&input[0]);
     let network = Network::from_strings(&input);
-    let steps_until_zzz_is_reached = network.steps_until_zzz_is_reached(&instructions);
+    let camel_steps_until_zzz_is_reached = network.camel_steps_until_zzz_is_reached(&instructions);
     //dbg!(&network);
     //dbg!(&instructions);
-    dbg!(steps_until_zzz_is_reached);
+    dbg!(camel_steps_until_zzz_is_reached);
+    //Part 2
+    let ghost_steps_until_zzz_is_reached = network.ghost_steps_until_zzz_is_reached(&instructions);
+    dbg!(ghost_steps_until_zzz_is_reached);
 }

@@ -92,6 +92,7 @@ impl Maze {
     fn from_strings(tiles: &Vec<String>) -> Maze {
         let maze: Vec<Tiles> = tiles
             .iter()
+            .filter(|s| !s.is_empty())
             .map(|s| s.chars().map(|c| Tile::from_char(c)).collect())
             .collect();
         let rows = maze.len();
@@ -151,8 +152,8 @@ impl Maze {
     fn get_tile(&self, position: TilePosition) -> Option<Tile> {
         if position.0 < 0
             || position.1 < 0
-            || position.0 >= self.columns as Int
-            || position.1 >= self.rows as Int
+            || position.0 >= self.rows as Int
+            || position.1 >= self.columns as Int
         {
             return None;
         }
@@ -264,6 +265,7 @@ impl std::fmt::Debug for Maze {
 
 fn main() {
     println!("Hello, World! from src/day10.rs!");
+    // Example
     let input: Vec<String> = vec!["..F7.", ".FJ|.", "SJ.L7", "|F--J", "LJ..."]
         .iter()
         .map(|s| s.to_string())
@@ -272,5 +274,10 @@ fn main() {
     let distance = maze.find_longest_distance_from_animal_starting_position();
     dbg!(&maze);
     dbg!(distance);
-    assert_eq!(8, distance, "This example distance should always be 8.")
+    assert_eq!(8, distance, "This example distance should always be 8.");
+    // Part 1
+    let input = aoc_input::get(2023, 10);
+    let mut maze = Maze::from_strings(&input);
+    let distance = maze.find_longest_distance_from_animal_starting_position();
+    dbg!(distance);
 }

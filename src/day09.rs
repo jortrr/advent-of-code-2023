@@ -70,7 +70,11 @@ struct OASIS {
 
 impl OASIS {
     fn from_strings(sequences: &Vec<String>) -> OASIS {
-        let histories: Vec<History> = sequences.iter().map(|s| History::from_string(s)).collect();
+        let histories: Vec<History> = sequences
+            .iter()
+            .filter(|s| !s.is_empty())
+            .map(|s| History::from_string(s))
+            .collect();
         OASIS { histories }
     }
 
@@ -90,6 +94,7 @@ impl OASIS {
 
 fn main() {
     println!("Hello, World! from src/day09.rs!");
+    // Example
     let input: Vec<String> = vec!["0 3 6 9 12 15", "1 3 6 10 15 21", "10 13 16 21 30 45"]
         .iter()
         .map(|s| s.to_string())
@@ -102,5 +107,11 @@ fn main() {
     assert_eq!(
         114, sum_of_histories_last_values,
         "This example value should be equal to 114."
-    )
+    );
+    // Part 1
+    let input = aoc_input::get(2023, 9);
+    let mut oasis = OASIS::from_strings(&input);
+    oasis.extrapolate_histories();
+    let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
+    dbg!(sum_of_histories_last_values);
 }

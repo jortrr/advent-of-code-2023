@@ -286,17 +286,31 @@ impl Maze {
         }
     }
 
+    // Test case for Example Part 1
+    fn test_distance(input: Vec<&str>, expected_distance: Int) {
+        let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
+        let distance = maze.find_longest_distance_from_animal_starting_position();
+        dbg!(maze.to_strings);
+        dbg!(distance);
+        assert_eq!(
+            expected_distance, distance,
+            "Test case failed: this value should always equal '{}'.",
+            expected_distance
+        );
+    }
+
+    // Test case for Example Part 2
     fn test_interior_points(input: Vec<&str>, expected_interior_points: Int) {
         let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
         let _ = maze.find_longest_distance_from_animal_starting_position();
         let interior_points = maze.get_interior_points();
-        assert_eq!(
-            expected_interior_points, interior_points,
-            "Test case failed: this value should equal {}.",
-            expected_interior_points
-        );
         dbg!(maze.to_strings);
         dbg!(interior_points);
+        assert_eq!(
+            expected_interior_points, interior_points,
+            "Test case failed: this value should always equal '{}'.",
+            expected_interior_points
+        );
     }
 }
 
@@ -332,18 +346,44 @@ impl std::fmt::Debug for Maze {
 
 fn main() {
     println!("Hello, World! from src/day10.rs!");
+
     // Part 1 - Example
-    let input: Vec<String> = vec!["..F7.", ".FJ|.", "SJ.L7", "|F--J", "LJ..."]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
-    let mut maze = Maze::from_strings(&input);
-    let distance = maze.find_longest_distance_from_animal_starting_position();
-    dbg!(&maze);
-    dbg!(distance);
-    assert_eq!(8, distance, "This example distance should always be 8.");
-    let area = maze.get_area_enclosed_by_visited_tiles();
-    let interior_points = maze.get_interior_points();
+    #[rustfmt::skip]
+    let example_input_4_d_a: Vec<&str> = vec![
+        ".....",
+        ".S-7.",
+        ".|.|.",
+        ".L-J.",
+        ".....",
+    ];
+    Maze::test_distance(example_input_4_d_a, 4);
+    #[rustfmt::skip]
+    let example_input_4_d_b: Vec<&str> = vec![
+        "-L|F7",
+        "7S-7|",
+        "L|7||",
+        "-L-J|",
+        "L|-JF",
+    ];
+    Maze::test_distance(example_input_4_d_b, 4);
+    #[rustfmt::skip]
+    let example_input_8_d_a: Vec<&str> = vec![
+        "..F7.",
+        ".FJ|.",
+        "SJ.L7",
+        "|F--J",
+        "LJ...",
+    ];
+    Maze::test_distance(example_input_8_d_a, 8);
+    #[rustfmt::skip]
+    let example_input_8_d_b: Vec<&str> = vec![
+        "7-F7-",
+        ".FJ|7",
+        "SJLL7",
+        "|F--J",
+        "LJ.LJ",
+    ];
+    Maze::test_distance(example_input_8_d_b, 8);
 
     // Part 2 - example
     let example_input_4_i_a: Vec<&str> = vec![

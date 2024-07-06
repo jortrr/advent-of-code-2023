@@ -1,4 +1,4 @@
-type Int = i32;
+type Int = i64;
 
 #[derive(Debug, PartialEq, Clone)]
 struct Position {
@@ -374,7 +374,12 @@ fn main() {
         .map(|s| s.clone())
         .collect();
     let image = Image::from_strings(&input);
-    let image = image.expand_universe();
-    let sum_of_distances = image.compute_sum_of_distances_between_all_galaxies();
+    let expanded_image = image.expand_universe();
+    let sum_of_distances = expanded_image.compute_sum_of_distances_between_all_galaxies();
+    dbg!(sum_of_distances);
+
+    // Part 2
+    let image_1000000x = image.expand_universe_with_factor(1000000);
+    let sum_of_distances = image_1000000x.compute_sum_of_distances_between_all_galaxies();
     dbg!(sum_of_distances);
 }

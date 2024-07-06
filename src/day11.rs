@@ -72,8 +72,8 @@ impl Image {
             .filter(|s| !s.is_empty())
             .map(|s| s.chars().map(|c| Data::from_char(c)).collect())
             .collect();
-        let rows = input.len() as Int;
-        let columns = input.first().unwrap().len() as Int;
+        let rows = data.len() as Int;
+        let columns = data.first().unwrap().len() as Int;
         let mut image = Image {
             to_strings: input.clone(),
             data,
@@ -149,7 +149,7 @@ impl Image {
         }
     }
 
-    fn distance_between_galaxies(a: &Data, b: &Data) -> Int {
+    fn compute_distance_between_galaxies(a: &Data, b: &Data) -> Int {
         match (&a, &b) {
             (Data::Galaxy(Some(a_position)), Data::Galaxy(Some(b_position))) => {
                 // Compute the Manhattan distance between a and b
@@ -159,7 +159,7 @@ impl Image {
         }
     }
 
-    fn sum_of_distances_between_all_galaxies(&self) -> Int {
+    fn compute_sum_of_distances_between_all_galaxies(&self) -> Int {
         let mut sum = 0;
         for i in 0..self.number_of_galaxies {
             for j in 0..self.number_of_galaxies {
@@ -167,7 +167,7 @@ impl Image {
                     // Skip compare with self
                     continue;
                 }
-                sum += Image::distance_between_galaxies(
+                sum += Image::compute_distance_between_galaxies(
                     &self.galaxies[i as usize],
                     &self.galaxies[j as usize],
                 );
@@ -238,7 +238,8 @@ impl Image {
         let b = galaxy_b - 1;
         assert!(a < self.number_of_galaxies as usize);
         assert!(b < self.number_of_galaxies as usize);
-        let distance = Image::distance_between_galaxies(&self.galaxies[a], &self.galaxies[b]);
+        let distance =
+            Image::compute_distance_between_galaxies(&self.galaxies[a], &self.galaxies[b]);
         println!("Distance ({}, {}): {}", a + 1, b + 1, distance);
         assert_eq!(
             expected_distance,
@@ -251,7 +252,7 @@ impl Image {
     }
 
     fn test_sum_of_distances(&self, expected_sum_of_distances: Int) {
-        let sum_of_distances = self.sum_of_distances_between_all_galaxies();
+        let sum_of_distances = self.compute_sum_of_distances_between_all_galaxies();
         dbg!(sum_of_distances);
         assert_eq!(
             expected_sum_of_distances, sum_of_distances,
@@ -296,4 +297,15 @@ fn main() {
     image.test_distance(3, 6, 17);
     image.test_distance(8, 9, 5);
     image.test_sum_of_distances(374);
+
+    // Part 1
+    let input: Vec<String> = aoc_input::get(2023, 11)
+        .iter()
+        .filter(|s| !s.is_empty())
+        .map(|s| s.clone())
+        .collect();
+    let image = Image::from_strings(&input);
+    let image = image.expand_universe();
+    let sum_of_distances = image.compute_sum_of_distances_between_all_galaxies();
+    dbg!(sum_of_distances);
 }

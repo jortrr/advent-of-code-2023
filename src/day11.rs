@@ -18,7 +18,7 @@ impl std::fmt::Debug for Data {
             Self::EmptySpace => write!(f, "EmptySpace"),
             Self::Galaxy(arg0) => match arg0 {
                 Some(p) => write!(f, "Galaxy({}, {})", p.x, p.y),
-                None => write!(f, "Galaxy"),
+                None => write!(f, "Galaxy(None)"),
             },
         }
     }
@@ -61,6 +61,8 @@ struct Image {
     data: Grid<Data>,
     rows: Int,
     columns: Int,
+    galaxies: Vec<Data>,
+    number_of_galaxies: Int,
 }
 
 impl Image {
@@ -77,9 +79,25 @@ impl Image {
             data,
             rows,
             columns,
+            galaxies: Vec::new(),
+            number_of_galaxies: 0,
         };
         image.assign_positions_to_galaxies();
+        image.galaxies = Image::find_galaxies(&image.data);
+        image.number_of_galaxies = image.galaxies.len() as Int;
         image
+    }
+
+    fn find_galaxies(grid: &Grid<Data>) -> Vec<Data> {
+        let mut result: Vec<Data> = Vec::new();
+        for row in grid {
+            for data in row {
+                if let Data::Galaxy(_) = *data {
+                    result.push(data.clone());
+                }
+            }
+        }
+        result
     }
 
     fn find_empty_rows(grid: &Grid<Data>) -> Vec<Int> {
@@ -131,6 +149,16 @@ impl Image {
         }
     }
 
+    fn distance_between_galaxies(a: &Data, b: &Data) -> Int {
+        match (&a, &b) {
+            (Data::Galaxy(Some(a_position)), Data::Galaxy(Some(b_position))) => {
+                // Compute the Manhattan distance between a and b
+                (a_position.x - b_position.x).abs() + (a_position.y - b_position.y).abs()
+            }
+            _ => panic!("These are not valid Galaxies: ({:?}, {:?}).", a, b),
+        }
+    }
+
     fn test_image(expected: &Image, actual: &Image) -> bool {
         dbg!(expected.rows);
         assert_eq!(
@@ -156,6 +184,7 @@ impl Image {
             expected.to_strings, actual.to_strings,
             "ToStrings compare failed."
         );
+        assert_eq!(expected.number_of_galaxies, actual.number_of_galaxies);
         for y in 0..actual.rows {
             for x in 0..actual.columns {
                 let (x, y) = (x as usize, y as usize);
@@ -175,7 +204,7 @@ impl Image {
         true
     }
 
-    fn test_expansion(input: &Vec<&str>, expected_expansion: &Vec<&str>) {
+    fn test_expansion(input: &Vec<&str>, expected_expansion: &Vec<&str>) -> Image {
         let image = Image::from_strings(&input.iter().map(|s| s.to_string()).collect());
         dbg!(&image);
         let expected_expanded_mage =
@@ -183,6 +212,25 @@ impl Image {
         let actual_expanded_image = image.expand_universe();
         dbg!(&actual_expanded_image);
         Image::test_image(&expected_expanded_mage, &actual_expanded_image);
+        actual_expanded_image
+    }
+
+    /// Test the distance between Galaxy a and Galaxy b
+    fn test_distance(&self, a: usize, b: usize, expected_distance: Int) {
+        let a = a - 1;
+        let b = b - 1;
+        assert!(a < self.number_of_galaxies as usize);
+        assert!(b < self.number_of_galaxies as usize);
+        let distance = Image::distance_between_galaxies(&self.galaxies[a], &self.galaxies[b]);
+        println!("Distance ({}, {}): {}", a + 1, b + 1, distance);
+        assert_eq!(
+            expected_distance,
+            distance,
+            "Test case failed (Galaxy {} -> {}): this distance should always equal '{}'.",
+            a + 1,
+            b + 1,
+            expected_distance
+        )
     }
 }
 
@@ -215,5 +263,9 @@ fn main() {
         ".........#...",
         "#....#.......",
     ];
-    Image::test_expansion(&example_input, &example_input_expanded);
+    let image = Image::test_expansion(&example_input, &example_input_expanded);
+    assert_eq!(image.number_of_galaxies, 9);
+    image.test_distance(1, 7, 15);
+    image.test_distance(3, 6, 17);
+    image.test_distance(8, 9, 5);
 }

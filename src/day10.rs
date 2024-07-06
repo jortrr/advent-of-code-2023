@@ -1,10 +1,10 @@
+use core::panic;
 use std::{
     cmp::{max, min},
     fmt::format,
 };
 
 static PRINT_DISTANCES: bool = false;
-static RUN_PART_1: bool = false;
 
 type Int = i32;
 
@@ -207,15 +207,17 @@ impl Maze {
             })
             .sum::<f64>()
             / 2.0;
-        area
+        area.abs()
     }
 
     fn get_interior_points(&self) -> Int {
         // Use Pick's theorem to find the interior points from the area and boundary points
+        // See: https://en.wikipedia.org/wiki/Pick%27s_theorem
         // Let i be the number of integer points interior to the polygon
         // Let b be the number of integer points on its boundary
         // Then the area A of this polygon is: A = i + b/2 - 1
         // So then i = A - b/2 + 1
+
         let area = self.get_area_enclosed_by_visited_tiles();
         let boundary_points = self.visited.len();
         let interior_points = area - (boundary_points as f64 / 2.0) + 1.0;
@@ -344,10 +346,8 @@ impl std::fmt::Debug for Maze {
     }
 }
 
-fn main() {
-    println!("Hello, World! from src/day10.rs!");
-
-    // Part 1 - Example
+/// Run Part 1 Example test cases
+fn run_example_test_cases_part_1() {
     #[rustfmt::skip]
     let example_input_4_d_a: Vec<&str> = vec![
         ".....",
@@ -384,8 +384,10 @@ fn main() {
         "LJ.LJ",
     ];
     Maze::test_distance(example_input_8_d_b, 8);
+}
 
-    // Part 2 - example
+/// Run Example Part 2 test cases
+fn run_example_test_cases_part_2() {
     let example_input_4_i_a: Vec<&str> = vec![
         "...........",
         ".S-------7.",
@@ -423,16 +425,37 @@ fn main() {
         "OOOOL---JOLJOLJLJOOO",
     ];
     Maze::test_interior_points(example_input_8_i, 8);
+    let example_input_10_i: Vec<&str> = vec![
+        "FF7FSF7F7F7F7F7F---7",
+        "L|LJ||||||||||||F--J",
+        "FL-7LJLJ||||||LJL-77",
+        "F--JF--7||LJLJ7F7FJ-",
+        "L---JF-JLJ.||-FJLJJ7",
+        "|F|F-JF---7F7-L7L|7|",
+        "|FFJF7L7F-JF7|JL---7",
+        "7-L-JL7||F7|L7F-7F7|",
+        "L.L7LFJ|||||FJL7||LJ",
+        "L7JLJL-JLJLJL--JLJ.L",
+    ];
+    Maze::test_interior_points(example_input_10_i, 10);
+}
+
+fn main() {
+    println!("Hello, World! from src/day10.rs!");
+
+    // Part 1 - Example
+    run_example_test_cases_part_1();
+
+    // Part 2 - Example
+    run_example_test_cases_part_2();
 
     // Part 1
-    if RUN_PART_1 {
-        let input = aoc_input::get(2023, 10);
-        let mut maze = Maze::from_strings(&input);
-        let distance = maze.find_longest_distance_from_animal_starting_position();
-        dbg!(distance);
-    }
+    let input = aoc_input::get(2023, 10);
+    let mut maze = Maze::from_strings(&input);
+    let distance = maze.find_longest_distance_from_animal_starting_position();
+    dbg!(distance);
 
     // Part 2
-    //let interior_points = maze.get_interior_points();
-    //dbg!(interior_points);
+    let interior_points = maze.get_interior_points();
+    dbg!(interior_points);
 }

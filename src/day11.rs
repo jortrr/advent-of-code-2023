@@ -40,14 +40,6 @@ impl Data {
         }
     }
 
-    fn to_char(&self) -> char {
-        use Data::*;
-        match *self {
-            EmptySpace => '.',
-            Galaxy(_) => '#',
-        }
-    }
-
     fn new_galaxy(x: Int, y: Int) -> Data {
         Data::Galaxy(Some(Position::new(x, y)))
     }
@@ -160,30 +152,23 @@ impl Image {
         let empty_columns: Vec<Int> = self.get_empty_data_columns(expansion_factor - 1);
         let mut new_image = self.clone();
 
-        for i in &empty_columns {
-            for galaxy in &mut new_image.galaxies {
-                match galaxy {
-                    Data::Galaxy(Some(position)) => {
+        for galaxy in &mut new_image.galaxies {
+            match galaxy {
+                Data::Galaxy(Some(position)) => {
+                    for i in &empty_columns {
                         if position.x > *i {
                             // Need to shift this Galaxy
                             position.x += expansion_factor - 1;
                         }
                     }
-                    _ => panic!("Invalid Galaxy: '{:?}'.", galaxy),
-                }
-            }
-        }
-        for i in &empty_rows {
-            for galaxy in &mut new_image.galaxies {
-                match galaxy {
-                    Data::Galaxy(Some(position)) => {
+                    for i in &empty_rows {
                         if position.y > *i {
                             // Need to shift this Galaxy
                             position.y += expansion_factor - 1;
                         }
                     }
-                    _ => panic!("Invalid Galaxy: '{:?}'.", galaxy),
                 }
+                _ => panic!("Invalid Galaxy: '{:?}'.", galaxy),
             }
         }
 
@@ -379,7 +364,7 @@ fn main() {
     dbg!(sum_of_distances);
 
     // Part 2
-    let image_1000000x = image.expand_universe_with_factor(1000000);
-    let sum_of_distances = image_1000000x.compute_sum_of_distances_between_all_galaxies();
+    let image_1_000_000x = image.expand_universe_with_factor(1_000_000);
+    let sum_of_distances = image_1_000_000x.compute_sum_of_distances_between_all_galaxies();
     dbg!(sum_of_distances);
 }

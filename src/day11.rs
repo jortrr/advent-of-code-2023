@@ -6,6 +6,12 @@ struct Position {
     y: Int,
 }
 
+impl Position {
+    fn new(x: Int, y: Int) -> Position {
+        Position { x, y }
+    }
+}
+
 #[derive(PartialEq, Clone)]
 enum Data {
     EmptySpace,
@@ -40,6 +46,10 @@ impl Data {
             EmptySpace => '.',
             Galaxy(_) => '#',
         }
+    }
+
+    fn new_galaxy(x: Int, y: Int) -> Data {
+        Data::Galaxy(Some(Position::new(x, y)))
     }
 }
 
@@ -108,20 +118,26 @@ impl Image {
             .collect()
     }
 
-    fn shift_values_by_index(sequence: &Vec<Int>) -> Vec<Int> {
+    fn shift_values_by_index(sequence: &Vec<Int>, shift_by: Int) -> Vec<Int> {
         sequence
             .iter()
             .enumerate()
-            .map(|(acc, i)| i + acc as Int)
+            .map(|(acc, i)| i + (acc as Int * shift_by))
             .collect()
     }
 
-    fn expand_universe(&self) -> Image {
+    fn get_empty_data_rows(&self, shift_by: Int) -> Vec<Int> {
+        Image::shift_values_by_index(&Image::find_empty_rows(&self.data), shift_by)
+    }
+
+    fn get_empty_data_columns(&self, shift_by: Int) -> Vec<Int> {
         let data_transposed: Grid<Data> = transpose_grid(&self.data);
-        let empty_rows: Vec<Int> =
-            Image::shift_values_by_index(&Image::find_empty_rows(&self.data));
-        let empty_columns: Vec<Int> =
-            Image::shift_values_by_index(&Image::find_empty_rows(&data_transposed));
+        Image::shift_values_by_index(&Image::find_empty_rows(&data_transposed), shift_by)
+    }
+
+    fn expand_universe(&self) -> Image {
+        let empty_rows: Vec<Int> = self.get_empty_data_rows(1);
+        let empty_columns: Vec<Int> = self.get_empty_data_columns(1);
 
         let mut input = self.to_strings.clone();
         for i in empty_rows {
@@ -137,6 +153,41 @@ impl Image {
         }
 
         Image::from_strings(&input)
+    }
+
+    fn expand_universe_with_factor(&self, expansion_factor: Int) -> Image {
+        let empty_rows: Vec<Int> = self.get_empty_data_rows(expansion_factor - 1);
+        let empty_columns: Vec<Int> = self.get_empty_data_columns(expansion_factor - 1);
+        let mut new_image = self.clone();
+
+        for i in &empty_columns {
+            for galaxy in &mut new_image.galaxies {
+                match galaxy {
+                    Data::Galaxy(Some(position)) => {
+                        if position.x > *i {
+                            // Need to shift this Galaxy
+                            position.x += expansion_factor - 1;
+                        }
+                    }
+                    _ => panic!("Invalid Galaxy: '{:?}'.", galaxy),
+                }
+            }
+        }
+        for i in &empty_rows {
+            for galaxy in &mut new_image.galaxies {
+                match galaxy {
+                    Data::Galaxy(Some(position)) => {
+                        if position.y > *i {
+                            // Need to shift this Galaxy
+                            position.y += expansion_factor - 1;
+                        }
+                    }
+                    _ => panic!("Invalid Galaxy: '{:?}'.", galaxy),
+                }
+            }
+        }
+
+        new_image
     }
 
     fn assign_positions_to_galaxies(&mut self) {
@@ -260,6 +311,15 @@ impl Image {
             expected_sum_of_distances
         );
     }
+
+    fn test_galaxy(&self, index: usize, x: Int, y: Int) {
+        let index = index - 1;
+        assert!(index < self.number_of_galaxies as usize);
+        let expected_galaxy = Data::new_galaxy(x, y);
+        let actual_galaxy = &self.galaxies[index];
+        dbg!(actual_galaxy);
+        assert_eq!(expected_galaxy, *actual_galaxy);
+    }
 }
 
 fn main() {
@@ -297,6 +357,15 @@ fn main() {
     image.test_distance(3, 6, 17);
     image.test_distance(8, 9, 5);
     image.test_sum_of_distances(374);
+
+    // Example - Part 2
+    let image = Image::from_strings(&example_input.iter().map(|s| s.to_string()).collect());
+    let image_10x = image.expand_universe_with_factor(10);
+    dbg!(&image_10x);
+    image_10x.test_galaxy(1, 12, 0); //Calculated by hand
+    image_10x.test_sum_of_distances(1030);
+    let image_100x = image.expand_universe_with_factor(100);
+    image_100x.test_sum_of_distances(8410);
 
     // Part 1
     let input: Vec<String> = aoc_input::get(2023, 11)

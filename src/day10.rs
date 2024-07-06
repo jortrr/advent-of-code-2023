@@ -1,4 +1,4 @@
-use std::cmp::min;
+use std::cmp::{max, min};
 
 type Int = i32;
 
@@ -75,8 +75,8 @@ impl Tile {
 }
 
 type Tiles = Vec<Tile>;
-type TilePosition = (Int, Int);
-type TileAndPosition = (Option<Tile>, TilePosition);
+type Position = (Int, Int);
+type TileAndPosition = (Option<Tile>, Position);
 type Neighbour = (TileAndPosition, Direction);
 type Distances = Vec<Vec<Int>>;
 
@@ -84,6 +84,7 @@ struct Maze {
     to_strings: Vec<String>,
     maze: Vec<Tiles>,
     distances: Distances,
+    visited: Vec<Position>,
     rows: usize,
     columns: usize,
 }
@@ -103,12 +104,13 @@ impl Maze {
             to_strings: tiles.clone(),
             maze,
             distances,
+            visited: Vec::new(),
             rows,
             columns,
         }
     }
 
-    fn get_animal_starting_position(&self) -> Option<TilePosition> {
+    fn get_animal_starting_position(&self) -> Option<Position> {
         for i in 0..(self.rows - 1) {
             for j in 0..(self.columns - 1) {
                 let tile: &Tile = &self.maze[j][i];
@@ -120,23 +122,23 @@ impl Maze {
         None
     }
 
-    fn move_north(tile: TilePosition) -> TilePosition {
+    fn move_north(tile: Position) -> Position {
         (tile.0, tile.1 - 1)
     }
 
-    fn move_east(tile: TilePosition) -> TilePosition {
+    fn move_east(tile: Position) -> Position {
         (tile.0 + 1, tile.1)
     }
 
-    fn move_south(tile: TilePosition) -> TilePosition {
+    fn move_south(tile: Position) -> Position {
         (tile.0, tile.1 + 1)
     }
 
-    fn move_west(tile: TilePosition) -> TilePosition {
+    fn move_west(tile: Position) -> Position {
         (tile.0 - 1, tile.1)
     }
 
-    fn get_neighbour(&self, tile: TilePosition, direction: Direction) -> Neighbour {
+    fn get_neighbour(&self, tile: Position, direction: Direction) -> Neighbour {
         use Direction::*;
 
         let new_position = match direction {
@@ -149,7 +151,7 @@ impl Maze {
         (self.get_tile_and_position(new_position), direction)
     }
 
-    fn get_tile(&self, position: TilePosition) -> Option<Tile> {
+    fn get_tile(&self, position: Position) -> Option<Tile> {
         if position.0 < 0
             || position.1 < 0
             || position.0 >= self.rows as Int
@@ -160,11 +162,11 @@ impl Maze {
         Some(self.maze[position.1 as usize][position.0 as usize].clone())
     }
 
-    fn get_tile_and_position(&self, position: TilePosition) -> TileAndPosition {
+    fn get_tile_and_position(&self, position: Position) -> TileAndPosition {
         (self.get_tile(position), position)
     }
 
-    fn update_distance(&mut self, distance: Int, position: TilePosition) {
+    fn update_distance(&mut self, distance: Int, position: Position) -> Int {
         let x = position.0 as usize;
         let y = position.1 as usize;
         let current_distance = self.distances[y][x];
@@ -173,61 +175,60 @@ impl Maze {
             new_distance = min(current_distance, distance);
         }
         self.distances[y][x] = new_distance;
+        new_distance
+    }
+
+    fn print_visit_distance_to_start(position: &Position, tile: &Tile, distance: i32) {
+        println!(
+            "[{}, {}]: {:?} (distance: {})",
+            position.0, position.1, tile, distance
+        );
     }
 
     fn find_longest_distance_from_animal_starting_position(&mut self) -> Int {
         use Direction::*;
-        let start_position: TilePosition = self.get_animal_starting_position().unwrap();
-        let mut current: TileAndPosition = self.get_tile_and_position(start_position);
-        let mut visited: Vec<TilePosition> = Vec::new();
+        let mut current: TileAndPosition =
+            self.get_tile_and_position(self.get_animal_starting_position().unwrap());
         let mut distance = 0;
 
         loop {
-            let tile: Tile = current.0.clone().unwrap();
-            let position: TilePosition = current.1;
-            self.update_distance(distance, position);
+            let (tile, position) = (current.0.clone().unwrap(), current.1);
             let mut travelled = false;
-            println!(
-                "[{}, {}]: {:?} (distance: {})",
-                position.0, position.1, tile, distance
-            );
+            self.update_distance(distance, position);
+            Maze::print_visit_distance_to_start(&position, &tile, distance);
 
-            let north = self.get_neighbour(position, North);
-            let east = self.get_neighbour(position, East);
-            let south = self.get_neighbour(position, South);
-            let west = self.get_neighbour(position, West);
-            let neighbours = vec![north, east, south, west];
+            let neighbours: Vec<Neighbour> = vec![
+                self.get_neighbour(position, North),
+                self.get_neighbour(position, East),
+                self.get_neighbour(position, South),
+                self.get_neighbour(position, West),
+            ];
 
             for ((other_tile_option, other_position), direction) in neighbours {
                 if let Some(other_tile) = other_tile_option {
                     if other_tile == Tile::AnimalStartingPosition && distance == 1 {
+                        // Do not return to start at first visit
                         continue;
                     }
-                    if tile.connected(&other_tile, direction) && !visited.contains(&other_position)
+                    if tile.connected(&other_tile, direction)
+                        && !self.visited.contains(&other_position)
                     {
                         current = self.get_tile_and_position(other_position);
-                        visited.push(current.1);
+                        self.visited.push(current.1);
                         distance += 1;
                         travelled = true;
                         let tile = current.0.clone().unwrap();
                         if tile == Tile::AnimalStartingPosition {
-                            println!(
-                                "[{}, {}]: {:?} (distance: {})",
-                                position.0, position.1, tile, distance
-                            );
+                            Maze::print_visit_distance_to_start(&position, &tile, distance);
                             // Now, traverse the visited tiles in reverse, and update the Distances
-                            let mut reverse_distance = 0;
-                            for position in visited.iter().rev() {
-                                self.update_distance(reverse_distance, *position);
-                                reverse_distance += 1;
+                            let mut max_distance = 0;
+                            for (distance, position) in
+                                self.visited.clone().iter().rev().enumerate()
+                            {
+                                let new_distance = self.update_distance(distance as Int, *position);
+                                max_distance = max(max_distance, new_distance);
                             }
-                            let max_distance = self
-                                .distances
-                                .iter()
-                                .map(|v| v.iter().max().unwrap())
-                                .max()
-                                .unwrap();
-                            return *max_distance;
+                            return max_distance;
                         }
                         break;
                     }

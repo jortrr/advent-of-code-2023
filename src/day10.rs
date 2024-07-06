@@ -1,7 +1,14 @@
-use std::cmp::{max, min};
+use std::{
+    cmp::{max, min},
+    fmt::format,
+};
+
+static PRINT_DISTANCES: bool = false;
+static RUN_PART_1: bool = false;
 
 type Int = i32;
 
+#[derive(Debug)]
 enum Direction {
     North,
     East,
@@ -33,6 +40,7 @@ impl Tile {
             'F' => SouthEastPipe,
             '.' => Ground,
             'S' => AnimalStartingPosition,
+            'O' | 'I' => Ground,
             _ => panic!("Invalid Tile: '{}'.", c),
         }
     }
@@ -111,8 +119,8 @@ impl Maze {
     }
 
     fn get_animal_starting_position(&self) -> Option<Position> {
-        for i in 0..(self.rows - 1) {
-            for j in 0..(self.columns - 1) {
+        for i in 0..(self.columns - 1) {
+            for j in 0..(self.rows - 1) {
                 let tile: &Tile = &self.maze[j][i];
                 if *tile == Tile::AnimalStartingPosition {
                     return Some((i as Int, j as Int));
@@ -154,8 +162,8 @@ impl Maze {
     fn get_tile(&self, position: Position) -> Option<Tile> {
         if position.0 < 0
             || position.1 < 0
-            || position.0 >= self.rows as Int
-            || position.1 >= self.columns as Int
+            || position.0 >= self.columns as Int
+            || position.1 >= self.rows as Int
         {
             return None;
         }
@@ -178,11 +186,49 @@ impl Maze {
         new_distance
     }
 
+    fn get_area_enclosed_by_visited_tiles(&self) -> f64 {
+        // We use the Shoelace formule to find this area
+        // See: https://en.wikipedia.org/wiki/Shoelace_formula
+
+        let circular_visited: Vec<Position> = self
+            .visited
+            .iter()
+            .chain(vec![self.visited.first().unwrap()])
+            .cloned()
+            .collect();
+        let area: f64 = circular_visited
+            .windows(2)
+            .map(|v| {
+                if let [a, b] = v {
+                    (a.0 * b.1 - b.0 * a.1) as f64
+                } else {
+                    panic!("This should never happen")
+                }
+            })
+            .sum::<f64>()
+            / 2.0;
+        area
+    }
+
+    fn get_interior_points(&self) -> Int {
+        // Use Pick's theorem to find the interior points from the area and boundary points
+        // Let i be the number of integer points interior to the polygon
+        // Let b be the number of integer points on its boundary
+        // Then the area A of this polygon is: A = i + b/2 - 1
+        // So then i = A - b/2 + 1
+        let area = self.get_area_enclosed_by_visited_tiles();
+        let boundary_points = self.visited.len();
+        let interior_points = area - (boundary_points as f64 / 2.0) + 1.0;
+        interior_points as Int
+    }
+
     fn print_visit_distance_to_start(position: &Position, tile: &Tile, distance: i32) {
-        println!(
-            "[{}, {}]: {:?} (distance: {})",
-            position.0, position.1, tile, distance
-        );
+        if PRINT_DISTANCES {
+            println!(
+                "[{}, {}]: {:?} (distance: {})",
+                position.0, position.1, tile, distance
+            );
+        }
     }
 
     fn find_longest_distance_from_animal_starting_position(&mut self) -> Int {
@@ -239,6 +285,19 @@ impl Maze {
             }
         }
     }
+
+    fn test_interior_points(input: Vec<&str>, expected_interior_points: Int) {
+        let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
+        let _ = maze.find_longest_distance_from_animal_starting_position();
+        let interior_points = maze.get_interior_points();
+        assert_eq!(
+            expected_interior_points, interior_points,
+            "Test case failed: this value should equal {}.",
+            expected_interior_points
+        );
+        dbg!(maze.to_strings);
+        dbg!(interior_points);
+    }
 }
 
 impl std::fmt::Debug for Maze {
@@ -253,11 +312,18 @@ impl std::fmt::Debug for Maze {
                     .collect()
             })
             .collect();
+        let visited_str: String = self
+            .visited
+            .iter()
+            .map(|p| format!("[{}, {}]", p.0, p.1).to_string())
+            .collect::<Vec<String>>()
+            .join(" -> ");
 
         f.debug_struct("Maze")
             .field("to_strings", &self.to_strings)
             .field("maze", &self.maze)
             .field("distances", &distance_str)
+            .field("visited", &visited_str)
             .field("rows", &self.rows)
             .field("columns", &self.columns)
             .finish()
@@ -266,7 +332,7 @@ impl std::fmt::Debug for Maze {
 
 fn main() {
     println!("Hello, World! from src/day10.rs!");
-    // Example
+    // Part 1 - Example
     let input: Vec<String> = vec!["..F7.", ".FJ|.", "SJ.L7", "|F--J", "LJ..."]
         .iter()
         .map(|s| s.to_string())
@@ -276,9 +342,57 @@ fn main() {
     dbg!(&maze);
     dbg!(distance);
     assert_eq!(8, distance, "This example distance should always be 8.");
+    let area = maze.get_area_enclosed_by_visited_tiles();
+    let interior_points = maze.get_interior_points();
+
+    // Part 2 - example
+    let example_input_4_i_a: Vec<&str> = vec![
+        "...........",
+        ".S-------7.",
+        ".|F-----7|.",
+        ".||.....||.",
+        ".||.....||.",
+        ".|L-7.F-J|.",
+        ".|..|.|..|.",
+        ".L--J.L--J.",
+        "...........",
+    ];
+    Maze::test_interior_points(example_input_4_i_a, 4);
+    let example_input_4_i_b: Vec<&str> = vec![
+        "..........",
+        ".S------7.",
+        ".|F----7|.",
+        ".||OOOO||.",
+        ".||OOOO||.",
+        ".|L-7F-J|.",
+        ".|II||II|.",
+        ".L--JL--J.",
+        "..........",
+    ];
+    Maze::test_interior_points(example_input_4_i_b, 4);
+    let example_input_8_i: Vec<&str> = vec![
+        "OF----7F7F7F7F-7OOOO",
+        "O|F--7||||||||FJOOOO",
+        "O||OFJ||||||||L7OOOO",
+        "FJL7L7LJLJ||LJIL-7OO",
+        "L--JOL7IIILJS7F-7L7O",
+        "OOOOF-JIIF7FJ|L7L7L7",
+        "OOOOL7IF7||L7|IL7L7|",
+        "OOOOO|FJLJ|FJ|F7|OLJ",
+        "OOOOFJL-7O||O||||OOO",
+        "OOOOL---JOLJOLJLJOOO",
+    ];
+    Maze::test_interior_points(example_input_8_i, 8);
+
     // Part 1
-    let input = aoc_input::get(2023, 10);
-    let mut maze = Maze::from_strings(&input);
-    let distance = maze.find_longest_distance_from_animal_starting_position();
-    dbg!(distance);
+    if RUN_PART_1 {
+        let input = aoc_input::get(2023, 10);
+        let mut maze = Maze::from_strings(&input);
+        let distance = maze.find_longest_distance_from_animal_starting_position();
+        dbg!(distance);
+    }
+
+    // Part 2
+    //let interior_points = maze.get_interior_points();
+    //dbg!(interior_points);
 }

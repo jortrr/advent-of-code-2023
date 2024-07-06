@@ -6,10 +6,22 @@ struct Position {
     y: Int,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 enum Data {
     EmptySpace,
     Galaxy(Option<Position>),
+}
+
+impl std::fmt::Debug for Data {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::EmptySpace => write!(f, "EmptySpace"),
+            Self::Galaxy(arg0) => match arg0 {
+                Some(p) => write!(f, "Galaxy({}, {})", p.x, p.y),
+                None => write!(f, "Galaxy"),
+            },
+        }
+    }
 }
 
 impl Data {
@@ -60,12 +72,14 @@ impl Image {
             .collect();
         let rows = input.len() as Int;
         let columns = input.first().unwrap().len() as Int;
-        Image {
+        let mut image = Image {
             to_strings: input.clone(),
             data,
             rows,
             columns,
-        }
+        };
+        image.assign_positions_to_galaxies();
+        image
     }
 
     fn find_empty_rows(grid: &Grid<Data>) -> Vec<Int> {
@@ -91,28 +105,29 @@ impl Image {
         let empty_columns: Vec<Int> =
             Image::shift_values_by_index(&Image::find_empty_rows(&data_transposed));
 
-        let mut data = self.data.clone();
+        let mut input = self.to_strings.clone();
         for i in empty_rows {
-            data.insert(i as usize, vec![Data::EmptySpace; self.columns as usize]);
+            input.insert(
+                i as usize,
+                vec!['.'; self.columns as usize].into_iter().collect(),
+            );
         }
         for i in empty_columns {
-            for row in 0..data.len() {
-                data[row].insert(i as usize, Data::EmptySpace);
+            for row in 0..input.len() {
+                input[row].insert(i as usize, '.');
             }
         }
 
-        let rows = data.len() as i32;
-        let columns = data.first().unwrap().len() as i32;
-        let to_strings: Vec<String> = data
-            .iter()
-            .map(|r| r.iter().map(|d| d.to_char()).collect())
-            .collect();
+        Image::from_strings(&input)
+    }
 
-        Image {
-            to_strings,
-            data,
-            rows,
-            columns,
+    fn assign_positions_to_galaxies(&mut self) {
+        for x in 0..self.columns {
+            for y in 0..self.rows {
+                if let Data::Galaxy(position) = &mut self.data[y as usize][x as usize] {
+                    *position = Some(Position { x, y })
+                }
+            }
         }
     }
 
@@ -123,17 +138,37 @@ impl Image {
             "Rows compare failed: '{}' != '{}",
             expected.rows, actual.rows
         );
+        assert_eq!(expected.data.len(), expected.rows as usize);
+        assert_eq!(actual.data.len(), actual.rows as usize);
         dbg!(expected.columns);
         assert_eq!(
             expected.columns, actual.columns,
             "Columns compare failed: '{}' != '{}",
             expected.columns, actual.columns
         );
+        assert_eq!(
+            expected.data.first().unwrap().len(),
+            expected.columns as usize
+        );
+        assert_eq!(actual.data.first().unwrap().len(), actual.columns as usize);
         dbg!(&expected.to_strings);
         assert_eq!(
             expected.to_strings, actual.to_strings,
             "ToStrings compare failed."
         );
+        for y in 0..actual.rows {
+            for x in 0..actual.columns {
+                let (x, y) = (x as usize, y as usize);
+                //dbg!((x, y));
+                let expected_data = &expected.data[y][x];
+                let actual_data = &actual.data[y][x];
+                assert_eq!(
+                    expected_data, actual_data,
+                    "At data({}, {}): expected '{:?}' != actual '{:?}'.",
+                    x, y, expected_data, actual_data
+                );
+            }
+        }
         assert_eq!(expected.data, actual.data, "Data compare failed.");
         let data_comparison = "expected.data == actual.data";
         dbg!(data_comparison);

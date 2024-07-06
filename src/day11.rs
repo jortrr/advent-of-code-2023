@@ -159,6 +159,23 @@ impl Image {
         }
     }
 
+    fn sum_of_distances_between_all_galaxies(&self) -> Int {
+        let mut sum = 0;
+        for i in 0..self.number_of_galaxies {
+            for j in 0..self.number_of_galaxies {
+                if i == j {
+                    // Skip compare with self
+                    continue;
+                }
+                sum += Image::distance_between_galaxies(
+                    &self.galaxies[i as usize],
+                    &self.galaxies[j as usize],
+                );
+            }
+        }
+        sum / 2
+    }
+
     fn test_image(expected: &Image, actual: &Image) -> bool {
         dbg!(expected.rows);
         assert_eq!(
@@ -216,9 +233,9 @@ impl Image {
     }
 
     /// Test the distance between Galaxy a and Galaxy b
-    fn test_distance(&self, a: usize, b: usize, expected_distance: Int) {
-        let a = a - 1;
-        let b = b - 1;
+    fn test_distance(&self, galaxy_a: usize, galaxy_b: usize, expected_distance: Int) {
+        let a = galaxy_a - 1;
+        let b = galaxy_b - 1;
         assert!(a < self.number_of_galaxies as usize);
         assert!(b < self.number_of_galaxies as usize);
         let distance = Image::distance_between_galaxies(&self.galaxies[a], &self.galaxies[b]);
@@ -231,6 +248,16 @@ impl Image {
             b + 1,
             expected_distance
         )
+    }
+
+    fn test_sum_of_distances(&self, expected_sum_of_distances: Int) {
+        let sum_of_distances = self.sum_of_distances_between_all_galaxies();
+        dbg!(sum_of_distances);
+        assert_eq!(
+            expected_sum_of_distances, sum_of_distances,
+            "Test case failed: this value should always equal '{}'.",
+            expected_sum_of_distances
+        );
     }
 }
 
@@ -268,4 +295,5 @@ fn main() {
     image.test_distance(1, 7, 15);
     image.test_distance(3, 6, 17);
     image.test_distance(8, 9, 5);
+    image.test_sum_of_distances(374);
 }

@@ -1,5 +1,7 @@
 type Int = i32;
 
+static RUN_PART_1: bool = false;
+
 struct Record {
     springs: String,
     damaged_spring_groups: Vec<Int>,
@@ -84,6 +86,18 @@ impl Record {
         result.generate_arrangements();
         result
     }
+
+    fn test(input: &str, expected_arrangements: Int) {
+        let mut record = Record::from_string(input);
+        record.generate_arrangements();
+        let actual_arrangements = record.valid_arrangements.len() as Int;
+        dbg!((input, actual_arrangements));
+        assert_eq!(
+            expected_arrangements, actual_arrangements,
+            "Test case failed: this value should always equal '{}'.",
+            expected_arrangements
+        );
+    }
 }
 
 fn main() {
@@ -103,13 +117,22 @@ fn main() {
     dbg!(sum);
     assert_eq!(21, sum, "This example value is always equal to 21.");
 
+    Record::test("???.### 1,1,3", 1);
+    Record::test(".??..??...?##. 1,1,3", 4);
+    Record::test("?#?#?#?#?#?#?#? 1,3,1,6", 1);
+    Record::test("????.#...#... 4,1,1", 1);
+    Record::test("????.######..#####. 1,6,5", 4);
+    Record::test("?###???????? 3,2,1", 10);
+
     // Part 2 - Example
     //let sum: Int =
     //Record::sum_arrangements(example_input.iter().map(|s| s.to_string()).collect(), true);
     //dbg!(sum);
 
     // Part 1
-    let sum = Record::sum_arrangements(aoc_input::get(2023, 12), false);
-    dbg!(sum);
-    assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
+    if RUN_PART_1 {
+        let sum = Record::sum_arrangements(aoc_input::get(2023, 12), false);
+        dbg!(sum);
+        assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
+    }
 }

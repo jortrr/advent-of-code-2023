@@ -59,13 +59,30 @@ impl Record {
             .collect();
     }
 
-    fn sum_arrangements(input: Vec<String>) -> Int {
+    fn sum_arrangements(input: Vec<String>, expand: bool) -> Int {
         input
             .iter()
             .filter(|&s| !s.is_empty())
             .map(|s| Record::from_string(s))
+            .map(|r| if expand { r.expand() } else { r })
             .map(|r| r.valid_arrangements.len() as Int)
             .sum()
+    }
+
+    fn expand(&self) -> Record {
+        let mut result = Record {
+            springs: String::new(),
+            damaged_spring_groups: Vec::new(),
+            valid_arrangements: Vec::new(),
+        };
+        let springs = self.springs.clone();
+        let groups = self.damaged_spring_groups.clone();
+        for _ in 0..5 {
+            result.springs.push_str(&format!("?{}", springs));
+            result.damaged_spring_groups.append(&mut groups.clone());
+        }
+        result.generate_arrangements();
+        result
     }
 }
 
@@ -81,11 +98,18 @@ fn main() {
         "????.######..#####. 1,6,5",
         "?###???????? 3,2,1",
     ];
-    let sum: Int = Record::sum_arrangements(example_input.iter().map(|s| s.to_string()).collect());
+    let sum: Int =
+        Record::sum_arrangements(example_input.iter().map(|s| s.to_string()).collect(), false);
     dbg!(sum);
     assert_eq!(21, sum, "This example value is always equal to 21.");
 
+    // Part 2 - Example
+    //let sum: Int =
+    //Record::sum_arrangements(example_input.iter().map(|s| s.to_string()).collect(), true);
+    //dbg!(sum);
+
     // Part 1
-    let sum = Record::sum_arrangements(aoc_input::get(2023, 12));
+    let sum = Record::sum_arrangements(aoc_input::get(2023, 12), false);
     dbg!(sum);
+    assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
 }

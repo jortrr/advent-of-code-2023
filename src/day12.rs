@@ -40,22 +40,20 @@ impl Record {
     }
 
     fn expand(&self) -> Record {
-        let mut result = Record {
-            springs: String::new(),
-            damaged_spring_groups: Vec::new(),
-        };
-        let springs = self.springs.clone();
-        let groups = self.damaged_spring_groups.clone();
-        for _ in 0..5 {
-            result.springs.push_str(&format!("?{}", springs));
-            result.damaged_spring_groups.append(&mut groups.clone());
+        Record {
+            springs: vec![&self.springs]
+                .repeat(5)
+                .iter()
+                .map(|s| s.to_string())
+                .collect::<Vec<String>>()
+                .join("?"),
+            damaged_spring_groups: self.damaged_spring_groups.repeat(5),
         }
-        result
     }
 
     fn test(input: &str, expected_arrangements: Int) {
         let record = Record::from_string(input);
-        let actual_arrangements = solve(&record.springs, &record.damaged_spring_groups, 0, "");
+        let actual_arrangements = record.solve();
         dbg!((input, actual_arrangements));
         assert_eq!(
             expected_arrangements, actual_arrangements,
@@ -66,7 +64,7 @@ impl Record {
 
     fn test_expanded(input: &str, expected_arrangements: Int) {
         let record = Record::from_string(input).expand();
-        let actual_arrangements = solve(&record.springs, &record.damaged_spring_groups, 0, "");
+        let actual_arrangements = record.solve();
         dbg!((input, actual_arrangements));
         assert_eq!(
             expected_arrangements, actual_arrangements,
@@ -74,19 +72,6 @@ impl Record {
             expected_arrangements
         );
     }
-}
-
-fn replace_first_char(s: &str, c: char) -> String {
-    // Convert the String to a Vec<char> to manipulate individual characters
-    let mut chars: Vec<char> = s.chars().collect();
-
-    // Replace the first character
-    if !chars.is_empty() {
-        chars[0] = c;
-    }
-
-    // Convert the Vec<char> back to a String
-    chars.into_iter().collect()
 }
 
 fn print_valid(indent: &str, thrown_away: &str, record: &str) {
@@ -123,7 +108,7 @@ fn solve(record: &str, groups: &Vec<Int>, depth: usize, thrown_away: &str) -> In
         return solve(&format!("{}.", record), groups, depth, thrown_away);
     }
     let indent = "-".repeat(depth);
-    if DEBUG || depth == 0 {
+    if DEBUG {
         println!(
             "{}* solve(\"{}\", \"{}\", {:?}, {})",
             indent, thrown_away, record, groups, depth

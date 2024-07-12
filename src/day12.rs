@@ -30,8 +30,8 @@ impl Record {
 
     fn solve(&self, memo: &mut Memo) -> Int {
         solve(
-            &(self.springs.to_string() + "."),
-            &self.damaged_spring_groups,
+            (self.springs.to_string() + ".").clone(),
+            self.damaged_spring_groups.clone(),
             memo,
         )
     }
@@ -82,33 +82,25 @@ impl Record {
 ///
 /// # Notes
 /// We will use dynamic programming to solve this problem.
-fn solve(record: &str, groups: &Vec<Int>, memo: &mut Memo) -> Int {
-    let key: Key = (record.to_string(), groups.to_vec());
+fn solve(record: String, groups: Vec<Int>, memo: &mut Memo) -> Int {
+    let key: Key = (record.clone(), groups.clone());
     if memo.contains_key(&key) {
         return *memo.get(&key).unwrap();
     }
     let mut result = 0;
     if groups.is_empty() {
-        if record.chars().all(|c| c == '.' || c == '?') || record.is_empty() {
+        if !record.contains("#") || record.is_empty() {
             result = 1;
-        } else {
-            result = 0;
         }
-    } else if record.is_empty() {
-        result = 0;
     } else {
         for (i, c) in record.chars().enumerate() {
             match c {
                 '.' => {
                     if i == 0 {
-                        result = solve(&record[1..], groups, memo);
+                        result = solve(record[1..].to_string(), groups, memo);
                         break;
                     } else if i as Int == *groups.first().unwrap() {
-                        result = solve(
-                            &record[i..],
-                            &groups.iter().skip(1).cloned().collect(),
-                            memo,
-                        );
+                        result = solve(record[i..].to_string(), groups[1..].to_vec(), memo);
                         break;
                     } else {
                         result = 0;
@@ -121,7 +113,7 @@ fn solve(record: &str, groups: &Vec<Int>, memo: &mut Memo) -> Int {
                 '?' => {
                     let a = record.replacen("?", ".", 1);
                     let b = record.replacen("?", "#", 1);
-                    result = solve(&a, groups, memo) + solve(&b, groups, memo);
+                    result = solve(a, groups.clone(), memo) + solve(b, groups, memo);
                     break;
                 }
                 _ => panic!("Invalid char '{}' in record.", c),
@@ -172,7 +164,7 @@ fn main() {
             .map(|s| Record::from_string(s).solve(&mut memo))
             .sum();
         dbg!(sum);
-        //assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
+        assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
     }
 
     // Part 2
@@ -183,5 +175,9 @@ fn main() {
             .map(|s| Record::from_string(s).expand().solve(&mut memo))
             .sum();
         dbg!(sum);
+        assert_eq!(
+            3920437278260, sum,
+            "This AOC value is always equal to 3920437278260 for me."
+        )
     }
 }

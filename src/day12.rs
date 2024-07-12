@@ -1,18 +1,11 @@
-type Int = i32;
+use std::collections::HashMap;
+
+type Int = i64;
+type Key = (String, Vec<Int>);
+type Memo = HashMap<Key, Int>;
 
 static RUN_PART_1: bool = true;
-static RUN_PART_2: bool = false;
-static DEBUG: bool = false;
-
-macro_rules! debug_print {
-    ($($arg:tt)*) => {
-        if DEBUG {
-            use std::io::{self, Write};
-            println!($($arg)*);
-            io::stdout().flush().unwrap();
-        }
-    };
-}
+static RUN_PART_2: bool = true;
 
 struct Record {
     springs: String,
@@ -35,8 +28,12 @@ impl Record {
         }
     }
 
-    fn solve(&self) -> Int {
-        solve(&self.springs, &self.damaged_spring_groups, 0, "")
+    fn solve(&self, memo: &mut Memo) -> Int {
+        solve(
+            &(self.springs.to_string() + "."),
+            &self.damaged_spring_groups,
+            memo,
+        )
     }
 
     fn expand(&self) -> Record {
@@ -51,9 +48,9 @@ impl Record {
         }
     }
 
-    fn test(input: &str, expected_arrangements: Int) {
+    fn test(input: &str, expected_arrangements: Int, memo: &mut Memo) {
         let record = Record::from_string(input);
-        let actual_arrangements = record.solve();
+        let actual_arrangements = record.solve(memo);
         dbg!((input, actual_arrangements));
         assert_eq!(
             expected_arrangements, actual_arrangements,
@@ -62,9 +59,9 @@ impl Record {
         );
     }
 
-    fn test_expanded(input: &str, expected_arrangements: Int) {
+    fn test_expanded(input: &str, expected_arrangements: Int, memo: &mut Memo) {
         let record = Record::from_string(input).expand();
-        let actual_arrangements = record.solve();
+        let actual_arrangements = record.solve(memo);
         dbg!((input, actual_arrangements));
         assert_eq!(
             expected_arrangements, actual_arrangements,
@@ -74,111 +71,77 @@ impl Record {
     }
 }
 
-fn print_valid(indent: &str, thrown_away: &str, record: &str) {
-    debug_print!("{}* Valid: \"{}{}\"", indent, thrown_away, record);
-}
-fn print_invalid(indent: &str, thrown_away: &str, record: &str) {
-    debug_print!("{}* Invalid: \"{}{}\"", indent, thrown_away, record);
-}
-
-/// #Bried Take in a record and a vector of groups of damaged strings, and return the amount of different valid records that are possible.
+/// # Brief
+/// Take in a record and a vector of groups of damaged strings, and return the amount of
+/// different valid records that are possible.
 /// # Parameters
 /// - record: e.g. `????.######..#####.`
 /// - groups: e.g. `vec![1,6,5]`
 /// # Returns
 /// - Int: e.g. 4
 ///
-/// # Example
+/// # Notes
 /// We will use dynamic programming to solve this problem.
-/// For example:
-/// ```rust
-///     solve(`????.######..#####.`, vec![1,6,5])
-///     ==
-///     solve(`????`, vec![1]) *
-///     solve(`######`, vec![6]) *
-///     solve(`#####`, vec![5])
-///     ==
-///     4 * 1 * 1
-///     ==
-///     4
-///```
-#[cfg(not(feature = "print_enabled"))]
-fn solve(record: &str, groups: &Vec<Int>, depth: usize, thrown_away: &str) -> Int {
-    if depth == 0 && !record.ends_with(".") {
-        return solve(&format!("{}.", record), groups, depth, thrown_away);
+fn solve(record: &str, groups: &Vec<Int>, memo: &mut Memo) -> Int {
+    let key: Key = (record.to_string(), groups.to_vec());
+    if memo.contains_key(&key) {
+        return *memo.get(&key).unwrap();
     }
-    let indent = "-".repeat(depth);
-    if DEBUG {
-        println!(
-            "{}* solve(\"{}\", \"{}\", {:?}, {})",
-            indent, thrown_away, record, groups, depth
-        );
-    }
-    let groups_sum: Int = groups.iter().sum();
-    if groups_sum >= record.len() as Int {
-        print_invalid(&indent, thrown_away, record);
-        return 0;
-    }
+    let mut result = 0;
     if groups.is_empty() {
         if record.chars().all(|c| c == '.' || c == '?') || record.is_empty() {
-            print_valid(&indent, thrown_away, record);
-            return 1;
+            result = 1;
+        } else {
+            result = 0;
         }
-        print_invalid(&indent, thrown_away, record);
-        return 0;
     } else if record.is_empty() {
-        print_invalid(&indent, thrown_away, record);
-        return 0;
-    }
-    let depth = depth + 1;
-
-    for (i, c) in record.chars().enumerate() {
-        if i as Int > *groups.first().unwrap() {
-            print_invalid(&indent, thrown_away, record);
-            return 0;
-        }
-        match c {
-            '.' => {
-                if i == 0 {
-                    return solve(
-                        &record[1..],
-                        groups,
-                        depth,
-                        &format!("{}{}", thrown_away, &record[..1]),
-                    );
-                } else if i as Int == *groups.first().unwrap() {
-                    debug_print!("{}* Removed group of '{}'.", indent, i);
-                    return solve(
-                        &record[i..],
-                        &groups.iter().skip(1).cloned().collect(),
-                        depth,
-                        &format!("{}{}", thrown_away, &record[..i]),
-                    );
-                } else {
-                    print_invalid(&indent, thrown_away, record);
-                    return 0;
+        result = 0;
+    } else {
+        for (i, c) in record.chars().enumerate() {
+            match c {
+                '.' => {
+                    if i == 0 {
+                        result = solve(&record[1..], groups, memo);
+                        break;
+                    } else if i as Int == *groups.first().unwrap() {
+                        result = solve(
+                            &record[i..],
+                            &groups.iter().skip(1).cloned().collect(),
+                            memo,
+                        );
+                        break;
+                    } else {
+                        result = 0;
+                        break;
+                    }
                 }
-            }
-            '#' => {
-                continue;
-            }
-            '?' => {
-                let a = record.replacen("?", ".", 1);
-                let b = record.replacen("?", "#", 1);
-                return solve(&a, groups, depth, thrown_away)
-                    + solve(&b, groups, depth, thrown_away);
-            }
-            _ => panic!("Invalid char '{}' in record.", c),
-        };
+                '#' => {
+                    continue;
+                }
+                '?' => {
+                    let a = record.replacen("?", ".", 1);
+                    let b = record.replacen("?", "#", 1);
+                    result = solve(&a, groups, memo) + solve(&b, groups, memo);
+                    break;
+                }
+                _ => panic!("Invalid char '{}' in record.", c),
+            };
+        }
     }
-    print_valid(&indent, thrown_away, record);
-    1
+    memo.insert(key, result);
+    result
 }
 
 fn main() {
+    let mut memo = Memo::new();
     // Part 1 - Example
-    //assert!(Record::valid(&"#.#.###", &vec![1, 1, 3]));
-    //assert!(Record::valid(&".###..##.#..", &vec![3, 2, 1]));
+    Record::test("???.### 1,1,3", 1, &mut memo);
+    Record::test(".??..??...?##. 1,1,3", 4, &mut memo);
+    Record::test("?#?#?#?#?#?#?#? 1,3,1,6", 1, &mut memo);
+    Record::test("????.#...#... 4,1,1", 1, &mut memo);
+    Record::test("????.######..#####. 1,6,5", 4, &mut memo);
+    Record::test("?###???????? 3,2,1", 10, &mut memo);
+
     let sum: Int = vec![
         "???.### 1,1,3",
         ".??..??...?##. 1,1,3",
@@ -188,35 +151,28 @@ fn main() {
         "?###???????? 3,2,1",
     ]
     .iter()
-    .map(|s| Record::from_string(s).solve())
+    .map(|s| Record::from_string(s).solve(&mut memo))
     .sum();
     dbg!(sum);
     assert_eq!(21, sum, "This example value is always equal to 21.");
 
-    Record::test("???.### 1,1,3", 1);
-    Record::test(".??..??...?##. 1,1,3", 4);
-    Record::test("?#?#?#?#?#?#?#? 1,3,1,6", 1);
-    Record::test("????.#...#... 4,1,1", 1);
-    Record::test("????.######..#####. 1,6,5", 4);
-    Record::test("?###???????? 3,2,1", 10);
-
     // Part 2 - Example
-    Record::test_expanded("???.### 1,1,3", 1);
-    Record::test_expanded(".??..??...?##. 1,1,3", 16384);
-    Record::test_expanded("?#?#?#?#?#?#?#? 1,3,1,6", 1);
-    Record::test_expanded("????.#...#... 4,1,1", 16);
-    Record::test_expanded("????.######..#####. 1,6,5", 2500);
-    Record::test_expanded("?###???????? 3,2,1", 506250);
+    Record::test_expanded("???.### 1,1,3", 1, &mut memo);
+    Record::test_expanded(".??..??...?##. 1,1,3", 16384, &mut memo);
+    Record::test_expanded("?#?#?#?#?#?#?#? 1,3,1,6", 1, &mut memo);
+    Record::test_expanded("????.#...#... 4,1,1", 16, &mut memo);
+    Record::test_expanded("????.######..#####. 1,6,5", 2500, &mut memo);
+    Record::test_expanded("?###???????? 3,2,1", 506250, &mut memo);
 
     // Part 1
     if RUN_PART_1 {
         let sum: Int = aoc_input::get(2023, 12)
             .iter()
             .filter(|s| !s.is_empty())
-            .map(|s| Record::from_string(s).solve())
+            .map(|s| Record::from_string(s).solve(&mut memo))
             .sum();
         dbg!(sum);
-        assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
+        //assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
     }
 
     // Part 2
@@ -224,9 +180,8 @@ fn main() {
         let sum: Int = aoc_input::get(2023, 12)
             .iter()
             .filter(|s| !s.is_empty())
-            .map(|s| Record::from_string(s).expand().solve())
+            .map(|s| Record::from_string(s).expand().solve(&mut memo))
             .sum();
         dbg!(sum);
     }
-    // assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
 }

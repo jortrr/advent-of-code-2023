@@ -1,8 +1,22 @@
+use std::fmt::Debug;
+
+static RUN_PART_2: bool = true;
+
 type Rows = (usize, usize);
 
+#[derive(Clone)]
 enum Mirror {
     Row(Rows),
     Columns(Rows),
+}
+
+impl std::fmt::Debug for Mirror {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Row(arg0) => write!(f, "Mirror::Row({},{})", arg0.0, arg0.1),
+            Self::Columns(arg0) => write!(f, "Mirror::Column({},{})", arg0.0, arg0.1),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -20,17 +34,73 @@ impl std::fmt::Debug for Smudge {
     }
 }
 
-type SmudgeResult = (Smudge, usize);
 type Line = Vec<char>;
 type Lines = Vec<Line>;
 type Int = i32;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Pattern {
     rows: Lines,
     columns: Lines,
     number_of_rows: usize,
     number_of_columns: usize,
+    mirror: Option<Mirror>,
+    smudge: Option<Smudge>,
+    summary: Option<usize>,
+}
+
+impl Debug for Pattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut rows: Vec<String> = self
+            .rows
+            .iter()
+            .map(|v| v.iter().collect::<String>())
+            .collect();
+        match self.mirror {
+            Some(Mirror::Row(i)) => {
+                for j in 0..self.number_of_rows {
+                    if j == i.0 || j == i.1 {
+                        rows[j].push('M');
+                    } else {
+                        rows[j].push(' ');
+                    }
+                }
+            }
+            Some(Mirror::Columns(i)) => {
+                let mut new_row: Vec<char> = vec![' '; self.number_of_columns];
+                new_row[i.0] = 'M';
+                new_row[i.1] = 'M';
+                rows.push(new_row.iter().collect());
+            }
+            _ => (),
+        }
+        match self.smudge {
+            Some(Smudge::Row(i)) => {
+                for j in 0..self.number_of_rows {
+                    if j == i.0 || j == i.1 {
+                        rows[j].push('S');
+                    } else {
+                        rows[j].push(' ');
+                    }
+                }
+            }
+            Some(Smudge::Columns(i)) => {
+                let mut new_row: Vec<char> = vec![' '; self.number_of_columns];
+                new_row[i.0] = 'S';
+                new_row[i.1] = 'S';
+                rows.push(new_row.iter().collect());
+            }
+            _ => (),
+        }
+        f.debug_struct("Pattern")
+            .field("Map", &rows)
+            .field("Summary", &self.summary.unwrap_or(0))
+            .field(
+                "Dimensions",
+                &format!("{}x{}", self.number_of_rows, self.number_of_columns),
+            )
+            .finish()
+    }
 }
 
 impl Pattern {
@@ -61,6 +131,9 @@ impl Pattern {
             columns,
             number_of_rows,
             number_of_columns,
+            mirror: None,
+            smudge: None,
+            summary: None,
         }
     }
 
@@ -149,6 +222,8 @@ impl Pattern {
                         new_pattern.columns[j][i] = new_pattern.rows[i][j];
                     }
                 }
+                new_pattern.smudge = Some(smudge.clone());
+                new_pattern.summarize();
                 return new_pattern;
             }
             Smudge::Columns(rows) => {
@@ -159,44 +234,53 @@ impl Pattern {
                         new_pattern.rows[i][j] = new_pattern.columns[j][i];
                     }
                 }
+                new_pattern.smudge = Some(smudge.clone());
+                new_pattern.summarize();
                 return new_pattern;
             }
             _ => panic!("Invalid smudge on pattern."),
         }
     }
 
-    fn find_valid_smudges(&self) -> Vec<SmudgeResult> {
-        let smudges: Vec<SmudgeResult> = self
+    fn find_valid_smudges(&mut self) -> (Pattern, Vec<Pattern>) {
+        let sum = self.summarize().unwrap();
+        let smudges: Vec<Pattern> = self
             .find_smudges()
             .iter()
-            .map(|s| (s, self.desmudge(s).summarize()))
-            .filter(|(_, o)| o.is_some())
-            .map(|(s, o)| (s.clone(), o.unwrap()))
+            .map(|s| self.desmudge(s))
             .collect();
-        smudges
+
+        if smudges.iter().all(|s| s.summary.unwrap() == sum) {
+            dbg!(&self);
+            dbg!(&smudges);
+            panic!("No new mirror could be found!");
+        }
+
+        (self.clone(), smudges)
     }
 
-    fn get_mirror(&self) -> Option<Mirror> {
-        let horizontal_mirror = Pattern::find_mirror_rows(&self.rows);
-        if let Some(mirror) = horizontal_mirror {
-            return Some(Mirror::Row(mirror));
+    fn get_mirror(&mut self) {
+        if let Some(mirror) = Pattern::find_mirror_rows(&self.rows) {
+            self.mirror = Some(Mirror::Row(mirror));
+        } else if let Some(mirror) = Pattern::find_mirror_rows(&self.columns) {
+            self.mirror = Some(Mirror::Columns(mirror));
+        } else {
+            self.mirror = None;
         }
-        let vertical_mirror = Pattern::find_mirror_rows(&self.columns);
-        if let Some(mirror) = vertical_mirror {
-            return Some(Mirror::Columns(mirror));
-        }
-        None
     }
 
-    fn summarize(&self) -> Option<usize> {
-        let mirror = self.get_mirror();
-        if let Some(Mirror::Row(mirror)) = mirror {
-            return Some(mirror.1 * 100);
+    fn summarize(&mut self) -> Option<usize> {
+        self.get_mirror();
+        if let Some(Mirror::Row(mirror)) = self.mirror {
+            self.summary = Some(mirror.1 * 100);
+            return self.summary;
         }
-        if let Some(Mirror::Columns(mirror)) = mirror {
-            return Some(mirror.1);
+        if let Some(Mirror::Columns(mirror)) = self.mirror {
+            self.summary = Some(mirror.1);
+            return self.summary;
         }
-        None
+        self.summary = None;
+        self.summary
     }
 }
 
@@ -232,28 +316,39 @@ fn main() {
     .iter()
     .map(|s| s.to_string())
     .collect();
-    let example_patterns = Pattern::from_vec_strings(example_input);
+    let mut example_patterns = Pattern::from_vec_strings(example_input);
     //dbg!(&example_patterns);
     test(2, example_patterns.len());
     test(5, example_patterns[0].summarize().unwrap());
     test(400, example_patterns[1].summarize().unwrap());
     let sum: usize = example_patterns
-        .iter()
+        .iter_mut()
         .map(|p| p.summarize().unwrap())
         .sum();
     test(405, sum);
 
     // Part 2 - Example
-    let smudges_0 = example_patterns[0].find_valid_smudges();
-    test((Smudge::Row((0, 5)), 300), smudges_0[0].clone());
+    let mut smudges_0 = example_patterns[0].find_valid_smudges();
+    test(300, smudges_0.1[0].summarize().unwrap());
 
-    let smudges_1 = example_patterns[1].find_valid_smudges();
-    test((Smudge::Row((0, 1)), 100), smudges_1[0].clone());
+    dbg!(smudges_0);
+
+    let mut smudges_1 = example_patterns[1].find_valid_smudges();
+    test(100, smudges_1.1[0].summarize().unwrap());
 
     // Part 1
     let sum: usize = Pattern::from_vec_strings(aoc_input::get(2023, 13))
-        .iter()
+        .iter_mut()
         .map(|p| p.summarize().unwrap())
         .sum();
     test(30535, sum);
+
+    // Part 2
+    if RUN_PART_2 {
+        let x: Vec<_> = Pattern::from_vec_strings(aoc_input::get(2023, 13))
+            .iter_mut()
+            .map(|p| p.find_valid_smudges())
+            .collect();
+        dbg!(x);
+    }
 }

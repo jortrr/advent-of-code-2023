@@ -66,14 +66,14 @@ impl Pattern {
             if a == b {
                 let mut found = true;
                 for j in 1..lines.len() - k {
+                    if i < j {
+                        return Some((i, k));
+                    }
                     let c = &lines[i - j];
                     let d = &lines[k + j];
                     if c != d {
                         found = false;
                         break;
-                    }
-                    if i - j == 0 {
-                        return Some((i, k));
                     }
                 }
                 if found {
@@ -136,4 +136,11 @@ fn main() {
     test(400, example_patterns[1].summarize());
     let sum: usize = example_patterns.iter().map(|p| p.summarize()).sum();
     test(405, sum);
+
+    // Part 1
+    let sum: usize = Pattern::from_vec_strings(aoc_input::get(2023, 13))
+        .iter()
+        .map(|p| p.summarize())
+        .sum();
+    test(30535, sum);
 }

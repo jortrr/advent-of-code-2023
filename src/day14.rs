@@ -215,6 +215,7 @@ impl Platform {
     fn from_strings(input: Vec<String>) -> Platform {
         let grid: Grid<Terrain> = input
             .iter()
+            .filter(|s| !s.is_empty())
             .map(|s| s.chars().map(|c| Terrain::from_char(c)).collect())
             .collect();
         let rows = grid.len();
@@ -296,4 +297,11 @@ fn main() {
         }
     }
     test(136, example_total_load);
+
+    // Part 1
+    let mut platform = Platform::from_strings(aoc_input::get(2023, 14));
+    platform.tilt(North);
+    let total_load = platform.get_total_load();
+    test(109098, total_load);
+    dbg!(total_load);
 }

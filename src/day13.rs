@@ -211,7 +211,7 @@ fn main() {
     .iter()
     .map(|s| s.to_string())
     .collect();
-    let mut example_patterns = Pattern::from_vec_strings(example_input, 0);
+    let mut example_patterns = Pattern::from_vec_strings(example_input.clone(), 0);
     //dbg!(&example_patterns);
     test(2, example_patterns.len());
     test(5, example_patterns[0].summary.unwrap());
@@ -237,14 +237,10 @@ fn main() {
     dbg!(test_a_patterns);
 
     // Part 2 - Example
-    /*let mut smudges_0 = example_patterns[0].find_valid_smudges();
-        test(300, smudges_0.1[0].summarize().unwrap());
+    let example_patterns_with_smudge = Pattern::from_vec_strings(example_input, 1);
+    test(300, example_patterns_with_smudge[0].summary.unwrap());
+    test(100, example_patterns_with_smudge[1].summary.unwrap());
 
-        dbg!(smudges_0);
-
-        let mut smudges_1 = example_patterns[1].find_valid_smudges();
-        test(100, smudges_1.1[0].summarize().unwrap());
-    */
     // Part 1
     let part_1_patterns = Pattern::from_vec_strings(aoc_input::get(2023, 13), 0);
     //dbg!(&part_1_patterns);

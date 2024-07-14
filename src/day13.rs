@@ -1,7 +1,5 @@
-use colored::{ColoredString, Colorize};
+use colored::Colorize;
 use std::fmt::Debug;
-
-static RUN_PART_2: bool = true;
 
 type Int = i32;
 type Grid<T> = Vec<Vec<T>>;
@@ -164,8 +162,6 @@ impl Pattern {
             }
         }
 
-        let rows: Vec<String> = self.grid.iter().map(|s| s.into_iter().collect()).collect();
-
         result
     }
 
@@ -246,22 +242,9 @@ fn main() {
     //dbg!(&part_1_patterns);
     let sum = part_1_patterns.iter().map(|p| p.summary.unwrap()).sum();
     test(30535, sum);
-    /*
+
     // Part 2
-    if RUN_PART_2 {        self.get_mirror();
-        if let Some(Mirror::Row(mirror)) = self.mirror {
-            return Some(mirror.1 * 100);
-        }
-        if let Some(Mirror::Columns(mirror)) = self.mirror {
-            self.summary = Some(mirror.1);
-            return self.summary;
-        }
-        self.summary = None;
-        self.summary
-        let x: Vec<_> = Pattern::from_vec_strings(aoc_input::get(2023, 13))
-            .iter_mut()
-            .map(|p| p.find_valid_smudges())
-            .collect();
-        dbg!(x);
-    }*/
+    let part_2_patterns = Pattern::from_vec_strings(aoc_input::get(2023, 13), 1);
+    let sum: Int = part_2_patterns.iter().map(|p| p.summary.unwrap()).sum();
+    test(30844, sum);
 }

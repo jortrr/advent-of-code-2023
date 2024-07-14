@@ -1,35 +1,91 @@
+use colored::{ColoredString, Colorize};
 use std::fmt::Debug;
 
 static RUN_PART_2: bool = true;
 
+type Int = i32;
 type Grid<T> = Vec<Vec<T>>;
-type Point = (usize, usize);
+
+#[derive(Debug, Clone)]
+enum Line {
+    Row(Int),
+    Column(Int),
+}
+
+impl Line {
+    fn in_line(&self, row: Int, column: Int) -> bool {
+        use Line::*;
+        match &self {
+            Row(k) => *k == row,
+            Column(k) => *k == column,
+        }
+    }
+}
 
 #[derive(Clone)]
 struct Pattern {
     grid: Grid<char>,
     rows: usize,
     columns: usize,
+    smudges: Int,
+    summary: Option<Int>,
+    reflection: Option<Line>,
+}
+
+impl Debug for Pattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut grid_string: String = String::new();
+        let reflection = self.reflection.as_ref().unwrap();
+        let summary = self.summary.as_ref().unwrap();
+        for i in 0..self.rows {
+            grid_string.push_str("  ");
+            for j in 0..self.columns {
+                let element = if reflection.in_line(i as Int, j as Int)
+                    || reflection.in_line(i as Int - 1, j as Int - 1)
+                {
+                    self.grid[i][j].to_string().red()
+                } else {
+                    self.grid[i][j].to_string().normal()
+                };
+
+                grid_string.push_str(&element.to_string());
+            }
+            grid_string.push_str("\n");
+        }
+
+        write!(
+            f,
+            "\nPattern({}x{}): (smudges: {}, summary: {})\n{}",
+            self.rows, self.columns, self.smudges, summary, grid_string
+        )
+    }
 }
 
 impl Pattern {
-    fn from_strings(input: Vec<String>) -> Pattern {
+    fn from_strings(input: Vec<String>, smudges: Int) -> Pattern {
         let rows = input.len();
         let columns = input.first().unwrap().len();
         let grid: Grid<char> = input.iter().map(|s| s.chars().collect()).collect();
-        Pattern {
+        let mut result = Pattern {
             grid,
             rows,
             columns,
-        }
+            smudges,
+            summary: None,
+            reflection: None,
+        };
+        result.reflection = result.find_reflection();
+        result.summary = Some(result.summarize());
+
+        result
     }
 
-    fn from_vec_strings(input: Vec<String>) -> Vec<Pattern> {
+    fn from_vec_strings(input: Vec<String>, smudges: Int) -> Vec<Pattern> {
         let mut result: Vec<Pattern> = Vec::new();
         let mut current: Vec<String> = Vec::new();
         for line in input {
             if line.is_empty() {
-                result.push(Pattern::from_strings(current.clone()));
+                result.push(Pattern::from_strings(current.clone(), smudges));
                 current.clear();
             } else {
                 current.push(line);
@@ -39,7 +95,7 @@ impl Pattern {
         result
     }
 
-    fn compare(a: &Vec<char>, b: &Vec<char>) -> usize {
+    fn compare(a: &Vec<char>, b: &Vec<char>) -> Int {
         assert!(a.len() == b.len());
         let mut differences = 0;
         for i in 0..a.len() {
@@ -64,8 +120,9 @@ impl Pattern {
         result
     }
 
-    fn find_reflection(&self, smudges: usize) -> Option<Point> {
+    fn find_reflection(&self) -> Option<Line> {
         let columns: Grid<char> = (0..self.columns).map(|i| self.get_column(i)).collect();
+        let mut result = None;
 
         // Check whether any 2 rows form a reflection, with exactly smudges amount of imperfections
         for i in 0..self.rows - 1 {
@@ -73,45 +130,50 @@ impl Pattern {
             let b = self.get_row(i + 1);
             let mut diff = Pattern::compare(a, b);
             for j in 1..self.rows - 1 - i {
-                if diff > smudges || i < j {
+                if diff > self.smudges || i < j {
                     break;
                 }
                 let c = self.get_row(i - j);
                 let d = self.get_row(i + 1 + j);
                 diff += Pattern::compare(&c, &d);
             }
-            if diff == smudges {
-                return Some((i, 0));
+            if diff == self.smudges {
+                result = Some(Line::Row(i as Int));
+                break;
             }
         }
 
-        // Check whether any 2 columns form a reflection, with exactly smudges amount of imperfections
-        for i in 0..self.columns - 1 {
-            let a = &columns[i];
-            let b = &columns[i + 1];
-            let mut diff = Pattern::compare(&a, &b);
-            for j in 1..self.columns - 1 - i {
-                if diff > smudges || i < j {
+        if result.is_none() {
+            // Check whether any 2 columns form a reflection, with exactly smudges amount of imperfections
+            for i in 0..self.columns - 1 {
+                let a = &columns[i];
+                let b = &columns[i + 1];
+                let mut diff = Pattern::compare(&a, &b);
+                for j in 1..self.columns - 1 - i {
+                    if diff > self.smudges || i < j {
+                        break;
+                    }
+                    let c = &columns[i - j];
+                    let d = &columns[i + 1 + j];
+                    diff += Pattern::compare(&c, &d);
+                }
+                if diff == self.smudges {
+                    result = Some(Line::Column(i as Int));
                     break;
                 }
-                let c = &columns[i - j];
-                let d = &columns[i + 1 + j];
-                diff += Pattern::compare(&c, &d);
-            }
-            if diff == smudges {
-                return Some((0, i));
             }
         }
 
-        // No reflections found, return None
-        None
+        let rows: Vec<String> = self.grid.iter().map(|s| s.into_iter().collect()).collect();
+
+        result
     }
 
-    fn summarize(&self, smudges: usize) -> usize {
-        let reflection = self.find_reflection(smudges);
+    fn summarize(&self) -> Int {
+        let reflection = self.find_reflection();
         match reflection {
-            Some((i, 0)) => return (i + 1) * 100,
-            Some((0, i)) => return i + 1,
+            Some(Line::Row(i)) => return (i + 1) * 100,
+            Some(Line::Column(i)) => return i + 1,
             _ => panic!("No valid relection found: '{:?}'.", reflection),
         }
     }
@@ -149,32 +211,57 @@ fn main() {
     .iter()
     .map(|s| s.to_string())
     .collect();
-    let mut example_patterns = Pattern::from_vec_strings(example_input);
+    let mut example_patterns = Pattern::from_vec_strings(example_input, 0);
     //dbg!(&example_patterns);
     test(2, example_patterns.len());
-    test(5, example_patterns[0].summarize(0));
-    test(400, example_patterns[1].summarize(0));
-    let sum: usize = example_patterns.iter_mut().map(|p| p.summarize(0)).sum();
+    test(5, example_patterns[0].summary.unwrap());
+    test(400, example_patterns[1].summary.unwrap());
+    let sum: Int = example_patterns
+        .iter_mut()
+        .map(|p| p.summary.unwrap())
+        .sum();
     test(405, sum);
+    dbg!(example_patterns);
+
+    #[rustfmt::skip]
+    let test_a_input: Vec<String> = vec![
+        "###..##",
+        "##.#.#.",
+        "..#...#",
+        "##..#..",
+        "#####.#",
+        "###..#.",
+        "###....",
+    ].iter().map(|s|s.to_string()).collect();
+    let test_a_patterns = Pattern::from_strings(test_a_input, 0);
+    dbg!(test_a_patterns);
 
     // Part 2 - Example
     /*let mut smudges_0 = example_patterns[0].find_valid_smudges();
-    test(300, smudges_0.1[0].summarize().unwrap());
+        test(300, smudges_0.1[0].summarize().unwrap());
 
-    dbg!(smudges_0);
+        dbg!(smudges_0);
 
-    let mut smudges_1 = example_patterns[1].find_valid_smudges();
-    test(100, smudges_1.1[0].summarize().unwrap());
-
+        let mut smudges_1 = example_patterns[1].find_valid_smudges();
+        test(100, smudges_1.1[0].summarize().unwrap());
+    */
     // Part 1
-    let sum: usize = Pattern::from_vec_strings(aoc_input::get(2023, 13))
-        .iter_mut()
-        .map(|p| p.summarize().unwrap())
-        .sum();
+    let part_1_patterns = Pattern::from_vec_strings(aoc_input::get(2023, 13), 0);
+    //dbg!(&part_1_patterns);
+    let sum = part_1_patterns.iter().map(|p| p.summary.unwrap()).sum();
     test(30535, sum);
-
+    /*
     // Part 2
-    if RUN_PART_2 {
+    if RUN_PART_2 {        self.get_mirror();
+        if let Some(Mirror::Row(mirror)) = self.mirror {
+            return Some(mirror.1 * 100);
+        }
+        if let Some(Mirror::Columns(mirror)) = self.mirror {
+            self.summary = Some(mirror.1);
+            return self.summary;
+        }
+        self.summary = None;
+        self.summary
         let x: Vec<_> = Pattern::from_vec_strings(aoc_input::get(2023, 13))
             .iter_mut()
             .map(|p| p.find_valid_smudges())

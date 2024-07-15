@@ -396,4 +396,10 @@ fn main() {
     let total_load = example_platform.get_total_load_after_cycles(NUMBER_OF_CYCLES - 3);
     test(&64, &total_load);
     dbg!(total_load);
+
+    // Part 2
+    let total_load_after_many_cycles = Platform::from_strings(aoc_input::get(2023, 14))
+        .get_total_load_after_cycles(NUMBER_OF_CYCLES);
+    dbg!(&total_load_after_many_cycles);
+    test(&100064, &total_load_after_many_cycles);
 }

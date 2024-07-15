@@ -10,7 +10,7 @@ struct Step {
 }
 
 impl Step {
-    fn from_string_list(input: String) -> InitializationSequence {
+    fn from_string_list(input: &String) -> InitializationSequence {
         Step::from_string_slice_list(&input)
     }
 
@@ -23,8 +23,8 @@ impl Step {
             .collect()
     }
 
-    fn from_string(input: String) -> Step {
-        let to_string = input;
+    fn from_string(input: &String) -> Step {
+        let to_string = input.clone();
         let hash_value = Step::get_hash_value(&to_string);
         Self {
             to_string,
@@ -33,7 +33,7 @@ impl Step {
     }
 
     fn from_string_slice(input: &str) -> Step {
-        Step::from_string(input.to_string())
+        Step::from_string(&input.to_string())
     }
 
     fn get_hash_value(string: &str) -> Int {
@@ -86,5 +86,19 @@ fn main() {
         &1320,
         &example_sequence_sum,
         &format!("({:?}, {})", example_sequence_input, example_sequence_sum),
+    );
+
+    // Part 1
+    let input: String = aoc_input::get(2023, 15)
+        .iter()
+        .filter(|s| !s.is_empty())
+        .cloned()
+        .collect();
+    let sequence = Step::from_string_list(&input);
+    let steps_sum = sum_steps(&sequence);
+    test_and_debug(
+        &507769,
+        &steps_sum,
+        &format!("Part 1: steps_sum == {}", steps_sum),
     );
 }

@@ -21,13 +21,22 @@ macro_rules! test {
         test!($expected, $actual, name);
     };
 
-    ($expected:expr, $actual:expr, $name:expr) => {
+    ($expected:literal, $actual:expr, $name:expr) => {
         assert_eq!(
             $expected, $actual,
             "[Test Case] ❌ ({:?}, {:?})",
             $expected, $name
         );
         println!("[Test Case] ✅ ({:?}, {:?})", $expected, $name);
+    };
+
+    ($expected:expr, $actual:expr, $name:expr) => {
+        assert_eq!(
+            $expected, $actual,
+            "[Test Case] ❌ ({:?}, {:?})",
+            $expected, $name
+        );
+        println!("[Test Case] ✅ ({:?}, {:?})", stringify!($expected), $name);
     };
 
 }
@@ -52,4 +61,34 @@ macro_rules! debug {
         // Do nothing
     };
 
+}
+
+// See: https://chatgpt.com/share/d866e424-9d25-441f-a232-bf78c8372d7c
+#[macro_export]
+macro_rules! define_convertable_enum {
+    ($name:ident { $($variant:ident $(($opt:ty))? => $char:expr),* $(,)? }) => {
+        #[derive(Debug)]
+        enum $name {
+            $($variant$(($opt))?),*
+        }
+
+        impl $name {
+            fn from_char(c: char) -> $name {
+                match c {
+                    $(
+                        $char => $name::$variant$(($opt::default()))?,
+                    )*
+                    _ => panic!("Invalid {} char: '{}'.", stringify!($name), c),
+                }
+            }
+
+            fn to_char(&self) -> char {
+                match self {
+                    $(
+                        $name::$variant$(($opt::default()))? => $char,
+                    )*
+                }
+            }
+        }
+    };
 }

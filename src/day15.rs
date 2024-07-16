@@ -1,4 +1,4 @@
-mod test;
+mod macros;
 use std::fmt::Debug;
 
 type Int = i32;
@@ -61,11 +61,14 @@ impl Box {
 
     fn get_focusing_power(&self) -> Int {
         let focusing_power_from_box = 1 + self.box_number;
-        self.lenses
+        let focussing_power = self
+            .lenses
             .iter()
             .enumerate()
             .map(|(i, l)| focusing_power_from_box * (i + 1) as Int * l.focal_length)
-            .sum()
+            .sum();
+        debug!(false, focussing_power);
+        focussing_power
     }
 }
 
@@ -113,8 +116,8 @@ impl BoxSequence {
         } else {
             panic!("Invalid step: '{:?}'.", step);
         }
-        println!("After {:?}:", step.to_string);
-        println!("{:?}\n", self);
+        debug!(false, "After {:?}:", step.to_string);
+        debug!(false, "{:?}\n", self);
     }
 
     fn remove_lens(&mut self, step: &Step) {
@@ -237,4 +240,10 @@ fn main() {
         .for_each(|s| example_box_sequence.execute(&s));
     let example_total_focussing_power = example_box_sequence.get_total_focussing_power();
     test!(145, example_total_focussing_power);
+
+    // Part 2
+    let mut box_sequence = BoxSequence::new();
+    sequence.iter().for_each(|s| box_sequence.execute(&s));
+    let total_focussing_power = box_sequence.get_total_focussing_power();
+    test!(269747, total_focussing_power);
 }

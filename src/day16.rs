@@ -1,14 +1,12 @@
 mod grid;
 mod macros;
 
-use std::collections::HashMap;
+use std::{cmp::max, collections::HashSet};
 
 use grid::*;
 
 type Beam = Direction;
-type Count = Int;
-type Key = (Point, Direction);
-type Memo = HashMap<Key, Count>;
+type Points = HashSet<Point>;
 
 #[derive(Debug)]
 struct Terrain {
@@ -61,7 +59,7 @@ struct ContraptionMap {
     rows: Int,
     columns: Int,
     grid: Grid<Terrain>,
-    memo: Memo,
+    visited: Points,
 }
 
 impl ContraptionMap {
@@ -77,7 +75,7 @@ impl ContraptionMap {
             rows,
             columns,
             grid,
-            memo: HashMap::new(),
+            visited: Points::new(),
         }
     }
 
@@ -118,19 +116,19 @@ impl ContraptionMap {
         point.x >= 0 && point.x < self.columns && point.y >= 0 && point.y < self.rows
     }
 
-    fn shoot_beam(&mut self, from: &Point, beam: Beam) -> Count {
-        let key: Key = (*from, beam);
-        if let Some(count) = self.memo.get(&key) {
-            return *count;
-        }
-
+    fn shoot_beam(&mut self, from: &Point, beam: Beam) {
+        let mut points: Points = Points::new();
         debug!(false, "shoot({:?}, {:?})", from, beam);
         if self.within_grid(from) {
+            self.visited.insert(*from);
             let current_terrain: &Terrain = self.get_terrain(from);
             if !current_terrain.beams.contains(&beam) {
                 let current_terrain = self.get_terrain_mut(from);
                 current_terrain.beams.push(beam.clone());
-                current_terrain.energized = true;
+                if !current_terrain.energized {
+                    current_terrain.energized = true;
+                }
+                points.insert(*from);
                 let redirected_beams = current_terrain.the_type.redirect(&beam);
                 for redirected_beam in redirected_beams {
                     let next: Point = from.move_to(&redirected_beam);
@@ -139,13 +137,44 @@ impl ContraptionMap {
             }
         }
 
-        let count = self.get_amount_of_energized_tiles();
-        self.memo.insert(key, count);
-        count
+        debug!(false, "shoot({:?}, {:?}) -> {:?}", from, beam, points);
     }
 
-    fn get_amount_of_energized_tiles(&self) -> Int {
-        self.grid.iter().flatten().filter(|t| t.energized).count() as Int
+    fn get_amount_of_energized_tiles(&mut self, point: &Point, beam: Beam) -> Int {
+        self.grid.iter_mut().for_each(|row| {
+            row.iter_mut().for_each(|t| {
+                t.energized = false;
+                t.beams.clear();
+            })
+        });
+        self.visited.clear();
+        self.shoot_beam(&point, beam);
+        self.visited.len() as Int
+    }
+
+    fn get_most_amount_of_energized_tiles(&mut self) -> Int {
+        let mut most = 0;
+        for i in 0..self.columns {
+            most = max(
+                most,
+                self.get_amount_of_energized_tiles(&Point::new(i, 0), South),
+            );
+            most = max(
+                most,
+                self.get_amount_of_energized_tiles(&Point::new(i, self.rows - 1), North),
+            );
+        }
+        for i in 0..self.rows {
+            most = max(
+                most,
+                self.get_amount_of_energized_tiles(&Point::new(0, i), East),
+            );
+            most = max(
+                most,
+                self.get_amount_of_energized_tiles(&Point::new(0, self.columns - 1), West),
+            );
+        }
+        most
     }
 }
 
@@ -166,8 +195,8 @@ fn main() {
         r#"..//.|...."#,
     ];
     let mut example_map = ContraptionMap::from_string_slices(&example_input);
-    example_map.shoot_beam(&Point::new(0, 0), East);
-    // dbg!(&example_map);
+    let amount_of_energized_tiles =
+        example_map.get_amount_of_energized_tiles(&Point::new(0, 0), East);
     let terrain_map = example_map.get_terrain_map();
     let energy_map = example_map.get_energy_map();
     println!("Terrain map:\n{}\n", terrain_map);
@@ -189,12 +218,19 @@ fn main() {
     .collect::<Vec<String>>()
     .join("\n");
     test!(example_expected_energized_map, energy_map);
-    let amount_of_energized_tiles = example_map.get_amount_of_energized_tiles();
     test!(46, amount_of_energized_tiles);
+
+    // Part 2 - Example
+    let example_most_amount_energized = example_map.get_most_amount_of_energized_tiles();
+    test!(51, example_most_amount_energized);
 
     // Part 1
     let mut map = ContraptionMap::from_strings(&aoc_input::get(2023, 16));
     map.shoot_beam(&Point::new(0, 0), East);
-    let amount_of_energized_tiles = map.get_amount_of_energized_tiles();
+    let amount_of_energized_tiles = map.get_amount_of_energized_tiles(&Point::new(0, 0), East);
     test!(6906, amount_of_energized_tiles);
+
+    // Part 2
+    let most_amount_energized = map.get_most_amount_of_energized_tiles();
+    test!(most_amount_energized);
 }

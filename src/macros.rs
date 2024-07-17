@@ -50,7 +50,7 @@ macro_rules! debug {
     };
 
     (true, $message:expr) => {
-        dbg!("{}", $message);
+        println!("[{}:{}] {}", file!(), line!(), $message);
     };
 
     (false, $fmt:expr, $($arg:tt)*) => {

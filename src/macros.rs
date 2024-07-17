@@ -92,3 +92,9 @@ macro_rules! define_convertable_enum {
         }
     };
 }
+
+/// A Vec<String> from a Vec<&str>
+#[macro_export]
+macro_rules! vec_of_strings {
+    ($($x:expr),* $(,)?) => (vec![$($x.to_string()),*]);
+}

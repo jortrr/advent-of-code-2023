@@ -1,9 +1,14 @@
 mod grid;
 mod macros;
 
+use std::collections::HashMap;
+
 use grid::*;
 
 type Beam = Direction;
+type Count = Int;
+type Key = (Point, Direction);
+type Memo = HashMap<Key, Count>;
 
 #[derive(Debug)]
 struct Terrain {
@@ -56,6 +61,7 @@ struct ContraptionMap {
     rows: Int,
     columns: Int,
     grid: Grid<Terrain>,
+    memo: Memo,
 }
 
 impl ContraptionMap {
@@ -71,6 +77,7 @@ impl ContraptionMap {
             rows,
             columns,
             grid,
+            memo: HashMap::new(),
         }
     }
 
@@ -111,7 +118,12 @@ impl ContraptionMap {
         point.x >= 0 && point.x < self.columns && point.y >= 0 && point.y < self.rows
     }
 
-    fn shoot_beam(&mut self, from: &Point, beam: Beam) {
+    fn shoot_beam(&mut self, from: &Point, beam: Beam) -> Count {
+        let key: Key = (*from, beam);
+        if let Some(count) = self.memo.get(&key) {
+            return *count;
+        }
+
         debug!(false, "shoot({:?}, {:?})", from, beam);
         if self.within_grid(from) {
             let current_terrain: &Terrain = self.get_terrain(from);
@@ -126,6 +138,10 @@ impl ContraptionMap {
                 }
             }
         }
+
+        let count = self.get_amount_of_energized_tiles();
+        self.memo.insert(key, count);
+        count
     }
 
     fn get_amount_of_energized_tiles(&self) -> Int {

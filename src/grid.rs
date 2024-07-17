@@ -3,7 +3,7 @@ pub type Grid<T> = Vec<Vec<T>>;
 
 pub use Direction::*;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Eq, Hash, Copy)]
 pub enum Direction {
     North,
     East,
@@ -11,7 +11,7 @@ pub enum Direction {
     West,
 }
 
-#[derive(PartialEq, Debug, Clone, Eq, Hash)]
+#[derive(PartialEq, Debug, Clone, Eq, Hash, Copy)]
 pub struct Point {
     pub x: Int,
     pub y: Int,

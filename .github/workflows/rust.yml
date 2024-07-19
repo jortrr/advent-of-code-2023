@@ -18,12 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: AOCF Cookie Setup
-        run: echo "53616c7465645f5f623048b4a25d6684d75ecafc21eed0b581b4bacb2ee4d5d91f12e193ce9f188a4aae3fe9287662054350f69819cd35dd796c4091d63de903" > ./.aocf/cookie && cat ./.aocf/cookie
+        run: echo "$AOC_COOKIE" > ./.aocf/cookie && cat ./.aocf/cookie
       - name: Build
         run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
       - name: Run AOC day 15
-        run: cat ./.aocf/cookie && cargo run --bin day15
+        run: cargo run --bin day15
       - name: Run AOC day 16
         run: cargo run --bin day16

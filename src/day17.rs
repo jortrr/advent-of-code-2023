@@ -9,12 +9,21 @@ use grid::*;
 type Directions = Vec<Direction>;
 type DirectedNeigbour = (Direction, Point);
 
-#[derive(Eq, Hash, PartialEq)]
+type Path = Vec<Direction>;
+
+fn last_three_items_are_the_same<T: PartialEq>(list: &Vec<T>) -> bool {
+    match &list[..] {
+        [.., a, b, c] if a == b && b == c => true,
+        _ => false,
+    }
+}
+
 struct Node {
     point: Option<Point>,
     heat_loss: Int,
     visited: bool,
     shortest_distance_to_start: Option<Int>,
+    path_from_start: Option<Path>,
 }
 
 impl Node {
@@ -27,6 +36,7 @@ impl Node {
                 heat_loss: digit,
                 visited: false,
                 shortest_distance_to_start: None,
+                path_from_start: None,
             })
         };
     }
@@ -75,15 +85,17 @@ impl Map {
         let mut result = String::new();
         for y in 0..self.rows {
             for x in 0..self.columns {
-                let node = &self.grid[y][x];
+                let node: &Node = &self.grid[y][x];
                 let mut digit: ColoredString = node.heat_loss.to_string().into();
-                if node.shortest_distance_to_start.is_some() {
-                    digit = digit.on_blue();
+                let point: Point = node.point.clone().unwrap();
+                if !self.unvisited.contains(&point) {
+                    digit = digit.on_green();
                 } else {
-                    digit = digit.on_red();
-                }
-                if self.unvisited.contains(&node.point.unwrap()) {
-                    digit = digit.bold();
+                    if node.path_from_start.is_some() && node.shortest_distance_to_start.is_some() {
+                        digit = digit.on_blue();
+                    } else {
+                        digit = digit.on_red();
+                    }
                 }
                 result.push_str(&digit.to_string());
             }
@@ -92,63 +104,127 @@ impl Map {
         result
     }
 
-    fn visit_wrap_around_bounds(self, point: &Point, shortest_distance_to_start: Int) -> Map {
-        let point = self.grid.point_wrap_around_bounds(*point);
-        self.visit(&point, shortest_distance_to_start, Directions::new())
+    fn set_start_node(mut self, point: &Point) -> Map {
+        let node = self.grid.point_get_mut(point).unwrap();
+        node.shortest_distance_to_start = Some(0);
+        node.path_from_start = Some(Vec::new());
+        self
     }
 
-    fn visit(mut self, point: &Point, shortest_distance_to_start: Int, path: Directions) -> Map {
+    fn visit(mut self, point: &Point) -> Map {
+        debug!(true, "visit({:?})", point);
         if !self.unvisited.contains(point) {
             panic!(
-                "Attempting to visit a Point that cannot be visited: '{:?}'",
+                "Attempting to visit a Point that is not in self.unvisited: '{:?}'.",
                 point
             );
-        } else {
-            self.unvisited.remove(point);
-            let node = self.grid.point_get_mut(point).unwrap();
-            node.shortest_distance_to_start = Some(shortest_distance_to_start);
-            node.visited = true;
-            let shortest_distance_to_neighbour = shortest_distance_to_start + node.heat_loss;
-            let mut neighbours = self.get_unvisited_neighbours(point);
-            let mut neighbour_black_list: HashSet<Point> = HashSet::new();
-            while !neighbours.is_empty() {
-                let (direction, neighbour) = neighbours.first().unwrap();
-                let path_to_neighbour: Vec<Direction> =
-                    path.iter().chain(once(direction)).cloned().collect();
-
-                let last_three_same = match path_to_neighbour.as_slice() {
-                    [.., a, b, c] if a == b && b == c => true,
-                    _ => false,
-                };
-
-                if last_three_same {
-                    neighbour_black_list.insert(*neighbour);
-                } else {
-                    //TODO: This is not Dijkstra's algorithm! Need to visit the closest Nodes first, but a Neighbour blacklist is a good idea.
-                    self = self.visit(
-                        &neighbour,
-                        shortest_distance_to_neighbour,
-                        path_to_neighbour,
-                    );
-                }
-                neighbours = self
-                    .get_unvisited_neighbours(point)
-                    .iter()
-                    .filter(|(_, n)| !neighbour_black_list.contains(n))
-                    .cloned()
-                    .collect();
-            }
-
-            self
         }
+        let node = self.grid.point_get(point).unwrap();
+        if !node.shortest_distance_to_start.is_some() {
+            panic!(
+                "Attempting to visit a Node has no shortest_distance_to_start: '{:?}'.",
+                point
+            );
+        }
+        if !node.path_from_start.is_some() {
+            panic!(
+                "Attempting to visit a Node has no path_from_start: '{:?}'.",
+                point
+            );
+        }
+        // Now we know that our current point is unvisited, has a shortest_distance_to_start, and a path_from_start
+        self.unvisited.remove(point);
+        let shortest_distance_to_start: Int = node.shortest_distance_to_start.unwrap();
+        let path_from_start: Path = node.path_from_start.clone().unwrap();
+        let heat_loss: Int = node.heat_loss;
+
+        let directed_neighbours: Vec<DirectedNeigbour> = self.get_neighbours(point);
+        for (direction_to_neighbour, point_of_neighbour) in directed_neighbours {
+            let neighbour_node: &mut Node = self.grid.point_get_mut(&point_of_neighbour).unwrap();
+            let path_to_neighbour: Path = path_from_start
+                .iter()
+                .cloned()
+                .chain(once(direction_to_neighbour))
+                .collect();
+            if neighbour_node.path_from_start.is_some()
+                || neighbour_node.shortest_distance_to_start.is_some()
+            {
+                debug!(
+                    true,
+                    "A shorter path from {:?} to {:?} already exists, skip.",
+                    point,
+                    point_of_neighbour
+                );
+            } else if last_three_items_are_the_same(&path_to_neighbour) {
+                debug!(
+                    true,
+                    "The last three directions in the Path from {:?} to {:?} are the same, skip.",
+                    point,
+                    point_of_neighbour
+                );
+            } else {
+                // This neighbour node can be reached by the current node, and this is the shortest path
+                neighbour_node.shortest_distance_to_start =
+                    Some(shortest_distance_to_start + heat_loss);
+                neighbour_node.path_from_start = Some(path_to_neighbour.clone());
+            }
+        }
+
+        self
     }
 
-    fn get_unvisited_neighbours(&self, point: &Point) -> Vec<DirectedNeigbour> {
-        self.get_neighbours(point)
-            .into_iter()
-            .filter(|(_, p)| self.unvisited.contains(p))
-            .collect()
-    }
+    // fn visit_old(
+    //     mut self,
+    //     point: &Point,
+    //     shortest_distance_to_start: Int,
+    //     path: Directions,
+    // ) -> Map {
+    //     if !self.unvisited.contains(point) {
+    //         panic!(
+    //             "Attempting to visit a Point that cannot be visited: '{:?}'",
+    //             point
+    //         );
+    //     } else {
+    //         self.unvisited.remove(point);
+    //         let node = self.grid.point_get_mut(point).unwrap();
+    //         node.shortest_distance_to_start = Some(shortest_distance_to_start);
+    //         node.visited = true;
+    //         let shortest_distance_to_neighbour = shortest_distance_to_start + node.heat_loss;
+    //         let mut neighbours = self.get_neighbours(point);
+    //         let mut neighbour_black_list: HashSet<Point> = HashSet::new();
+    //         while !neighbours.is_empty() {
+    //             let (direction, neighbour) = neighbours.first().unwrap();
+    //             let path_to_neighbour: Vec<Direction> =
+    //                 path.iter().chain(once(direction)).cloned().collect();
+
+    //             let last_three_same = match path_to_neighbour.as_slice() {
+    //                 [.., a, b, c] if a == b && b == c => true,
+    //                 _ => false,
+    //             };
+
+    //             if last_three_same {
+    //                 neighbour_black_list.insert(*neighbour);
+    //             } else {
+    //                 //TODO: This is not Dijkstra's algorithm! Need to visit the closest Nodes first, but a Neighbour blacklist is a good idea.
+    //                 let neighbour_node = self.grid.point_get(neighbour).unwrap();
+    //                 neighbour_node.shortest_distance_to_start = shortest_distance_to_start + self =
+    //                     self.visit(
+    //                         &neighbour,
+    //                         shortest_distance_to_neighbour,
+    //                         path_to_neighbour,
+    //                     );
+    //             }
+    //             neighbours = self
+    //                 .get_unvisited_neighbours(point)
+    //                 .iter()
+    //                 .filter(|(_, n)| !neighbour_black_list.contains(n))
+    //                 .cloned()
+    //                 .collect();
+    //         }
+
+    //         self
+    //     }
+    // }
 
     fn get_neighbours(&self, point: &Point) -> Vec<DirectedNeigbour> {
         vec![North, East, South, West]
@@ -177,8 +253,10 @@ fn main() {
         "2546548887735",
         "4322674655533",
     ];
-    let example_map =
-        Map::from_strings(&example_input).visit_wrap_around_bounds(&Point::new(0, 0), 0);
+    let start_point: Point = Point::new(0, 0);
+    let example_map = Map::from_strings(&example_input)
+        .set_start_node(&start_point)
+        .visit(&start_point);
     let to_string = example_map.to_string();
     debug!(true, "example_map:\n{}", to_string);
     let shortest_distance_to_bottom_right = example_map

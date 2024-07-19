@@ -1,6 +1,8 @@
 use colored::Colorize;
 use std::fmt::Debug;
 
+mod macros;
+
 type Int = i32;
 type Grid<T> = Vec<Vec<T>>;
 
@@ -175,15 +177,6 @@ impl Pattern {
     }
 }
 
-fn test<T: std::cmp::PartialEq + std::fmt::Debug>(expected: T, actual: T) {
-    dbg!(&actual);
-    assert_eq!(
-        expected, actual,
-        "Test case failed: this value should always equal '{:?}'.",
-        expected
-    );
-}
-
 fn main() {
     // Part 1 - Example
     let example_input: Vec<String> = vec![
@@ -209,14 +202,14 @@ fn main() {
     .collect();
     let mut example_patterns = Pattern::from_vec_strings(example_input.clone(), 0);
     //dbg!(&example_patterns);
-    test(2, example_patterns.len());
-    test(5, example_patterns[0].summary.unwrap());
-    test(400, example_patterns[1].summary.unwrap());
+    test!(2, example_patterns.len());
+    test!(5, example_patterns[0].summary.unwrap());
+    test!(400, example_patterns[1].summary.unwrap());
     let sum: Int = example_patterns
         .iter_mut()
         .map(|p| p.summary.unwrap())
         .sum();
-    test(405, sum);
+    test!(405, sum);
     dbg!(example_patterns);
 
     #[rustfmt::skip]
@@ -234,17 +227,17 @@ fn main() {
 
     // Part 2 - Example
     let example_patterns_with_smudge = Pattern::from_vec_strings(example_input, 1);
-    test(300, example_patterns_with_smudge[0].summary.unwrap());
-    test(100, example_patterns_with_smudge[1].summary.unwrap());
+    test!(300, example_patterns_with_smudge[0].summary.unwrap());
+    test!(100, example_patterns_with_smudge[1].summary.unwrap());
 
     // Part 1
     let part_1_patterns = Pattern::from_vec_strings(aoc_input::get(2023, 13), 0);
     //dbg!(&part_1_patterns);
-    let sum = part_1_patterns.iter().map(|p| p.summary.unwrap()).sum();
-    test(30535, sum);
+    let sum: Int = part_1_patterns.iter().map(|p| p.summary.unwrap()).sum();
+    test!(30535, sum);
 
     // Part 2
     let part_2_patterns = Pattern::from_vec_strings(aoc_input::get(2023, 13), 1);
     let sum: Int = part_2_patterns.iter().map(|p| p.summary.unwrap()).sum();
-    test(30844, sum);
+    test!(30844, sum);
 }

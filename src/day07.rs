@@ -1,4 +1,6 @@
-use core::{num, panic};
+use core::panic;
+
+mod macros;
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 enum Card {
@@ -265,12 +267,8 @@ fn main() {
     .collect();
     plays.sort();
     dbg!(&plays);
-    let total_winnings = get_total_winnings(&plays);
-    dbg!(total_winnings);
-    assert_eq!(
-        total_winnings, 6440,
-        "Example failed, this value should be 6440."
-    );
+    let example_total_winnings = get_total_winnings(&plays);
+    test!(6440, example_total_winnings);
 
     // Part 1
     let mut plays: Plays = input
@@ -282,7 +280,7 @@ fn main() {
         .collect();
     plays.sort();
     let total_winnings = get_total_winnings(&plays);
-    dbg!(total_winnings);
+    test!(251806792, total_winnings);
 
     // Part 2
     // Replace J with Joker
@@ -295,5 +293,5 @@ fn main() {
         .collect();
     plays.sort();
     let total_winnings_with_jokers = get_total_winnings(&plays);
-    dbg!(total_winnings_with_jokers);
+    test!(252113488, total_winnings_with_jokers);
 }

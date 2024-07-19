@@ -1,3 +1,5 @@
+mod macros;
+
 #[derive(Debug)]
 enum Instruction {
     Left,
@@ -159,12 +161,9 @@ fn main() {
     .collect();
     let instructions = instructions_from_string(&input[0]);
     let network = Network::from_strings(&input);
-    let camel_steps_until_zzz_is_reached = network.camel_steps_until_zzz_is_reached(&instructions);
-    dbg!(camel_steps_until_zzz_is_reached);
-    assert_eq!(
-        6, camel_steps_until_zzz_is_reached,
-        "This value should always be 6."
-    );
+    let example_camel_steps_until_zzz_is_reached =
+        network.camel_steps_until_zzz_is_reached(&instructions);
+    test!(6, example_camel_steps_until_zzz_is_reached);
     //Part 1
     let input = aoc_input::get(2023, 8);
     let instructions = instructions_from_string(&input[0]);
@@ -172,8 +171,8 @@ fn main() {
     let camel_steps_until_zzz_is_reached = network.camel_steps_until_zzz_is_reached(&instructions);
     //dbg!(&network);
     //dbg!(&instructions);
-    dbg!(camel_steps_until_zzz_is_reached);
+    test!(14257, camel_steps_until_zzz_is_reached);
     //Part 2
     let ghost_steps_until_zzz_is_reached = network.ghost_steps_until_zzz_is_reached(&instructions);
-    dbg!(ghost_steps_until_zzz_is_reached);
+    test!(16187743689077 as u64, ghost_steps_until_zzz_is_reached);
 }

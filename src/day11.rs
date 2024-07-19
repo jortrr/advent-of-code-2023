@@ -1,5 +1,7 @@
 type Int = i64;
 
+mod macros;
+
 #[derive(Debug, PartialEq, Clone)]
 struct Position {
     x: Int,
@@ -213,47 +215,43 @@ impl Image {
     }
 
     fn test_image(expected: &Image, actual: &Image) -> bool {
-        dbg!(expected.rows);
-        assert_eq!(
-            expected.rows, actual.rows,
+        test!(
+            expected.rows,
+            actual.rows,
             "Rows compare failed: '{}' != '{}",
-            expected.rows, actual.rows
+            expected.rows,
+            actual.rows
         );
-        assert_eq!(expected.data.len(), expected.rows as usize);
-        assert_eq!(actual.data.len(), actual.rows as usize);
-        dbg!(expected.columns);
-        assert_eq!(
-            expected.columns, actual.columns,
+        test!(expected.data.len(), expected.rows as usize);
+        test!(actual.data.len(), actual.rows as usize);
+        test!(
+            expected.columns,
+            actual.columns,
             "Columns compare failed: '{}' != '{}",
-            expected.columns, actual.columns
+            expected.columns,
+            actual.columns
         );
-        assert_eq!(
+        test!(
             expected.data.first().unwrap().len(),
             expected.columns as usize
         );
-        assert_eq!(actual.data.first().unwrap().len(), actual.columns as usize);
-        dbg!(&expected.to_strings);
-        assert_eq!(
-            expected.to_strings, actual.to_strings,
+        test!(actual.data.first().unwrap().len(), actual.columns as usize);
+        test!(
+            expected.to_strings,
+            actual.to_strings,
             "ToStrings compare failed."
         );
-        assert_eq!(expected.number_of_galaxies, actual.number_of_galaxies);
+        test!(expected.number_of_galaxies, actual.number_of_galaxies);
         for y in 0..actual.rows {
             for x in 0..actual.columns {
                 let (x, y) = (x as usize, y as usize);
                 //dbg!((x, y));
                 let expected_data = &expected.data[y][x];
                 let actual_data = &actual.data[y][x];
-                assert_eq!(
-                    expected_data, actual_data,
-                    "At data({}, {}): expected '{:?}' != actual '{:?}'.",
-                    x, y, expected_data, actual_data
-                );
+                test!(expected_data, actual_data, "data({}, {})", x, y);
             }
         }
-        assert_eq!(expected.data, actual.data, "Data compare failed.");
-        let data_comparison = "expected.data == actual.data";
-        dbg!(data_comparison);
+        test!(expected.data, actual.data, "Data compare failed.");
         true
     }
 
@@ -272,26 +270,26 @@ impl Image {
     fn test_distance(&self, galaxy_a: usize, galaxy_b: usize, expected_distance: Int) {
         let a = galaxy_a - 1;
         let b = galaxy_b - 1;
-        assert!(a < self.number_of_galaxies as usize);
-        assert!(b < self.number_of_galaxies as usize);
+        test!(a < self.number_of_galaxies as usize);
+        test!(b < self.number_of_galaxies as usize);
         let distance =
             Image::compute_distance_between_galaxies(&self.galaxies[a], &self.galaxies[b]);
         println!("Distance ({}, {}): {}", a + 1, b + 1, distance);
-        assert_eq!(
+        test!(
             expected_distance,
             distance,
             "Test case failed (Galaxy {} -> {}): this distance should always equal '{}'.",
             a + 1,
             b + 1,
             expected_distance
-        )
+        );
     }
 
     fn test_sum_of_distances(&self, expected_sum_of_distances: Int) {
         let sum_of_distances = self.compute_sum_of_distances_between_all_galaxies();
-        dbg!(sum_of_distances);
-        assert_eq!(
-            expected_sum_of_distances, sum_of_distances,
+        test!(
+            expected_sum_of_distances,
+            sum_of_distances,
             "Test case failed: this value should always equal '{}'.",
             expected_sum_of_distances
         );
@@ -299,11 +297,10 @@ impl Image {
 
     fn test_galaxy(&self, index: usize, x: Int, y: Int) {
         let index = index - 1;
-        assert!(index < self.number_of_galaxies as usize);
+        test!(index < self.number_of_galaxies as usize);
         let expected_galaxy = Data::new_galaxy(x, y);
         let actual_galaxy = &self.galaxies[index];
-        dbg!(actual_galaxy);
-        assert_eq!(expected_galaxy, *actual_galaxy);
+        test!(expected_galaxy, *actual_galaxy);
     }
 }
 
@@ -337,7 +334,7 @@ fn main() {
         "#....#.......",
     ];
     let image = Image::test_expansion(&example_input, &example_input_expanded);
-    assert_eq!(image.number_of_galaxies, 9);
+    test!(image.number_of_galaxies, 9);
     image.test_distance(1, 7, 15);
     image.test_distance(3, 6, 17);
     image.test_distance(8, 9, 5);
@@ -361,10 +358,10 @@ fn main() {
     let image = Image::from_strings(&input);
     let expanded_image = image.expand_universe();
     let sum_of_distances = expanded_image.compute_sum_of_distances_between_all_galaxies();
-    dbg!(sum_of_distances);
+    test!(9918828, sum_of_distances);
 
     // Part 2
     let image_1_000_000x = image.expand_universe_with_factor(1_000_000);
     let sum_of_distances = image_1_000_000x.compute_sum_of_distances_between_all_galaxies();
-    dbg!(sum_of_distances);
+    test!(692506533832 as i64, sum_of_distances);
 }

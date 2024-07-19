@@ -1,3 +1,5 @@
+mod macros;
+
 type Uint = u64;
 
 #[derive(Debug)]
@@ -52,7 +54,7 @@ fn main() {
         number_of_ways_to_beat_record *= race.wins.len();
     }
     // Part 1
-    dbg!(number_of_ways_to_beat_record);
+    test!(160816, number_of_ways_to_beat_record);
 
     //Part 2
     let convert_to_number = |s: &String| -> Uint {
@@ -74,5 +76,5 @@ fn main() {
     };
     race.generate_wins();
     let number_of_ways_to_beat_second_record = race.wins.len();
-    dbg!(number_of_ways_to_beat_second_record);
+    test!(46561107, number_of_ways_to_beat_second_record);
 }

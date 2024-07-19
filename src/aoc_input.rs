@@ -1,4 +1,3 @@
-use core::panic;
 use std::fs::read_to_string;
 
 use serde_json::Value;
@@ -13,24 +12,29 @@ pub fn get(year: i32, day: u32) -> Vec<String> {
             serde_json::from_str(&read_to_string(&aoc_json_cache_path).unwrap()).unwrap();
 
         match &json_struct["input"] {
-            Value::String(s) => s.lines().map(|s| s.to_string()).collect(),
-            _ => panic!(
-                "Could not find String input field in json file: '{}'",
-                aoc_json_cache_path
-            ),
-        }
-    } else {
-        debug!(true, "Could not find json file: '{}'.", aoc_json_cache_path);
-        debug!(true, "Downloading json file from adventofcode.com.");
-        aocf::Aoc::new()
-            .year(Some(year))
-            .day(Some(day))
-            .init()
-            .unwrap()
-            .get_input(true)
-            .unwrap()
-            .split("\n")
-            .map(str::to_string)
-            .collect::<Vec<String>>()
+            Value::String(s) => return s.lines().map(|s| s.to_string()).collect(),
+            _ => {
+                debug!(
+                    true,
+                    "AoC json file does not contain input field: '{}'.", aoc_json_cache_path
+                );
+            }
+        };
     }
+
+    debug!(
+        true,
+        "Not a valid AoC json file: '{}'.", aoc_json_cache_path
+    );
+    debug!(true, "Downloading json file from adventofcode.com.");
+    aocf::Aoc::new()
+        .year(Some(year))
+        .day(Some(day))
+        .init()
+        .unwrap()
+        .get_input(true)
+        .unwrap()
+        .split("\n")
+        .map(str::to_string)
+        .collect::<Vec<String>>()
 }

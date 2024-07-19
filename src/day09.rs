@@ -1,5 +1,7 @@
 use std::collections::VecDeque;
 
+mod macros;
+
 type Int = i32;
 type Sequence = VecDeque<Int>;
 
@@ -128,17 +130,13 @@ fn main() {
     oasis.extrapolate_histories();
     dbg!(&oasis);
     let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
-    dbg!(sum_of_histories_last_values);
-    assert_eq!(
-        114, sum_of_histories_last_values,
-        "This example value should be equal to 114."
-    );
+    test!(114, sum_of_histories_last_values);
     // Part 1
     let input = aoc_input::get(2023, 9);
     let mut oasis = OASIS::from_strings(&input);
     oasis.extrapolate_histories();
     let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
-    dbg!(sum_of_histories_last_values);
+    test!(2005352194, sum_of_histories_last_values);
     let sum_of_histories_first_values = oasis.sum_of_histories_first_values();
-    dbg!(sum_of_histories_first_values);
+    test!(1077, sum_of_histories_first_values);
 }

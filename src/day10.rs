@@ -1,8 +1,7 @@
 use core::panic;
-use std::{
-    cmp::{max, min},
-    fmt::format,
-};
+use std::cmp::{max, min};
+
+mod macros;
 
 static PRINT_DISTANCES: bool = false;
 
@@ -293,12 +292,7 @@ impl Maze {
         let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
         let distance = maze.find_longest_distance_from_animal_starting_position();
         dbg!(maze.to_strings);
-        dbg!(distance);
-        assert_eq!(
-            expected_distance, distance,
-            "Test case failed: this value should always equal '{}'.",
-            expected_distance
-        );
+        test!(expected_distance, distance);
     }
 
     // Test case for Example Part 2
@@ -307,12 +301,7 @@ impl Maze {
         let _ = maze.find_longest_distance_from_animal_starting_position();
         let interior_points = maze.get_interior_points();
         dbg!(maze.to_strings);
-        dbg!(interior_points);
-        assert_eq!(
-            expected_interior_points, interior_points,
-            "Test case failed: this value should always equal '{}'.",
-            expected_interior_points
-        );
+        test!(expected_interior_points, interior_points);
     }
 }
 
@@ -453,9 +442,9 @@ fn main() {
     let input = aoc_input::get(2023, 10);
     let mut maze = Maze::from_strings(&input);
     let distance = maze.find_longest_distance_from_animal_starting_position();
-    dbg!(distance);
+    test!(6951, distance);
 
     // Part 2
     let interior_points = maze.get_interior_points();
-    dbg!(interior_points);
+    test!(563, interior_points);
 }

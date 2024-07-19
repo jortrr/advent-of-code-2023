@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+mod macros;
+
 type Int = i64;
 type Key = (String, Vec<Int>);
 type Memo = HashMap<Key, Int>;
@@ -51,22 +53,24 @@ impl Record {
     fn test(input: &str, expected_arrangements: Int, memo: &mut Memo) {
         let record = Record::from_string(input);
         let actual_arrangements = record.solve(memo);
-        dbg!((input, actual_arrangements));
-        assert_eq!(
-            expected_arrangements, actual_arrangements,
-            "Test case failed: this value should always equal '{}'.",
-            expected_arrangements
+        test!(
+            expected_arrangements,
+            actual_arrangements,
+            "({} -> {})",
+            input,
+            actual_arrangements
         );
     }
 
     fn test_expanded(input: &str, expected_arrangements: Int, memo: &mut Memo) {
         let record = Record::from_string(input).expand();
         let actual_arrangements = record.solve(memo);
-        dbg!((input, actual_arrangements));
-        assert_eq!(
-            expected_arrangements, actual_arrangements,
-            "Test case failed: this value should always equal '{}'.",
-            expected_arrangements
+        test!(
+            expected_arrangements,
+            actual_arrangements,
+            "({} -> {})",
+            input,
+            actual_arrangements
         );
     }
 }
@@ -145,8 +149,7 @@ fn main() {
     .iter()
     .map(|s| Record::from_string(s).solve(&mut memo))
     .sum();
-    dbg!(sum);
-    assert_eq!(21, sum, "This example value is always equal to 21.");
+    test!(21, sum);
 
     // Part 2 - Example
     Record::test_expanded("???.### 1,1,3", 1, &mut memo);
@@ -163,8 +166,7 @@ fn main() {
             .filter(|s| !s.is_empty())
             .map(|s| Record::from_string(s).solve(&mut memo))
             .sum();
-        dbg!(sum);
-        assert_eq!(6935, sum, "This AOC value is always equal to 6935 for me.")
+        test!(6935, sum, "This AOC value is always equal to 6935 for me.");
     }
 
     // Part 2
@@ -174,10 +176,10 @@ fn main() {
             .filter(|s| !s.is_empty())
             .map(|s| Record::from_string(s).expand().solve(&mut memo))
             .sum();
-        dbg!(sum);
-        assert_eq!(
-            3920437278260, sum,
+        test!(
+            3920437278260 as i64,
+            sum,
             "This AOC value is always equal to 3920437278260 for me."
-        )
+        );
     }
 }

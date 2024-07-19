@@ -8,6 +8,15 @@ macro_rules! test {
         std::process::exit(1);
     };
 
+    ($condition:expr) => {
+        assert!(
+            $condition,
+            "[Test Case] ❌ ({:?})",
+            stringify!($condition)
+        );
+        println!("[Test Case] ✅ ({:?})", stringify!($condition));
+    };
+
     ($expected:literal, $name:literal) => {
         println!("[Test Case] 🚫 ({:?}, {:?})", $expected, $name);
         std::process::exit(1);

@@ -1,3 +1,12 @@
 pub fn get(year: i32, day: u32) -> Vec<String> {
-    aocf::Aoc::new().year(Some(year)).day(Some(day)).init().unwrap().get_input(false).unwrap().split("\n").map(str::to_string).collect::<Vec<String>>()
+    aocf::Aoc::new()
+        .year(Some(year))
+        .day(Some(day))
+        .init()
+        .unwrap()
+        .get_input(true)
+        .unwrap()
+        .split("\n")
+        .map(str::to_string)
+        .collect::<Vec<String>>()
 }

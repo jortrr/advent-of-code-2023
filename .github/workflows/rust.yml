@@ -114,6 +114,7 @@ jobs:
   RunDay14:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Run AOC day 14
         run: cargo run --bin day14
 

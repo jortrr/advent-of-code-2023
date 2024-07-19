@@ -17,8 +17,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install aocf_cli from crates.io
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: aocf_cli
       - name: AOCF Cookie Setup
-        run: cargo install aocf_cli. && aocf set-cookie $AOC_COOKIE
+        run: aocf set-cookie $AOC_COOKIE
       - name: Build
         run: cargo build --verbose
       - name: Run tests

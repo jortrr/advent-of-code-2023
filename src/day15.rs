@@ -229,6 +229,7 @@ fn main() {
         .filter(|s| !s.is_empty())
         .cloned()
         .collect();
+    dbg!(&input);
     let sequence = Step::from_string_list(&input);
     let steps_sum = sum_steps(&sequence);
     test!(507769, steps_sum, "Part 1: steps_sum == {}", steps_sum);

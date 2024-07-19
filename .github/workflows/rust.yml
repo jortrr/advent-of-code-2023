@@ -11,44 +11,107 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  build:
+  BuildAndTest:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - name: Build
         run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
+
+  RunDay01:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 01
         run: cargo run --bin day01
+
+  RunDay02:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 02
         run: cargo run --bin day02
+
+  RunDay03:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 03
         run: cargo run --bin day03
+
+  RunDay04:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 04
         run: cargo run --bin day04
+
+  RunDay05:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 05
         run: cargo run --bin day05
+
+  RunDay06:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 06
         run: cargo run --bin day06
+
+  RunDay07:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 07
         run: cargo run --bin day07
+
+  RunDay08:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 08
         run: cargo run --bin day08
+
+  RunDay09:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 09
         run: cargo run --bin day09
+
+  RunDay10:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 10
         run: cargo run --bin day10
+
+  RunDay11:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 11
         run: cargo run --bin day11
+
+  RunDay12:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 12
         run: cargo run --bin day12
+
+  RunDay13:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 13
         run: cargo run --bin day13
+
+  RunDay14:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 14
         run: cargo run --bin day14
+
+  RunDay15:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 15
         run: cargo run --bin day15
+
+  RunDay16:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run AOC day 16
         run: cargo run --bin day16

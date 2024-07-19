@@ -19,7 +19,7 @@ impl<T> Grid<T> {
     }
 
     pub fn within(&self, x: Int, y: Int) -> bool {
-        x >= 0 && x <= self.get_columns() as Int && y >= 0 && y < self.get_rows() as Int
+        x >= 0 && x < self.get_columns() as Int && y >= 0 && y < self.get_rows() as Int
     }
 
     /// Wrap around bounds: keep x and y within the desired range x: [0, self.get_rows()) and y: [0, self.get_columns()).
@@ -42,9 +42,12 @@ impl<T> Grid<T> {
     }
 
     /// Wrap around bounds: keep x and y within the desired range x: [0, self.get_rows()) and y: [0, self.get_columns()).
+    pub fn wrap(&self, x: Int, y: Int) -> Point {
+        self.point_wrap_around_bounds(Point::new(x, y))
+    }
+
     pub fn wrapped_get(&self, x: Int, y: Int) -> Option<&T> {
-        let point = self.point_wrap_around_bounds(Point::new(x, y));
-        self.get(point.x, point.y)
+        self.point_get(&self.point_wrap_around_bounds(Point::new(x, y)))
     }
 
     pub fn get(&self, x: Int, y: Int) -> Option<&T> {

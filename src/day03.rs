@@ -2,8 +2,13 @@ mod macros;
 mod regex_captures;
 
 fn main() {
-    let a = [vec![String::from("Begin")], aoc_input::get(2023, 3)].concat();
-    //dbg!(&a);
+    let a = [
+        vec![String::from("Begin")],
+        aoc_input::get(2023, 3),
+        vec!["".to_string()],
+    ]
+    .concat();
+    dbg!(&a);
     let b: Vec<_> = a
         .windows(3)
         .map(|window| (window, regex_captures::get(r"(\d+)", &window[1])))
@@ -34,7 +39,7 @@ fn main() {
                             for j in 0..3 {
                                 let index = if i > 0 { i - 1 } else { i };
                                 let token = windows[j].chars().nth(index).unwrap_or('.');
-                                println!("i: {}, j: {}, token: {}", i, j, token);
+                                //println!("i: {}, j: {}, token: {}", i, j, token);
                                 if !token.is_digit(10) && token != '.' {
                                     return true;
                                 }
@@ -47,10 +52,13 @@ fn main() {
             )
         })
         .collect();
-    dbg!(&d);
+    //dbg!(&d);
     let sum = d
         .iter()
         .map(|(_, numbers)| numbers.iter().sum::<u32>())
         .sum::<u32>();
+    // Part 1
     test!(540131, sum);
+    // Part 2
+    test!(false, "Part 2");
 }

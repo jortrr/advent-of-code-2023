@@ -4,8 +4,7 @@ macro_rules! test {
     // can be added later, the symbol denotes that the test case is prohibited from running.
     // Makes life more convenient, when you know your test cases in advance, but have no values yet.
     ($actual:ident) => {
-        println!("[Test Case] 🚫 ({:?}, {:?})", $actual, stringify!($actual));
-        std::process::exit(1);
+        assert!(false,"[Test Case] 🚫 ({:?}, {:?})", $actual, stringify!($actual));
     };
 
     ($condition:expr) => {
@@ -18,8 +17,7 @@ macro_rules! test {
     };
 
     ($expected:literal, $name:literal) => {
-        println!("[Test Case] 🚫 ({:?}, {:?})", $expected, $name);
-        std::process::exit(1);
+        assert!(false,"[Test Case] 🚫 ({:?}, {:?})", $expected, $name);
     };
 
     ($expected:expr, $actual:expr) => {

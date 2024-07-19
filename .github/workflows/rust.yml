@@ -24,6 +24,6 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
       - name: Run AOC day 15
-        run: cargo run --bin day15
+        run: cat .aocf/cache/aoc2023_15.json && cargo run --bin day15
       - name: Run AOC day 16
         run: cargo run --bin day16

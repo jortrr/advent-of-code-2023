@@ -37,7 +37,7 @@ jobs:
         run: cargo run --bin day02
 
   RunDay03:
-    runs-on: ubuntu-
+    runs-on: ubuntu-latest
     needs: BuildAndTest
     steps:
       - uses: actions/checkout@v4

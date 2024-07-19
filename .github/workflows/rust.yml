@@ -9,7 +9,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  AOC_COOKIE: ${{ secrets.AOC_COOKIE }}
 
 jobs:
   build:
@@ -17,13 +16,39 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: AOCF Cookie Setup
-        run: echo "$AOC_COOKIE" > ./.aocf/cookie && cat ./.aocf/cookie
       - name: Build
         run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
+      - name: Run AOC day 01
+        run: cargo run --bin day01
+      - name: Run AOC day 02
+        run: cargo run --bin day02
+      - name: Run AOC day 03
+        run: cargo run --bin day03
+      - name: Run AOC day 04
+        run: cargo run --bin day04
+      - name: Run AOC day 05
+        run: cargo run --bin day05
+      - name: Run AOC day 06
+        run: cargo run --bin day06
+      - name: Run AOC day 07
+        run: cargo run --bin day07
+      - name: Run AOC day 08
+        run: cargo run --bin day08
+      - name: Run AOC day 09
+        run: cargo run --bin day09
+      - name: Run AOC day 10
+        run: cargo run --bin day10
+      - name: Run AOC day 11
+        run: cargo run --bin day11
+      - name: Run AOC day 12
+        run: cargo run --bin day12
+      - name: Run AOC day 13
+        run: cargo run --bin day13
+      - name: Run AOC day 14
+        run: cargo run --bin day14
       - name: Run AOC day 15
-        run: cat .aocf/cache/aoc2023_15.json && cargo run --bin day15
+        run: cargo run --bin day15
       - name: Run AOC day 16
         run: cargo run --bin day16

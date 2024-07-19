@@ -1,3 +1,5 @@
+mod macros;
+
 type Int = i32;
 type Grid<T> = Vec<Vec<T>>;
 
@@ -283,15 +285,6 @@ fn grid_to_string(grid: &Grid<Terrain>) -> String {
     result
 }
 
-fn test<T: std::cmp::PartialEq + std::fmt::Debug>(expected: &T, actual: &T) -> bool {
-    assert_eq!(
-        expected, actual,
-        "Test case failed: this value should always equal '{:?}'.",
-        expected
-    );
-    true
-}
-
 fn main() {
     println!("Hello, World! from src/day14.rs!");
     // Part 1 - Example
@@ -312,7 +305,7 @@ fn main() {
     example_platform.tilt(North);
     dbg!(&example_platform);
     let example_total_load = example_platform.get_total_load();
-    dbg!(example_total_load);
+    test!(136, example_total_load);
     let example_input_tilted = vec![
         "OOOO.#.O..",
         "OO..#....#",
@@ -330,25 +323,27 @@ fn main() {
     for y in 0..example_platform_tilted.rows {
         for x in 0..example_platform_tilted.columns {
             let point = Point::new(x as Int, y as Int);
-            test(
-                example_platform_tilted.get(&point).unwrap(),
+            let tilted_terrain = example_platform_tilted.get(&point).unwrap();
+            test!(
+                tilted_terrain,
                 example_platform.get(&point).unwrap(),
+                "Tilt: {:?}",
+                point
             );
         }
     }
-    test(&136, &example_total_load);
+    test!(136, example_total_load);
 
     // Part 1
     let mut platform = Platform::from_strings(aoc_input::get(2023, 14));
     platform.tilt(North);
     let total_load = platform.get_total_load();
-    test(&109098, &total_load);
-    dbg!(total_load);
+    test!(109098, total_load);
 
     // Part 2 - Example
     static NUMBER_OF_CYCLES: Int = 1000000000;
     let mut example_platform = Platform::from_string_slices(&example_input);
-    let example_platform_1_cyle = Platform::from_string_slices(&vec![
+    let example_platform_1_cycle = Platform::from_string_slices(&vec![
         ".....#....",
         "....#...O#",
         "...OO##...",
@@ -360,7 +355,7 @@ fn main() {
         "#...O###..",
         "#..OO#....",
     ]);
-    let example_platform_2_cyle = Platform::from_string_slices(&vec![
+    let example_platform_2_cycle = Platform::from_string_slices(&vec![
         ".....#....",
         "....#...O#",
         ".....##...",
@@ -372,7 +367,7 @@ fn main() {
         "#..OO###..",
         "#.OOO#...O",
     ]);
-    let example_platform_3_cyle = Platform::from_string_slices(&vec![
+    let example_platform_3_cycle = Platform::from_string_slices(&vec![
         ".....#....",
         "....#...O#",
         ".....##...",
@@ -385,21 +380,17 @@ fn main() {
         "#.OOO#...O",
     ]);
     example_platform.run_spin_cycle();
-    let test_run_spin_cycle_1 = test(&example_platform_1_cyle, &example_platform);
-    dbg!(test_run_spin_cycle_1);
+    test!(example_platform_1_cycle, example_platform);
     example_platform.run_spin_cycle();
-    let test_run_spin_cycle_2 = test(&example_platform_2_cyle, &example_platform);
-    dbg!(test_run_spin_cycle_2);
+    test!(example_platform_2_cycle, example_platform);
     example_platform.run_spin_cycle();
-    let test_run_spin_cycle_3 = test(&example_platform_3_cyle, &example_platform);
-    dbg!(test_run_spin_cycle_3);
+    test!(example_platform_3_cycle, example_platform);
+
     let total_load = example_platform.get_total_load_after_cycles(NUMBER_OF_CYCLES - 3);
-    test(&64, &total_load);
-    dbg!(total_load);
+    test!(64, total_load);
 
     // Part 2
     let total_load_after_many_cycles = Platform::from_strings(aoc_input::get(2023, 14))
         .get_total_load_after_cycles(NUMBER_OF_CYCLES);
-    dbg!(&total_load_after_many_cycles);
-    test(&100064, &total_load_after_many_cycles);
+    test!(100064, total_load_after_many_cycles);
 }

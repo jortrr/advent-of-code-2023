@@ -3,6 +3,8 @@ use std::fs::read_to_string;
 
 use serde_json::Value;
 
+mod macros;
+
 pub fn get(year: i32, day: u32) -> Vec<String> {
     let aoc_json_cache_path = format!(".aocf/cache/aoc{}_{}.json", year, day);
     let aoc_json_cache = aocf::Aoc::load_json_from(&aoc_json_cache_path);
@@ -18,7 +20,8 @@ pub fn get(year: i32, day: u32) -> Vec<String> {
             ),
         }
     } else {
-        panic!("Could not find json file: '{}'", aoc_json_cache_path);
+        debug!(true, "Could not find json file: '{}'.", aoc_json_cache_path);
+        debug!(true, "Downloading json file from adventofcode.com.");
         aocf::Aoc::new()
             .year(Some(year))
             .day(Some(day))

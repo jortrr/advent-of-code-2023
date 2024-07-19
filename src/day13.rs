@@ -80,7 +80,7 @@ impl Pattern {
         result
     }
 
-    fn from_vec_strings(input: Vec<String>, smudges: Int) -> Vec<Pattern> {
+    fn from_vec_strings(input: &Vec<String>, smudges: Int) -> Vec<Pattern> {
         let mut result: Vec<Pattern> = Vec::new();
         let mut current: Vec<String> = Vec::new();
         for line in input {
@@ -88,8 +88,12 @@ impl Pattern {
                 result.push(Pattern::from_strings(current.clone(), smudges));
                 current.clear();
             } else {
-                current.push(line);
+                current.push(line.clone());
             }
+        }
+        if !current.is_empty() {
+            result.push(Pattern::from_strings(current.clone(), smudges));
+            current.clear();
         }
 
         result
@@ -200,7 +204,7 @@ fn main() {
     .iter()
     .map(|s| s.to_string())
     .collect();
-    let mut example_patterns = Pattern::from_vec_strings(example_input.clone(), 0);
+    let mut example_patterns = Pattern::from_vec_strings(&example_input.clone(), 0);
     //dbg!(&example_patterns);
     test!(2, example_patterns.len());
     test!(5, example_patterns[0].summary.unwrap());
@@ -226,18 +230,20 @@ fn main() {
     dbg!(test_a_patterns);
 
     // Part 2 - Example
-    let example_patterns_with_smudge = Pattern::from_vec_strings(example_input, 1);
+    let example_patterns_with_smudge = Pattern::from_vec_strings(&example_input, 1);
     test!(300, example_patterns_with_smudge[0].summary.unwrap());
     test!(100, example_patterns_with_smudge[1].summary.unwrap());
 
     // Part 1
-    let part_1_patterns = Pattern::from_vec_strings(aoc_input::get(2023, 13), 0);
+    let input = aoc_input::get(2023, 13);
+    dbg!(&input);
+    let part_1_patterns = Pattern::from_vec_strings(&input, 0);
     //dbg!(&part_1_patterns);
     let sum: Int = part_1_patterns.iter().map(|p| p.summary.unwrap()).sum();
     test!(30535, sum);
 
     // Part 2
-    let part_2_patterns = Pattern::from_vec_strings(aoc_input::get(2023, 13), 1);
+    let part_2_patterns = Pattern::from_vec_strings(&input, 1);
     let sum: Int = part_2_patterns.iter().map(|p| p.summary.unwrap()).sum();
     test!(30844, sum);
 }

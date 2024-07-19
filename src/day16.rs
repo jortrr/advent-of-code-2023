@@ -232,5 +232,5 @@ fn main() {
 
     // Part 2
     let most_amount_energized = map.get_most_amount_of_energized_tiles();
-    test!(most_amount_energized);
+    test!(7330, most_amount_energized);
 }

@@ -5,10 +5,12 @@ macro_rules! test {
     // Makes life more convenient, when you know your test cases in advance, but have no values yet.
     ($actual:ident) => {
         println!("[Test Case] 🚫 ({:?}, {:?})", $actual, stringify!($actual));
+        std::process::exit(1);
     };
 
     ($expected:literal, $name:literal) => {
         println!("[Test Case] 🚫 ({:?}, {:?})", $expected, $name);
+        std::process::exit(1);
     };
 
     ($expected:expr, $actual:expr) => {

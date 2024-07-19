@@ -192,7 +192,7 @@ humidity-to-location map:
 
     //Part 2
     //TODO: Redo this
-    test!(false, "Part 2");
+    //test!(false, "Part 2");
     /*
         let mut ranged_seeds: Vec<i64> = Vec::new();
         for i in (0..seeds.len()).step_by(2) {

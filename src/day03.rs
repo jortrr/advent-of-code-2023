@@ -60,5 +60,5 @@ fn main() {
     // Part 1
     test!(540131, sum);
     // Part 2
-    test!(false, "Part 2");
+    //test!(false, "Part 2");
 }

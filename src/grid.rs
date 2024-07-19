@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 pub type Int = i32;
 
 #[derive(Debug)]
@@ -102,10 +104,16 @@ pub enum Direction {
     West,
 }
 
-#[derive(PartialEq, Debug, Clone, Eq, Hash, Copy)]
+#[derive(PartialEq, Clone, Eq, Hash, Copy)]
 pub struct Point {
     pub x: Int,
     pub y: Int,
+}
+
+impl Debug for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Point({}, {})", self.x, self.y)
+    }
 }
 
 impl Point {

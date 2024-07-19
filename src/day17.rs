@@ -6,10 +6,11 @@ use std::{collections::HashSet, iter::once};
 use colored::{ColoredString, Colorize};
 use grid::*;
 
-type Directions = Vec<Direction>;
 type DirectedPoint = (Direction, Point);
 
 type Path = Vec<DirectedPoint>;
+
+static DEBUG: bool = true;
 
 fn last_three_items_are_the_same<T: PartialEq>(list: &Vec<T>) -> bool {
     match &list[..] {
@@ -43,6 +44,13 @@ impl Node {
     fn assign_point(mut self, x: Int, y: Int) -> Node {
         self.point = Some(Point::new(x, y));
         self
+    }
+
+    fn distance(&self) -> Option<Int> {
+        match self.shortest_distance_to_start {
+            Some(distance) => Some(distance + self.heat_loss),
+            _ => None,
+        }
     }
 }
 
@@ -140,18 +148,27 @@ impl Map {
 
         for point in &self.unvisited {
             let node = self.grid.point_get(&point).unwrap();
-            if let Some(distance) = node.shortest_distance_to_start {
-                if let Some(closest_node) = closest_node_option {
-                    if closest_node.shortest_distance_to_start.unwrap() < distance {
-                        closest_node_option = Some(node);
+            if closest_node_option.is_none() && node.distance().is_some() {
+                closest_node_option = Some(node);
+            } else if let Some(closest_node) = closest_node_option {
+                match (node.distance(), closest_node.distance()) {
+                    (Some(a), Some(b)) => {
+                        if a < b {
+                            closest_node_option = Some(node);
+                        }
                     }
-                } else {
-                    closest_node_option = Some(node);
+                    _ => (),
                 }
             }
         }
 
         if let Some(clostest_node) = closest_node_option {
+            debug!(
+                DEBUG,
+                "Found closest: {:?} -> {}.",
+                clostest_node.point.unwrap(),
+                clostest_node.distance().unwrap()
+            );
             Some(clostest_node.point.unwrap())
         } else {
             None
@@ -159,7 +176,7 @@ impl Map {
     }
 
     fn visit(mut self, point: &Point) -> Map {
-        debug!(false, "visit({:?})", point);
+        debug!(DEBUG, "visit({:?})", point);
         if !self.unvisited.contains(point) {
             panic!(
                 "Attempting to visit a Point that is not in self.unvisited: '{:?}'.",
@@ -219,9 +236,11 @@ impl Map {
             }
         }
 
-        //self.print(point);
-
         let next_node_point_option = self.get_closest_unvisited_node_point();
+
+        if DEBUG {
+            self.print(point);
+        }
 
         if let Some(next_node_point) = next_node_point_option {
             self.visit(&next_node_point)

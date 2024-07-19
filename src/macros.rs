@@ -53,9 +53,11 @@ macro_rules! test {
 #[macro_export]
 macro_rules! debug {
     // Match arm with format string parameter
-    (true, $fmt:expr, $($arg:tt)*) => {
-        let message = format!($fmt, $($arg)*);
-        debug!(true, message);
+    ($should_print:expr, $fmt:expr, $($arg:tt)*) => {
+        if $should_print {
+            let message = format!($fmt, $($arg)*);
+            debug!(true, message);
+        }
     };
 
     (true, $message:expr) => {

@@ -24,6 +24,7 @@ dependencies = [
  "aocf",
  "colored",
  "regex",
+ "serde_json",
 ]
 
 [[package]]

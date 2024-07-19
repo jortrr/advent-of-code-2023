@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: AOCF Cookie Setup
-        run: aocf set-cookie $AOC_COOKIE
+        run: cargo install aocf_cli. && aocf set-cookie $AOC_COOKIE
       - name: Build
         run: cargo build --verbose
       - name: Run tests

@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: AOCF Cookie Setup
-        run: echo $AOC_COOKIE >> ./.aocf/cookie
+        run: echo "$AOC_COOKIE" > ./.aocf/cookie && cat ./.aocf/cookie
       - name: Build
         run: cargo build --verbose
       - name: Run tests

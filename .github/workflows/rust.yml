@@ -1,4 +1,4 @@
-name: Rust
+name: Rust - Build, Test, Run
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  AOC_COOKIE: ${{ secrets.AOC_COOKIE }}
 
 jobs:
   build:
@@ -15,6 +17,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: AOCF Cookie Setup
+        run: aocf set-cookie $AOC_COOKIE
       - name: Build
         run: cargo build --verbose
       - name: Run tests

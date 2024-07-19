@@ -1,3 +1,4 @@
+mod macros;
 mod regex_captures;
 
 fn main() {
@@ -47,9 +48,9 @@ fn main() {
         })
         .collect();
     dbg!(&d);
-    let e = d
+    let sum = d
         .iter()
         .map(|(_, numbers)| numbers.iter().sum::<u32>())
         .sum::<u32>();
-    dbg!(e);
+    test!(540131, sum);
 }

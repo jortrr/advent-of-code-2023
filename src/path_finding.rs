@@ -94,12 +94,27 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
         self.edges.push(new_edge);
     }
 
+    /// Add a new biderectional `Edge` to `self.edges` from new or existing `Nodes` with specified `states``
+    fn add_bidirectional_edge(&mut self, first_state: T, second_state: T, distance: Distance) {
+        self.add_edge(first_state.clone(), second_state.clone(), distance);
+        self.add_edge(second_state, first_state, distance);
+    }
+
     /// Add all `Edges` to `self.edges` from new or existing `Nodes` with specified `states``
     fn add_edges(&mut self, edges: Vec<(T, T, Distance)>) {
         edges
             .into_iter()
             .for_each(|(first_state, second_state, distance)| {
                 self.add_edge(first_state, second_state, distance)
+            });
+    }
+
+    /// Add all bidirectional `Edges` to `self.edges` from new or existing `Nodes` with specified `states``
+    fn add_bidirectional_edges(&mut self, edges: Vec<(T, T, Distance)>) {
+        edges
+            .into_iter()
+            .for_each(|(first_state, second_state, distance)| {
+                self.add_bidirectional_edge(first_state, second_state, distance);
             });
     }
 
@@ -167,7 +182,11 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     /// Visit a `NodeRef<T>` that is assumed to be valid, meaning that it exists, is unvisited, and has a distance value.
     /// Will update all unvisited neighbours of the `Node` with the shortest distance to those `Nodes`, or panic
     fn visit_valid_node_ref(&mut self, node_ref: NodeRef<T>) {
-        debug!(true, "visit_valid_node_ref({:?})", node_ref);
+        debug!(
+            true,
+            "visit_valid_node_ref(state: {:?})",
+            node_ref.borrow().state
+        );
         // Remove current_node from unvisited_nodes, and add to visited_nodes.
         self.unvisited_nodes
             .retain(|node| *node.borrow() != *node_ref.borrow());
@@ -290,6 +309,46 @@ fn test_case_a() {
         ("e", 9),
         ("f", 8),
         ("g", 13),
+    ];
+    distances.iter().for_each(|t| {
+        graph.test_distance(t.0, t.1);
+    });
+}
+
+/// Test case from:
+/// https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/
+/// See: https://media.geeksforgeeks.org/wp-content/uploads/20240111182238/Working-of-Dijkstras-Algorithm-768.jpg
+#[test]
+fn test_case_b() {
+    let mut graph: Graph<u8> = Graph::new(0);
+    let edges = vec![
+        (0, 1, 4),
+        (1, 2, 8),
+        (2, 3, 7),
+        (3, 4, 9),
+        (4, 5, 10),
+        (5, 6, 2),
+        (6, 7, 1),
+        (7, 0, 8),
+        (1, 7, 11),
+        (2, 8, 2),
+        (8, 7, 7),
+        (8, 6, 6),
+        (2, 5, 4),
+        (3, 5, 14),
+    ];
+    graph.add_bidirectional_edges(edges);
+    graph.run_pathfinding_algorithm();
+    let distances = vec![
+        (0, 0),
+        (1, 4),
+        (2, 12),
+        (3, 19),
+        (4, 21),
+        (5, 11),
+        (6, 9),
+        (7, 8),
+        (8, 14),
     ];
     distances.iter().for_each(|t| {
         graph.test_distance(t.0, t.1);

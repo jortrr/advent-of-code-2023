@@ -2,7 +2,13 @@
 // because these kind of problems will often occurs in Advent of Code
 
 use crate::{debug, test};
-use std::{cell::RefCell, cmp::min, fmt::Debug, ops::Deref, rc::Rc};
+use std::{
+    cell::RefCell,
+    cmp::min,
+    fmt::{Debug, Display},
+    ops::Deref,
+    rc::Rc,
+};
 
 /// Custom types
 type Int = i32;
@@ -59,14 +65,14 @@ impl<T> Edge<T> {
     }
 }
 
-struct Graph<T: PartialEq + Clone + Debug> {
+struct Graph<T: PartialEq + Clone + Debug + Display> {
     visited_nodes: NodeRefs<T>,
     unvisited_nodes: NodeRefs<T>,
     edges: Edges<T>,
     starting_node: NodeRef<T>,
 }
 
-impl<T: PartialEq + Clone + Debug> Graph<T> {
+impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     fn new(starting_state: T) -> Graph<T> {
         let starting_node: NodeRef<T> = Node::new_ref(starting_state, Some(0));
         starting_node.borrow_mut().visited = true;
@@ -86,6 +92,15 @@ impl<T: PartialEq + Clone + Debug> Graph<T> {
         let second_node_ref: NodeRef<T> = self.insert_node(second_state);
         let new_edge: Edge<T> = Edge::new(first_node_ref, second_node_ref, distance);
         self.edges.push(new_edge);
+    }
+
+    /// Add all `Edges` to `self.edges` from new or existing `Nodes` with specified `states``
+    fn add_edges(&mut self, edges: Vec<(T, T, Distance)>) {
+        edges
+            .into_iter()
+            .for_each(|(first_state, second_state, distance)| {
+                self.add_edge(first_state, second_state, distance)
+            });
     }
 
     /// Insert a `Node` into `self.unvisited_nodes` if there is
@@ -218,12 +233,34 @@ impl<T: PartialEq + Clone + Debug> Graph<T> {
         }
     }
 
-    fn get_distance(&self, state: T) -> DistanceOption {
-        let node_ref_option: Option<NodeRef<T>> = self.get_node_ref(state);
+    /// Return the distance of a Node in this Graph.
+    ///
+    /// Run `run_pathfinding_algorithm()` first.
+    ///
+    /// Will panic if there is no Node in this Graph with the specified state,
+    /// or if the Node has no distance.
+    fn get_distance(&self, state: T) -> Distance {
+        let node_ref_option: Option<NodeRef<T>> = self.get_node_ref(state.clone());
         match node_ref_option {
-            Some(node_ref) => node_ref.borrow().distance_option,
-            _ => None,
+            Some(node_ref) => node_ref.borrow().distance_option.unwrap(),
+            _ => panic!("No Node in Graph with state: {:?}.", state),
         }
+    }
+
+    /// Test the distance of a Node in this Graph.
+    ///
+    /// Run `run_pathfinding_algorithm()` first.
+    ///
+    /// Will panic if there is no Node in this Graph with the specified state,
+    /// or if the Node has no distance, or if the distance is incorrect.
+    fn test_distance(&self, state: T, expected: Distance) {
+        test!(
+            expected,
+            self.get_distance(state),
+            "Distance {} == {}",
+            state,
+            expected
+        );
     }
 }
 
@@ -241,7 +278,7 @@ fn test_case_a() {
         ("f", "g", 5),
         ("g", "f", 2),
     ];
-    edges.iter().for_each(|e| graph.add_edge(e.0, e.1, e.2));
+    graph.add_edges(edges);
     graph.run_pathfinding_algorithm();
     dbg!(&graph.unvisited_nodes);
     dbg!(&graph.visited_nodes);
@@ -255,6 +292,6 @@ fn test_case_a() {
         ("g", 13),
     ];
     distances.iter().for_each(|t| {
-        test!(t.1, graph.get_distance(t.0).unwrap(), "{} == {}", t.0, t.1);
+        graph.test_distance(t.0, t.1);
     });
 }

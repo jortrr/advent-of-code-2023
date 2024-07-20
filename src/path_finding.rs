@@ -354,3 +354,26 @@ fn test_case_b() {
         graph.test_distance(t.0, t.1);
     });
 }
+
+/// Test case from:
+/// https://www.tutorialspoint.com/data_structures_algorithms/dijkstras_shortest_path_algorithm.htm
+#[test]
+fn test_case_c() {
+    let mut graph: Graph<&str> = Graph::new("S");
+    let edges = vec![
+        ("S", "A", 6),
+        ("A", "B", 9),
+        ("B", "C", 12),
+        ("C", "D", 3),
+        ("D", "S", 8),
+        ("C", "E", 5),
+        ("D", "E", 10),
+        ("S", "E", 7),
+    ];
+    graph.add_bidirectional_edges(edges);
+    graph.run_pathfinding_algorithm();
+    let distances = vec![("S", 0), ("A", 6), ("B", 15), ("C", 11), ("D", 8), ("E", 7)];
+    distances.iter().for_each(|t| {
+        graph.test_distance(t.0, t.1);
+    });
+}

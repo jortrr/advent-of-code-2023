@@ -4,9 +4,8 @@
 use crate::{debug, test};
 use std::{
     cell::RefCell,
-    cmp::min,
     fmt::{Debug, Display},
-    ops::Deref,
+    iter::once,
     rc::Rc,
 };
 
@@ -16,15 +15,17 @@ type Distance = Int;
 type DistanceOption = Option<Distance>;
 type NodeRefs<T> = Vec<NodeRef<T>>;
 type Edges<T> = Vec<Edge<T>>;
+type Path<T> = Vec<T>;
 /// Reference counted mutable Node<T> (shared_ptr): https://doc.rust-lang.org/book/ch15-04-rc.html
 type NodeRef<T> = Rc<RefCell<Node<T>>>;
 
 /// A `Node` with a `state` and an optional `distance` to some starting `Node`.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 struct Node<T> {
     state: T,
     distance_option: DistanceOption,
     visited: bool,
+    path: Path<T>,
 }
 
 impl<T: PartialEq> PartialEq for Node<T> {
@@ -33,17 +34,31 @@ impl<T: PartialEq> PartialEq for Node<T> {
     }
 }
 
-impl<T> Node<T> {
+impl<T: Debug + Display + Clone> Node<T> {
     fn new(state: T, distance_option: DistanceOption) -> Node<T> {
         Node {
             state,
             distance_option,
             visited: false,
+            path: Path::new(),
         }
     }
 
     fn new_ref(state: T, distance_option: DistanceOption) -> NodeRef<T> {
         Rc::new(RefCell::new(Node::new(state, distance_option)))
+    }
+
+    fn update(&mut self, distance: Distance, path: Path<T>) {
+        self.distance_option = Some(distance);
+        self.path = path.into_iter().chain(once(self.state.clone())).collect();
+    }
+
+    fn path_to_string(&self) -> String {
+        self.path
+            .iter()
+            .map(|state| format!("{}", state))
+            .collect::<Vec<_>>()
+            .join(" -> ")
     }
 }
 
@@ -74,7 +89,7 @@ struct Graph<T: PartialEq + Clone + Debug + Display> {
 
 impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     fn new(starting_state: T) -> Graph<T> {
-        let starting_node: NodeRef<T> = Node::new_ref(starting_state, Some(0));
+        let starting_node: NodeRef<T> = Node::new_ref(starting_state.clone(), Some(0));
         starting_node.borrow_mut().visited = true;
         let visited_nodes = vec![Rc::clone(&starting_node)];
 
@@ -190,20 +205,41 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
         // Remove current_node from unvisited_nodes, and add to visited_nodes.
         self.unvisited_nodes
             .retain(|node| *node.borrow() != *node_ref.borrow());
-        self.visited_nodes.push(Rc::clone(&node_ref));
+        if self
+            .visited_nodes
+            .iter()
+            .all(|n| *n.borrow() != *node_ref.borrow())
+        {
+            self.visited_nodes.push(Rc::clone(&node_ref));
+        }
+        if node_ref == self.starting_node {
+            let state = self.starting_node.borrow().state.clone();
+            self.starting_node.borrow_mut().path.push(state);
+        }
         node_ref.borrow_mut().visited = true;
 
         // Update all unvisited neighbours with the shortest distance to that node
         let edges_to_neighbours: Edges<T> = self.get_edges(node_ref.borrow().state.clone());
         let distance_to_current_node = node_ref.borrow().distance_option.unwrap();
+        let path_to_neighbour: Path<T> = node_ref.borrow().path.clone();
         for edge in edges_to_neighbours {
             if !edge.second.borrow().visited {
                 let distance_to_neighbour = distance_to_current_node + edge.distance;
-                let shortest_distance: Distance = match edge.second.borrow().distance_option {
-                    Some(previous_distance) => min(distance_to_neighbour, previous_distance),
-                    None => distance_to_neighbour,
+                let neighbour_distance_option = edge.second.borrow().distance_option;
+                match neighbour_distance_option {
+                    Some(previous_distance) => {
+                        if distance_to_neighbour < previous_distance {
+                            edge.second
+                                .borrow_mut()
+                                .update(distance_to_neighbour, path_to_neighbour.clone());
+                        }
+                    }
+                    None => {
+                        edge.second
+                            .borrow_mut()
+                            .update(distance_to_neighbour, path_to_neighbour.clone());
+                    }
                 };
-                edge.second.borrow_mut().distance_option = Some(shortest_distance);
             }
         }
     }
@@ -281,6 +317,39 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
             expected
         );
     }
+
+    /// Return the shortest Path to a Node in this Graph.
+    ///
+    /// Run `run_pathfinding_algorithm()` first.
+    ///
+    /// Will panic if there is no Node in this Graph with the specified state,
+    /// or if the Node has no path.
+    fn get_path(&self, state: T) -> Path<T> {
+        let node_ref_option: Option<NodeRef<T>> = self.get_node_ref(state.clone());
+        match node_ref_option {
+            Some(node_ref) => node_ref.borrow().path.clone(),
+            _ => panic!("No Node in Graph with state: {:?}.", state),
+        }
+    }
+
+    /// Test the distance of a Node in this Graph.
+    ///
+    /// Run `run_pathfinding_algorithm()` first.
+    ///
+    /// Will panic if there is no Node in this Graph with the specified state,
+    /// or if the Node has no distance, or if the distance is incorrect.
+    fn test_path(&self, state: T, expected: Path<T>) {
+        test!(
+            expected,
+            self.get_path(state),
+            "Path to {}: {}",
+            state.clone(),
+            self.get_node_ref(state.clone())
+                .unwrap()
+                .borrow()
+                .path_to_string()
+        );
+    }
 }
 
 #[test]
@@ -299,8 +368,10 @@ fn test_case_a() {
     ];
     graph.add_edges(edges);
     graph.run_pathfinding_algorithm();
-    dbg!(&graph.unvisited_nodes);
-    dbg!(&graph.visited_nodes);
+    //dbg!(&graph.visited_nodes);
+    test!(0, graph.unvisited_nodes.len());
+    test!(7, graph.visited_nodes.len());
+    // Test distances
     let distances = vec![
         ("a", 0),
         ("b", 3),
@@ -312,6 +383,19 @@ fn test_case_a() {
     ];
     distances.iter().for_each(|t| {
         graph.test_distance(t.0, t.1);
+    });
+    // Test paths
+    let paths = vec![
+        ("a", vec!["a"]),
+        ("b", vec!["a", "b"]),
+        ("c", vec!["a", "b", "c"]),
+        ("d", vec!["a", "b", "d"]),
+        ("e", vec!["a", "b", "c", "e"]),
+        ("f", vec!["a", "b", "d", "f"]),
+        ("g", vec!["a", "b", "d", "f", "g"]),
+    ];
+    paths.into_iter().for_each(|t| {
+        graph.test_path(t.0, t.1);
     });
 }
 
@@ -339,6 +423,9 @@ fn test_case_b() {
     ];
     graph.add_bidirectional_edges(edges);
     graph.run_pathfinding_algorithm();
+    test!(0, graph.unvisited_nodes.len());
+    test!(9, graph.visited_nodes.len());
+    // Test distances
     let distances = vec![
         (0, 0),
         (1, 4),
@@ -352,6 +439,21 @@ fn test_case_b() {
     ];
     distances.iter().for_each(|t| {
         graph.test_distance(t.0, t.1);
+    });
+    // Test paths
+    let paths = vec![
+        (0, vec![0]),
+        (1, vec![0, 1]),
+        (2, vec![0, 1, 2]),
+        (3, vec![0, 1, 2, 3]),
+        (4, vec![0, 7, 6, 5, 4]),
+        (5, vec![0, 7, 6, 5]),
+        (6, vec![0, 7, 6]),
+        (7, vec![0, 7]),
+        (8, vec![0, 1, 2, 8]),
+    ];
+    paths.into_iter().for_each(|t| {
+        graph.test_path(t.0, t.1);
     });
 }
 
@@ -372,8 +474,23 @@ fn test_case_c() {
     ];
     graph.add_bidirectional_edges(edges);
     graph.run_pathfinding_algorithm();
+    test!(0, graph.unvisited_nodes.len());
+    test!(6, graph.visited_nodes.len());
+    // Test distances
     let distances = vec![("S", 0), ("A", 6), ("B", 15), ("C", 11), ("D", 8), ("E", 7)];
     distances.iter().for_each(|t| {
         graph.test_distance(t.0, t.1);
+    });
+    // Test paths
+    let paths = vec![
+        ("S", vec!["S"]),
+        ("A", vec!["S", "A"]),
+        ("B", vec!["S", "A", "B"]),
+        ("C", vec!["S", "D", "C"]),
+        ("D", vec!["S", "D"]),
+        ("E", vec!["S", "E"]),
+    ];
+    paths.into_iter().for_each(|t| {
+        graph.test_path(t.0, t.1);
     });
 }

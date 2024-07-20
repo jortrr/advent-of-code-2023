@@ -94,14 +94,16 @@ impl<T> FromIterator<Vec<T>> for Grid<T> {
 
 use std::ops::{Deref, DerefMut};
 
+use aoc_input::define_convertable_enum;
 pub use Direction::*;
 
-#[derive(PartialEq, Debug, Clone, Eq, Hash, Copy)]
-pub enum Direction {
-    North,
-    East,
-    South,
-    West,
+define_convertable_enum! {
+    Direction {
+        North => '^',
+        East => '>',
+        South => 'v',
+        West => '<',
+    }
 }
 
 #[derive(PartialEq, Clone, Eq, Hash, Copy)]

@@ -78,13 +78,13 @@ macro_rules! debug {
 #[macro_export]
 macro_rules! define_convertable_enum {
     ($name:ident { $($variant:ident $(($opt:ty))? => $char:expr),* $(,)? }) => {
-        #[derive(Debug)]
-        enum $name {
+        #[derive(PartialEq, Debug, Clone, Eq, Hash, Copy)]
+        pub enum $name {
             $($variant$(($opt))?),*
         }
 
         impl $name {
-            fn from_char(c: char) -> $name {
+            pub fn from_char(c: char) -> $name {
                 match c {
                     $(
                         $char => $name::$variant$(($opt::default()))?,
@@ -93,7 +93,7 @@ macro_rules! define_convertable_enum {
                 }
             }
 
-            fn to_char(&self) -> char {
+            pub fn to_char(&self) -> char {
                 match self {
                     $(
                         $name::$variant$(($opt::default()))? => $char,
@@ -108,4 +108,11 @@ macro_rules! define_convertable_enum {
 #[macro_export]
 macro_rules! vec_of_strings {
     ($($x:expr),* $(,)?) => (vec![$($x.to_string()),*]);
+}
+
+#[macro_export]
+macro_rules! clear_console {
+    () => {
+        print!("{}[2J", 27 as char);
+    };
 }

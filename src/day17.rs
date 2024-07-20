@@ -1,7 +1,9 @@
 mod grid;
 mod macros;
+mod path_finding;
 
-use std::{collections::HashSet, iter::once};
+use std::fmt::Debug;
+use std::{collections::HashSet, iter::once, thread::sleep, time::Duration};
 
 use colored::{ColoredString, Colorize};
 use grid::*;
@@ -12,9 +14,9 @@ type Path = Vec<DirectedPoint>;
 
 static DEBUG: bool = true;
 
-fn last_three_items_are_the_same<T: PartialEq>(list: &Vec<T>) -> bool {
+fn last_four_items_are_the_same<T: PartialEq>(list: &Vec<T>) -> bool {
     match &list[..] {
-        [.., a, b, c] if a == b && b == c => true,
+        [.., a, b, c, d] if a == b && b == c && c == d => true,
         _ => false,
     }
 }
@@ -51,6 +53,18 @@ impl Node {
             Some(distance) => Some(distance + self.heat_loss),
             _ => None,
         }
+    }
+}
+
+impl Debug for Node {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Node({:?}, {}) -> {}",
+            self.point.unwrap(),
+            self.heat_loss,
+            self.shortest_distance_to_start.unwrap()
+        )
     }
 }
 
@@ -133,7 +147,19 @@ impl Map {
     }
 
     fn print(&self, current_point: &Point) {
-        debug!(true, "Map:\n{}\n", self.to_string(Some(*current_point)));
+        let distance: Int = self
+            .grid
+            .point_get(current_point)
+            .unwrap()
+            .distance()
+            .unwrap();
+        debug!(
+            true,
+            "Map(distance to {:?}: {}):\n{}\n",
+            current_point,
+            distance,
+            self.to_string(Some(*current_point))
+        );
     }
 
     fn set_start_node(mut self, point: &Point) -> Map {
@@ -198,7 +224,7 @@ impl Map {
         }
         // Now we know that our current point is unvisited, has a shortest_distance_to_start, and a path_from_start
         self.unvisited.remove(point);
-        let shortest_distance_to_start: Int = node.shortest_distance_to_start.unwrap();
+        let distance_to_neighbours: Int = node.shortest_distance_to_start.unwrap() + node.heat_loss;
         let path_from_start: Path = node.path_from_start.clone().unwrap();
         let heat_loss: Int = node.heat_loss;
 
@@ -210,16 +236,19 @@ impl Map {
                 .cloned()
                 .chain(once((direction_to_neighbour, *point)))
                 .collect();
-            if neighbour_node.path_from_start.is_some()
-                || neighbour_node.shortest_distance_to_start.is_some()
-            {
-                debug!(
-                    false,
-                    "A shorter path from {:?} to {:?} already exists, skip.",
-                    point,
-                    point_of_neighbour
-                );
-            } else if last_three_items_are_the_same(
+            if let Some(distance) = neighbour_node.shortest_distance_to_start {
+                if distance > distance_to_neighbours {
+                    neighbour_node.shortest_distance_to_start = Some(distance_to_neighbours);
+                    neighbour_node.path_from_start = Some(path_to_neighbour);
+                } else {
+                    debug!(
+                        false,
+                        "A shorter path from {:?} to {:?} already exists, skip.",
+                        point,
+                        point_of_neighbour
+                    );
+                }
+            } else if last_four_items_are_the_same(
                 &path_to_neighbour.iter().map(|(d, _)| d).collect(),
             ) {
                 debug!(
@@ -230,16 +259,17 @@ impl Map {
                 );
             } else {
                 // This neighbour node can be reached by the current node, and this is the shortest path
-                neighbour_node.shortest_distance_to_start =
-                    Some(shortest_distance_to_start + heat_loss);
-                neighbour_node.path_from_start = Some(path_to_neighbour.clone());
+                neighbour_node.shortest_distance_to_start = Some(distance_to_neighbours);
+                neighbour_node.path_from_start = Some(path_to_neighbour);
             }
         }
 
         let next_node_point_option = self.get_closest_unvisited_node_point();
 
         if DEBUG {
+            clear_console!();
             self.print(point);
+            sleep(Duration::from_millis(50));
         }
 
         if let Some(next_node_point) = next_node_point_option {
@@ -255,6 +285,14 @@ impl Map {
             .map(|d| (*d, point.move_to(d)))
             .filter(|(_, p)| self.grid.point_within(p))
             .collect()
+    }
+
+    fn print_path_to(&self, point: &Point) {
+        let node = self.grid.point_get(point).unwrap();
+        for (_, path_point) in node.path_from_start.clone().unwrap() {
+            let path_node = self.grid.point_get(&path_point).unwrap();
+            debug!(DEBUG, "{:?}", path_node,);
+        }
     }
 }
 
@@ -288,5 +326,10 @@ fn main() {
         .unwrap()
         .shortest_distance_to_start
         .unwrap();
+
+    let debug_point = example_map.grid.wrap(5, 0);
+    example_map.print(&debug_point);
+    example_map.print_path_to(&debug_point);
+
     test!(102, shortest_distance_to_bottom_right);
 }

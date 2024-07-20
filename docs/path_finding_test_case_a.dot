@@ -1,0 +1,22 @@
+digraph path_finding_test_case_a {
+    label = "PathFinding Test Case A";
+    node [shape = circle;];
+    
+    a [label = "a: 0";];
+    b [label = "b: 3";];
+    c [label = "c: 5";];
+    d [label = "d: 7";];
+    e [label = "e: 9";];
+    f [label = "f: 8";];
+    g [label = "g: 13";];
+    
+    a -> b [label = "3";];
+    b -> c [label = "2";];
+    b -> d [label = "4";];
+    a -> d [label = "8";];
+    c -> e [label = "4";];
+    e -> b [label = "10";];
+    d -> f [label = "1";];
+    f -> g [label = "5";];
+    g -> f [label = "2";];
+}

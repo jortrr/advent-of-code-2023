@@ -2,81 +2,75 @@ mod grid;
 mod macros;
 mod path_finding;
 
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::{collections::HashSet, iter::once, thread::sleep, time::Duration};
 
 use colored::{ColoredString, Colorize};
 use grid::*;
+use path_finding::{Graph, NodeRef};
 
 type DirectedPoint = (Direction, Point);
 
 type Path = Vec<DirectedPoint>;
+type Steps = Int;
 
-static DEBUG: bool = true;
-
-fn last_four_items_are_the_same<T: PartialEq>(list: &Vec<T>) -> bool {
-    match &list[..] {
-        [.., a, b, c, d] if a == b && b == c && c == d => true,
-        _ => false,
-    }
+#[derive(Debug, PartialEq, Clone)]
+struct State {
+    point: Point,
+    direction: Direction,
+    steps: Steps,
 }
 
-#[derive(Clone)]
-struct Node {
-    point: Option<Point>,
-    heat_loss: Int,
-    shortest_distance_to_start: Option<Int>,
-    path_from_start: Option<Path>,
-}
-
-impl Node {
-    fn from_digit(digit: Int) -> Option<Node> {
-        return if digit < 0 || digit > 9 {
-            None
-        } else {
-            Some(Node {
-                point: None,
-                heat_loss: digit,
-                shortest_distance_to_start: None,
-                path_from_start: None,
-            })
-        };
-    }
-
-    fn assign_point(mut self, x: Int, y: Int) -> Node {
-        self.point = Some(Point::new(x, y));
-        self
-    }
-
-    fn distance(&self) -> Option<Int> {
-        match self.shortest_distance_to_start {
-            Some(distance) => Some(distance + self.heat_loss),
-            _ => None,
+impl State {
+    fn new(point: Point, direction: Direction, steps: Steps) -> State {
+        State {
+            point,
+            direction,
+            steps,
         }
     }
 }
 
-impl Debug for Node {
+impl Display for State {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Node({:?}, {}) -> {}",
-            self.point.unwrap(),
-            self.heat_loss,
-            self.shortest_distance_to_start.unwrap()
+            "(p: {}, d: {}, n: {})",
+            self.point, self.direction, self.steps
         )
     }
 }
 
+static DEBUG: bool = true;
+
+#[derive(Clone, Debug)]
+struct Node {
+    point: Point,
+    heat_loss: Int,
+}
+
+impl Node {
+    fn from_digit(digit: Int, x: Int, y: Int) -> Node {
+        if digit < 0 || digit > 9 {
+            panic!("Digit not in range [0,9]: '{}'.", digit);
+        }
+        Node {
+            point: Point::new(x, y),
+            heat_loss: digit,
+        }
+    }
+}
+
+#[derive(Debug)]
 struct Map {
     rows: usize,
     columns: usize,
     grid: Grid<Node>,
-    unvisited: HashSet<Point>,
+    graph: Graph<State>,
 }
 
 impl Map {
-    fn from_strings(input: &Vec<String>) -> Map {
+    fn from_strings(input: &Vec<String>, starting_state: State) -> Map {
         let grid: Grid<Node> = input
             .iter()
             .enumerate()
@@ -84,45 +78,30 @@ impl Map {
                 s.chars()
                     .enumerate()
                     .map(|(x, c)| {
-                        Node::from_digit(c.to_string().parse().unwrap())
-                            .unwrap()
-                            .assign_point(x as Int, y as Int)
+                        Node::from_digit(c.to_string().parse().unwrap(), x as Int, y as Int)
                     })
                     .collect()
             })
             .collect();
-        let unvisited: HashSet<Point> = grid.iter().flatten().map(|n| n.point.unwrap()).collect();
         let rows = grid.len();
         let columns = grid.first().unwrap().len();
         Map {
             rows,
             columns,
             grid,
-            unvisited,
+            graph: Graph::new(starting_state),
         }
     }
 
     fn to_string(&self, current_point_option: Option<Point>) -> String {
         let mut result = String::new();
-        let mut path_to_current_node: Vec<Point> = Vec::new();
-        if let Some(current_point) = current_point_option {
-            path_to_current_node = self
-                .grid
-                .point_get(&current_point)
-                .unwrap()
-                .path_from_start
-                .clone()
-                .unwrap()
-                .iter()
-                .map(|(d, p)| *p)
-                .collect();
-        }
+        //let mut path_to_current_node = self.graph.get_path(state)
         for y in 0..self.rows {
             for x in 0..self.columns {
                 let node: &Node = &self.grid[y][x];
-                let mut digit: ColoredString = node.heat_loss.to_string().into();
-                let point: Point = node.point.clone().unwrap();
-                if !self.unvisited.contains(&point) {
+                let digit: ColoredString = node.heat_loss.to_string().into();
+                //let point: Point = node.point;
+                /*if !self.graph.contains(&point) {
                     digit = digit.on_green();
                 } else {
                     if node.path_from_start.is_some() && node.shortest_distance_to_start.is_some() {
@@ -138,7 +117,7 @@ impl Map {
                 }
                 if path_to_current_node.contains(&point) {
                     digit = digit.on_bright_magenta();
-                }
+                }*/
                 result.push_str(&digit.to_string());
             }
             result += "\n";
@@ -147,151 +126,56 @@ impl Map {
     }
 
     fn print(&self, current_point: &Point) {
-        let distance: Int = self
-            .grid
-            .point_get(current_point)
-            .unwrap()
-            .distance()
-            .unwrap();
         debug!(
             true,
             "Map(distance to {:?}: {}):\n{}\n",
             current_point,
-            distance,
+            -1, //TODO
             self.to_string(Some(*current_point))
         );
     }
 
-    fn set_start_node(mut self, point: &Point) -> Map {
-        let node = self.grid.point_get_mut(point).unwrap();
-        node.shortest_distance_to_start = Some(0);
-        node.path_from_start = Some(Vec::new());
-        self
-    }
+    /// Generate all possible edges from any point inside the grid to any other point, and add them to self.graph
+    fn generate_edges(&mut self) {
+        for y in 0..self.rows {
+            for x in 0..self.columns {
+                let point: Point = Point::new(x as Int, y as Int);
+                let node: &Node = self.grid.point_get(&point).unwrap();
+                for direction in [North, East, South, West] {
+                    let other_point = point.moved_from(&direction);
+                    if self.grid.point_within_grid(&other_point) {
+                        for i in 0..2 {
+                            // Move in the same direction, limited to 3 times the same direction
+                            let other_state: State = State::new(other_point, direction, i);
+                            let state: State = State::new(point, direction, i + 1);
+                            self.graph
+                                .add_edge(other_state.clone(), state, node.heat_loss);
 
-    fn get_closest_unvisited_node_point(&self) -> Option<Point> {
-        let mut closest_node_option: Option<&Node> = None;
-
-        for point in &self.unvisited {
-            let node = self.grid.point_get(&point).unwrap();
-            if closest_node_option.is_none() && node.distance().is_some() {
-                closest_node_option = Some(node);
-            } else if let Some(closest_node) = closest_node_option {
-                match (node.distance(), closest_node.distance()) {
-                    (Some(a), Some(b)) => {
-                        if a < b {
-                            closest_node_option = Some(node);
+                            // Bend left or right
+                            let bend_left_state = State::new(point, direction.move_left(), 0);
+                            let bend_right_state = State::new(point, direction.move_right(), 0);
+                            self.graph.add_edge(
+                                other_state.clone(),
+                                bend_left_state.clone(),
+                                node.heat_loss,
+                            );
+                            self.graph
+                                .add_edge(other_state, bend_right_state, node.heat_loss);
                         }
+                        // Bend left or right, because the other has to
+                        let other_state: State = State::new(other_point, direction, 2);
+                        let bend_left_state = State::new(point, direction.move_left(), 0);
+                        let bend_right_state = State::new(point, direction.move_right(), 0);
+                        self.graph.add_edge(
+                            other_state.clone(),
+                            bend_left_state.clone(),
+                            node.heat_loss,
+                        );
+                        self.graph
+                            .add_edge(other_state, bend_right_state, node.heat_loss);
                     }
-                    _ => (),
                 }
             }
-        }
-
-        if let Some(clostest_node) = closest_node_option {
-            debug!(
-                DEBUG,
-                "Found closest: {:?} -> {}.",
-                clostest_node.point.unwrap(),
-                clostest_node.distance().unwrap()
-            );
-            Some(clostest_node.point.unwrap())
-        } else {
-            None
-        }
-    }
-
-    fn visit(mut self, point: &Point) -> Map {
-        debug!(DEBUG, "visit({:?})", point);
-        if !self.unvisited.contains(point) {
-            panic!(
-                "Attempting to visit a Point that is not in self.unvisited: '{:?}'.",
-                point
-            );
-        }
-        let node = self.grid.point_get(point).unwrap();
-        if !node.shortest_distance_to_start.is_some() {
-            panic!(
-                "Attempting to visit a Node has no shortest_distance_to_start: '{:?}'.",
-                point
-            );
-        }
-        if !node.path_from_start.is_some() {
-            panic!(
-                "Attempting to visit a Node has no path_from_start: '{:?}'.",
-                point
-            );
-        }
-        // Now we know that our current point is unvisited, has a shortest_distance_to_start, and a path_from_start
-        self.unvisited.remove(point);
-        let distance_to_neighbours: Int = node.shortest_distance_to_start.unwrap() + node.heat_loss;
-        let path_from_start: Path = node.path_from_start.clone().unwrap();
-        let heat_loss: Int = node.heat_loss;
-
-        let directed_neighbours: Vec<DirectedPoint> = self.get_neighbours(point);
-        for (direction_to_neighbour, point_of_neighbour) in directed_neighbours {
-            let neighbour_node: &mut Node = self.grid.point_get_mut(&point_of_neighbour).unwrap();
-            let path_to_neighbour: Path = path_from_start
-                .iter()
-                .cloned()
-                .chain(once((direction_to_neighbour, *point)))
-                .collect();
-            if let Some(distance) = neighbour_node.shortest_distance_to_start {
-                if distance > distance_to_neighbours {
-                    neighbour_node.shortest_distance_to_start = Some(distance_to_neighbours);
-                    neighbour_node.path_from_start = Some(path_to_neighbour);
-                } else {
-                    debug!(
-                        false,
-                        "A shorter path from {:?} to {:?} already exists, skip.",
-                        point,
-                        point_of_neighbour
-                    );
-                }
-            } else if last_four_items_are_the_same(
-                &path_to_neighbour.iter().map(|(d, _)| d).collect(),
-            ) {
-                debug!(
-                    false,
-                    "The last three directions in the Path from {:?} to {:?} are the same, skip.",
-                    point,
-                    point_of_neighbour
-                );
-            } else {
-                // This neighbour node can be reached by the current node, and this is the shortest path
-                neighbour_node.shortest_distance_to_start = Some(distance_to_neighbours);
-                neighbour_node.path_from_start = Some(path_to_neighbour);
-            }
-        }
-
-        let next_node_point_option = self.get_closest_unvisited_node_point();
-
-        if DEBUG {
-            clear_console!();
-            self.print(point);
-            sleep(Duration::from_millis(50));
-        }
-
-        if let Some(next_node_point) = next_node_point_option {
-            self.visit(&next_node_point)
-        } else {
-            self
-        }
-    }
-
-    fn get_neighbours(&self, point: &Point) -> Vec<DirectedPoint> {
-        vec![North, East, South, West]
-            .iter()
-            .map(|d| (*d, point.move_to(d)))
-            .filter(|(_, p)| self.grid.point_within(p))
-            .collect()
-    }
-
-    fn print_path_to(&self, point: &Point) {
-        let node = self.grid.point_get(point).unwrap();
-        for (_, path_point) in node.path_from_start.clone().unwrap() {
-            let path_node = self.grid.point_get(&path_point).unwrap();
-            debug!(DEBUG, "{:?}", path_node,);
         }
     }
 }
@@ -314,22 +198,30 @@ fn main() {
         "2546548887735",
         "4322674655533",
     ];
-    let start_point: Point = Point::new(0, 0);
-    let example_map = Map::from_strings(&example_input)
-        .set_start_node(&start_point)
-        .visit(&start_point);
+    let mut example_map = Map::from_strings(&example_input, State::new(Point::new(0, 0), South, 0));
+    example_map.generate_edges();
+    example_map.graph.run_pathfinding_algorithm();
+    let destination = example_map.grid.wrap(-1, -1);
+    let mut paths: Vec<NodeRef<State>> = example_map
+        .graph
+        .visited_nodes
+        .iter()
+        .filter(|n| n.borrow().state.point == destination)
+        .cloned()
+        .collect();
+    dbg!(&paths);
+    paths.sort_by(|a, b| {
+        a.borrow()
+            .distance_option
+            .unwrap()
+            .partial_cmp(&b.borrow().distance_option.unwrap())
+            .unwrap()
+    });
+    let shortest_path_to_point = paths.first().unwrap();
+    let shortest_distance_to_point = shortest_path_to_point.borrow().distance_option.unwrap();
+    dbg!(shortest_path_to_point);
+    dbg!(shortest_distance_to_point);
 
-    example_map.print(&example_map.grid.wrap(-1, -1));
-    let shortest_distance_to_bottom_right = example_map
-        .grid
-        .wrapped_get(-1, -1)
-        .unwrap()
-        .shortest_distance_to_start
-        .unwrap();
-
-    let debug_point = example_map.grid.wrap(5, 0);
-    example_map.print(&debug_point);
-    example_map.print_path_to(&debug_point);
-
-    test!(102, shortest_distance_to_bottom_right);
+    //dbg!(example_map);
+    test!(102, shortest_distance_to_point, "Part 1 - Example");
 }

@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::fmt::Display;
 
 pub type Int = i32;
 
@@ -16,7 +17,7 @@ impl<T> Grid<T> {
         self.grid.first().unwrap().len()
     }
 
-    pub fn point_within(&self, point: &Point) -> bool {
+    pub fn point_within_grid(&self, point: &Point) -> bool {
         self.within(point.x, point.y)
     }
 
@@ -106,6 +107,41 @@ define_convertable_enum! {
     }
 }
 
+impl Direction {
+    pub fn move_left(&self) -> Direction {
+        match &self {
+            North => West,
+            East => North,
+            South => East,
+            West => South,
+        }
+    }
+
+    pub fn move_right(&self) -> Direction {
+        match &self {
+            North => East,
+            East => South,
+            South => West,
+            West => North,
+        }
+    }
+
+    pub fn move_back(&self) -> Direction {
+        match &self {
+            North => South,
+            East => West,
+            South => North,
+            West => East,
+        }
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(PartialEq, Clone, Eq, Hash, Copy)]
 pub struct Point {
     pub x: Int,
@@ -115,6 +151,12 @@ pub struct Point {
 impl Debug for Point {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Point({}, {})", self.x, self.y)
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
@@ -135,6 +177,27 @@ impl Point {
             },
             West => Point {
                 x: self.x - 1,
+                y: self.y,
+            },
+        }
+    }
+
+    pub fn moved_from(&self, direction: &Direction) -> Point {
+        match direction {
+            North => Point {
+                x: self.x,
+                y: self.y + 1,
+            },
+            East => Point {
+                x: self.x - 1,
+                y: self.y,
+            },
+            South => Point {
+                x: self.x,
+                y: self.y - 1,
+            },
+            West => Point {
+                x: self.x + 1,
                 y: self.y,
             },
         }

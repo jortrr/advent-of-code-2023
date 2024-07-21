@@ -17,13 +17,13 @@ type NodeRefs<T> = Vec<NodeRef<T>>;
 type Edges<T> = Vec<Edge<T>>;
 type Path<T> = Vec<T>;
 /// Reference counted mutable Node<T> (shared_ptr): https://doc.rust-lang.org/book/ch15-04-rc.html
-type NodeRef<T> = Rc<RefCell<Node<T>>>;
+pub type NodeRef<T> = Rc<RefCell<Node<T>>>;
 
 /// A `Node` with a `state` and an optional `distance` to some starting `Node`.
 #[derive(Clone, Debug)]
-struct Node<T> {
-    state: T,
-    distance_option: DistanceOption,
+pub struct Node<T> {
+    pub state: T,
+    pub distance_option: DistanceOption,
     visited: bool,
     path: Path<T>,
 }
@@ -80,15 +80,16 @@ impl<T> Edge<T> {
     }
 }
 
-struct Graph<T: PartialEq + Clone + Debug + Display> {
-    visited_nodes: NodeRefs<T>,
+#[derive(Debug)]
+pub struct Graph<T: PartialEq + Clone + Debug + Display> {
+    pub visited_nodes: NodeRefs<T>,
     unvisited_nodes: NodeRefs<T>,
     edges: Edges<T>,
     starting_node: NodeRef<T>,
 }
 
 impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
-    fn new(starting_state: T) -> Graph<T> {
+    pub fn new(starting_state: T) -> Graph<T> {
         let starting_node: NodeRef<T> = Node::new_ref(starting_state.clone(), Some(0));
         starting_node.borrow_mut().visited = true;
         let visited_nodes = vec![Rc::clone(&starting_node)];
@@ -102,7 +103,7 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     }
 
     /// Add a new `Edge` to `self.edges` from new or existing `Nodes` with specified `states``
-    fn add_edge(&mut self, first_state: T, second_state: T, distance: Distance) {
+    pub fn add_edge(&mut self, first_state: T, second_state: T, distance: Distance) {
         let first_node_ref: NodeRef<T> = self.insert_node(first_state);
         let second_node_ref: NodeRef<T> = self.insert_node(second_state);
         let new_edge: Edge<T> = Edge::new(first_node_ref, second_node_ref, distance);
@@ -110,13 +111,13 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     }
 
     /// Add a new biderectional `Edge` to `self.edges` from new or existing `Nodes` with specified `states``
-    fn add_bidirectional_edge(&mut self, first_state: T, second_state: T, distance: Distance) {
+    pub fn add_bidirectional_edge(&mut self, first_state: T, second_state: T, distance: Distance) {
         self.add_edge(first_state.clone(), second_state.clone(), distance);
         self.add_edge(second_state, first_state, distance);
     }
 
     /// Add all `Edges` to `self.edges` from new or existing `Nodes` with specified `states``
-    fn add_edges(&mut self, edges: Vec<(T, T, Distance)>) {
+    pub fn add_edges(&mut self, edges: Vec<(T, T, Distance)>) {
         edges
             .into_iter()
             .for_each(|(first_state, second_state, distance)| {
@@ -125,7 +126,7 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     }
 
     /// Add all bidirectional `Edges` to `self.edges` from new or existing `Nodes` with specified `states``
-    fn add_bidirectional_edges(&mut self, edges: Vec<(T, T, Distance)>) {
+    pub fn add_bidirectional_edges(&mut self, edges: Vec<(T, T, Distance)>) {
         edges
             .into_iter()
             .for_each(|(first_state, second_state, distance)| {
@@ -152,7 +153,7 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
 
     /// Get a `NodeRef<T>` if a `NodeRef<T>` with specified `state` is
     /// found in `visited_nodes` or `unvisited_nodes`.
-    fn get_node_ref(&self, state: T) -> Option<NodeRef<T>> {
+    pub fn get_node_ref(&self, state: T) -> Option<NodeRef<T>> {
         let all_nodes: Vec<&NodeRef<T>> = self
             .unvisited_nodes
             .iter()
@@ -281,7 +282,7 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
         }
         // We have now visited all unvisited Nodes that were reachable
         if !self.unvisited_nodes.is_empty() {
-            panic!(
+            println!(
                 "Not all Nodes have been visited, '{}' are unreachable, this should not occur.",
                 self.unvisited_nodes.len()
             );
@@ -294,7 +295,7 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     ///
     /// Will panic if there is no Node in this Graph with the specified state,
     /// or if the Node has no distance.
-    fn get_distance(&self, state: T) -> Distance {
+    pub fn get_distance(&self, state: T) -> Distance {
         let node_ref_option: Option<NodeRef<T>> = self.get_node_ref(state.clone());
         match node_ref_option {
             Some(node_ref) => node_ref.borrow().distance_option.unwrap(),
@@ -324,7 +325,7 @@ impl<T: PartialEq + Clone + Debug + Display> Graph<T> {
     ///
     /// Will panic if there is no Node in this Graph with the specified state,
     /// or if the Node has no path.
-    fn get_path(&self, state: T) -> Path<T> {
+    pub fn get_path(&self, state: T) -> Path<T> {
         let node_ref_option: Option<NodeRef<T>> = self.get_node_ref(state.clone());
         match node_ref_option {
             Some(node_ref) => node_ref.borrow().path.clone(),

@@ -142,7 +142,7 @@ impl Display for Direction {
     }
 }
 
-#[derive(PartialEq, Clone, Eq, Hash, Copy)]
+#[derive(PartialEq, Clone, Eq, Hash, Copy, PartialOrd)]
 pub struct Point {
     pub x: Int,
     pub y: Int,

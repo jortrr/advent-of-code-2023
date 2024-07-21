@@ -78,7 +78,7 @@ macro_rules! debug {
 #[macro_export]
 macro_rules! define_convertable_enum {
     ($name:ident { $($variant:ident $(($opt:ty))? => $char:expr),* $(,)? }) => {
-        #[derive(PartialEq, Debug, Clone, Eq, Hash, Copy)]
+        #[derive(PartialEq, Debug, Clone, Eq, Hash, Copy, PartialOrd)]
         pub enum $name {
             $($variant$(($opt))?),*
         }

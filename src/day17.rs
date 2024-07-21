@@ -3,18 +3,19 @@ mod macros;
 mod path_finding;
 
 use std::fmt::{Debug, Display};
+use std::rc::Rc;
 use std::{collections::HashSet, iter::once, thread::sleep, time::Duration};
 
 use colored::{ColoredString, Colorize};
 use grid::*;
-use path_finding::{Graph, NodeRef};
+use path_finding::{Graph, NodeRef, NodeRefs};
 
 type DirectedPoint = (Direction, Point);
 
 type Path = Vec<DirectedPoint>;
 type Steps = Int;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Eq, PartialOrd)]
 struct State {
     point: Point,
     direction: Direction,
@@ -140,6 +141,7 @@ impl Map {
         for y in 0..self.rows {
             for x in 0..self.columns {
                 let point: Point = Point::new(x as Int, y as Int);
+                //dbg!(point);
                 let node: &Node = self.grid.point_get(&point).unwrap();
                 for direction in [North, East, South, West] {
                     let other_point = point.moved_from(&direction);
@@ -178,6 +180,34 @@ impl Map {
             }
         }
     }
+
+    fn get_paths_to_point(&self, point: &Point) -> NodeRefs<State> {
+        self.graph
+            .visited_nodes
+            .iter()
+            .filter(|n| n.borrow().state.point == *point)
+            .cloned()
+            .collect()
+    }
+
+    fn get_shortest_path_to_point(&self, point: &Point) -> NodeRef<State> {
+        let mut paths = self.get_paths_to_point(point);
+        paths.sort_by(|a, b| {
+            a.borrow()
+                .distance_option
+                .unwrap()
+                .partial_cmp(&b.borrow().distance_option.unwrap())
+                .unwrap()
+        });
+        Rc::clone(paths.first().unwrap())
+    }
+
+    fn get_shortest_distance_to_point(&self, point: &Point) -> Int {
+        self.get_shortest_path_to_point(point)
+            .borrow()
+            .distance_option
+            .unwrap()
+    }
 }
 
 fn main() {
@@ -198,30 +228,25 @@ fn main() {
         "2546548887735",
         "4322674655533",
     ];
-    let mut example_map = Map::from_strings(&example_input, State::new(Point::new(0, 0), South, 0));
+    let starting_state = State::new(Point::new(0, 0), South, 0);
+    let mut example_map = Map::from_strings(&example_input, starting_state.clone());
     example_map.generate_edges();
     example_map.graph.run_pathfinding_algorithm();
     let destination = example_map.grid.wrap(-1, -1);
-    let mut paths: Vec<NodeRef<State>> = example_map
-        .graph
-        .visited_nodes
-        .iter()
-        .filter(|n| n.borrow().state.point == destination)
-        .cloned()
-        .collect();
-    dbg!(&paths);
-    paths.sort_by(|a, b| {
-        a.borrow()
-            .distance_option
-            .unwrap()
-            .partial_cmp(&b.borrow().distance_option.unwrap())
-            .unwrap()
-    });
-    let shortest_path_to_point = paths.first().unwrap();
+    let shortest_path_to_point = example_map.get_shortest_path_to_point(&destination);
     let shortest_distance_to_point = shortest_path_to_point.borrow().distance_option.unwrap();
     dbg!(shortest_path_to_point);
     dbg!(shortest_distance_to_point);
 
     //dbg!(example_map);
     test!(102, shortest_distance_to_point, "Part 1 - Example");
+    // Part 1
+    return; //TODO
+    let mut map = Map::from_strings(&aoc_input::get(2023, 17), starting_state);
+    map.generate_edges();
+    map.graph.run_pathfinding_algorithm();
+    let destination = map.grid.wrap(-1, -1);
+    let shortest_path_to_point = map.get_shortest_path_to_point(&destination);
+    let shortest_distance_to_point = shortest_path_to_point.borrow().distance_option.unwrap();
+    dbg!(shortest_distance_to_point);
 }

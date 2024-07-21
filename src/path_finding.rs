@@ -13,7 +13,7 @@ use std::{
 type Int = i32;
 type Distance = Int;
 type DistanceOption = Option<Distance>;
-type NodeRefs<T> = Vec<NodeRef<T>>;
+pub type NodeRefs<T> = Vec<NodeRef<T>>;
 type Edges<T> = Vec<Edge<T>>;
 type Path<T> = Vec<T>;
 /// Reference counted mutable Node<T> (shared_ptr): https://doc.rust-lang.org/book/ch15-04-rc.html

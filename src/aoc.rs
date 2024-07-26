@@ -38,3 +38,7 @@ pub fn get(year: i32, day: u32) -> Vec<String> {
         .map(str::to_string)
         .collect::<Vec<String>>()
 }
+
+pub fn grid(year: i32, day: u32) -> Vec<Vec<char>> {
+    get(year, day).iter().map(|s| s.chars().collect()).collect()
+}

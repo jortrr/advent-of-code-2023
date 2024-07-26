@@ -350,7 +350,7 @@ fn main() {
     image_100x.test_sum_of_distances(8410);
 
     // Part 1
-    let input: Vec<String> = aoc_input::get(2023, 11)
+    let input: Vec<String> = aoc::get(2023, 11)
         .iter()
         .filter(|s| !s.is_empty())
         .map(|s| s.clone())

@@ -165,7 +165,7 @@ fn main() {
         network.camel_steps_until_zzz_is_reached(&instructions);
     test!(6, example_camel_steps_until_zzz_is_reached);
     //Part 1
-    let input = aoc_input::get(2023, 8);
+    let input = aoc::get(2023, 8);
     let instructions = instructions_from_string(&input[0]);
     let network = Network::from_strings(&input);
     let camel_steps_until_zzz_is_reached = network.camel_steps_until_zzz_is_reached(&instructions);

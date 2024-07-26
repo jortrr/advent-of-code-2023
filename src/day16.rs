@@ -225,7 +225,7 @@ fn main() {
     test!(51, example_most_amount_energized);
 
     // Part 1
-    let mut map = ContraptionMap::from_strings(&aoc_input::get(2023, 16));
+    let mut map = ContraptionMap::from_strings(&aoc::get(2023, 16));
     map.shoot_beam(&Point::new(0, 0), East);
     let amount_of_energized_tiles = map.get_amount_of_energized_tiles(&Point::new(0, 0), East);
     test!(6906, amount_of_energized_tiles);

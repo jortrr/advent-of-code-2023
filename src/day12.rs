@@ -161,7 +161,7 @@ fn main() {
 
     // Part 1
     if RUN_PART_1 {
-        let sum: Int = aoc_input::get(2023, 12)
+        let sum: Int = aoc::get(2023, 12)
             .iter()
             .filter(|s| !s.is_empty())
             .map(|s| Record::from_string(s).solve(&mut memo))
@@ -171,7 +171,7 @@ fn main() {
 
     // Part 2
     if RUN_PART_2 {
-        let sum: Int = aoc_input::get(2023, 12)
+        let sum: Int = aoc::get(2023, 12)
             .iter()
             .filter(|s| !s.is_empty())
             .map(|s| Record::from_string(s).expand().solve(&mut memo))

@@ -235,7 +235,7 @@ fn main() {
     test!(100, example_patterns_with_smudge[1].summary.unwrap());
 
     // Part 1
-    let input = aoc_input::get(2023, 13);
+    let input = aoc::get(2023, 13);
     dbg!(&input);
     let part_1_patterns = Pattern::from_vec_strings(&input, 0);
     //dbg!(&part_1_patterns);

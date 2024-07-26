@@ -252,7 +252,7 @@ fn get_total_winnings(plays: &Plays) -> u32 {
 
 fn main() {
     println!("Hello, World! from src/day07.rs!");
-    let input: Vec<String> = aoc_input::get(2023, 7);
+    let input: Vec<String> = aoc::get(2023, 7);
 
     // Example
     let mut plays: Plays = vec![

@@ -224,7 +224,7 @@ fn main() {
     test!(1320, example_sequence_sum);
 
     // Part 1
-    let input: String = aoc_input::get(2023, 15)
+    let input: String = aoc::get(2023, 15)
         .iter()
         .filter(|s| !s.is_empty())
         .cloned()

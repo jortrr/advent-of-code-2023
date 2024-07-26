@@ -1,7 +1,7 @@
 mod macros;
 
 fn main() {
-    let solution = aoc_input::get(2023, 1)
+    let solution = aoc::get(2023, 1)
         .iter()
         .map(|line| {
             (vec![

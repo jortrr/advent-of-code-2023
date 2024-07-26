@@ -335,7 +335,7 @@ fn main() {
     test!(136, example_total_load);
 
     // Part 1
-    let mut platform = Platform::from_strings(aoc_input::get(2023, 14));
+    let mut platform = Platform::from_strings(aoc::get(2023, 14));
     platform.tilt(North);
     let total_load = platform.get_total_load();
     test!(109098, total_load);
@@ -390,7 +390,7 @@ fn main() {
     test!(64, total_load);
 
     // Part 2
-    let total_load_after_many_cycles = Platform::from_strings(aoc_input::get(2023, 14))
-        .get_total_load_after_cycles(NUMBER_OF_CYCLES);
+    let total_load_after_many_cycles =
+        Platform::from_strings(aoc::get(2023, 14)).get_total_load_after_cycles(NUMBER_OF_CYCLES);
     test!(100064, total_load_after_many_cycles);
 }

@@ -242,7 +242,7 @@ fn main() {
     test!(102, shortest_distance_to_point, "Part 1 - Example");
     // Part 1
     return; //TODO
-    let mut map = Map::from_strings(&aoc_input::get(2023, 17), starting_state);
+    let mut map = Map::from_strings(&aoc::get(2023, 17), starting_state);
     map.generate_edges();
     map.graph.run_pathfinding_algorithm();
     let destination = map.grid.wrap(-1, -1);

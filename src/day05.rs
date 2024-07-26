@@ -95,7 +95,7 @@ fn get_location_from_seed(seed: i64, almanac: &Vec<Map>) -> i64 {
 fn main() {
     println!("Hello, World! from src/day05.rs!");
     let run_example = false;
-    let lines = aoc_input::get(2023, 5);
+    let lines = aoc::get(2023, 5);
     let mut input = lines.join("\n");
     if run_example {
         input = "

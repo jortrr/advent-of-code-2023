@@ -439,7 +439,7 @@ fn main() {
     run_example_test_cases_part_2();
 
     // Part 1
-    let input = aoc_input::get(2023, 10);
+    let input = aoc::get(2023, 10);
     let mut maze = Maze::from_strings(&input);
     let distance = maze.find_longest_distance_from_animal_starting_position();
     test!(6951, distance);

@@ -2,7 +2,7 @@ mod macros;
 mod regex_captures;
 
 fn main() {
-    let solution = aoc_input::get(2023, 4)
+    let solution = aoc::get(2023, 4)
         .iter()
         .filter(|s| !s.is_empty())
         .map(|line| line.split(|c| c == ':' || c == '|').collect::<Vec<&str>>())

@@ -95,7 +95,7 @@ impl<T> FromIterator<Vec<T>> for Grid<T> {
 
 use std::ops::{Deref, DerefMut};
 
-use aoc_input::define_convertable_enum;
+use aoc::define_convertable_enum;
 pub use Direction::*;
 
 define_convertable_enum! {

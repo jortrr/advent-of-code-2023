@@ -132,7 +132,7 @@ fn main() {
     let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
     test!(114, sum_of_histories_last_values);
     // Part 1
-    let input = aoc_input::get(2023, 9);
+    let input = aoc::get(2023, 9);
     let mut oasis = OASIS::from_strings(&input);
     oasis.extrapolate_histories();
     let sum_of_histories_last_values = oasis.sum_of_histories_last_values();

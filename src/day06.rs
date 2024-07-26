@@ -28,7 +28,7 @@ impl Race {
 
 fn main() {
     println!("AOC src/day06.rs");
-    let input: Vec<String> = aoc_input::get(2023, 6);
+    let input: Vec<String> = aoc::get(2023, 6);
     let times = input.get(0).unwrap().split_ascii_whitespace().skip(1);
     let distances = input.get(1).unwrap().split_ascii_whitespace().skip(1);
     let time_distance_tuples = times.zip(distances);

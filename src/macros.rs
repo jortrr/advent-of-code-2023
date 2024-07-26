@@ -110,6 +110,12 @@ macro_rules! vec_of_strings {
     ($($x:expr),* $(,)?) => (vec![$($x.to_string()),*]);
 }
 
+/// A Vec<Vec<Char>> from a Vec<&str>
+#[macro_export]
+macro_rules! grid_of_chars {
+    ($($x:expr),* $(,)?) => (vec![$($x.chars().collect::<Vec<char>>()),*]);
+}
+
 #[macro_export]
 macro_rules! clear_console {
     () => {

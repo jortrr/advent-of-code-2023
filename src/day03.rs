@@ -60,5 +60,54 @@ fn main() {
     // Part 1
     test!(540131, sum);
     // Part 2
-    //test!(false, "Part 2");
+    let g = grid_of_chars![
+        "467..114..",
+        "...*......",
+        "..35..633.",
+        "......#...",
+        "617*......",
+        ".....+.58.",
+        "..592.....",
+        "......755.",
+        "...$.*....",
+        ".664.598..",
+    ];
+    let mut sum = 0;
+    for y_1 in 0..g.len() {
+        for x_1 in 0..g[0].len() {
+            if g[y_1][x_1] == '*' {
+                let mut adj = Vec::new();
+                let mut bl = Vec::new();
+                for y_2 in y_1.saturating_sub(1)..y_1 + 2 {
+                    for x_2 in x_1.saturating_sub(1)..x_1 + 2 {
+                        if y_2 >= g.len() || x_2 >= g[0].len() || bl.contains(&(y_2, x_2)) {
+                            continue;
+                        }
+                        if g[y_2][x_2].is_digit(10) {
+                            let mut n = format!("{}", g[y_2][x_2]);
+                            let mut c = 1;
+                            while g[y_2][x_2.saturating_sub(c)].is_digit(10) && c <= x_2 {
+                                n = format!("{}{}", g[y_2][x_2.saturating_sub(c)], n);
+                                bl.push((y_2, x_2.saturating_sub(c)));
+                                c += 1;
+                            }
+                            c = 1;
+                            while g[y_2][x_2 + c].is_digit(10) && x_2 + c < g[0].len() {
+                                n = format!("{}{}", n, g[y_2][x_2 + c]);
+                                bl.push((y_2, x_2 + c));
+                                c += 1;
+                            }
+                            //dbg!(y_2, x_2, &n);
+                            adj.push(n.parse::<i32>().unwrap());
+                        }
+                    }
+                }
+                //dbg!(&adj);
+                if adj.len() == 2 {
+                    sum += adj[0] * adj[1];
+                }
+            }
+        }
+    }
+    test!(467835, sum);
 }

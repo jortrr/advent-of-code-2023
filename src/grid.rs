@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 
-pub type Int = i32;
+pub type Int = i64;
 
 #[derive(Debug)]
 pub struct Grid<T> {
@@ -162,21 +162,25 @@ impl Display for Point {
 
 impl Point {
     pub fn move_to(&self, direction: &Direction) -> Point {
+        self.move_distance(direction, 1)
+    }
+
+    pub fn move_distance(&self, direction: &Direction, distance: Int) -> Point {
         match direction {
             North => Point {
                 x: self.x,
-                y: self.y - 1,
+                y: self.y - distance,
             },
             East => Point {
-                x: self.x + 1,
+                x: self.x + distance,
                 y: self.y,
             },
             South => Point {
                 x: self.x,
-                y: self.y + 1,
+                y: self.y + distance,
             },
             West => Point {
-                x: self.x - 1,
+                x: self.x - distance,
                 y: self.y,
             },
         }
@@ -227,5 +231,9 @@ impl Point {
         self.x += x;
         self.y += y;
         self
+    }
+
+    pub fn distance_to(&self, other: &Point) -> f64 {
+        (((self.x - other.x).pow(2) + (self.y - other.y).pow(2)) as f64).sqrt()
     }
 }

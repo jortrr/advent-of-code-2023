@@ -10,7 +10,7 @@ use hex_color::HexColor;
 mod grid;
 mod macros;
 
-type Int = i32;
+type Int = i64;
 
 #[derive(Debug)]
 struct Point {
@@ -108,9 +108,16 @@ impl Polygon {
         if self.points.is_empty() {
             0
         } else {
-            let b = self.points.len() as Int;
             let points: Vec<_> = self.points.iter().chain(once(&self.points[0])).collect();
-            let mut area = 0;
+            let b = {
+                let mut sum = 0;
+                for i in 0..points.len() - 1 {
+                    let (p_0, p_1) = (points[i].point, points[i + 1].point);
+                    sum += p_0.distance_to(&p_1) as Int;
+                }
+                sum
+            };
+            let mut area: Int = 0;
             for i in 0..self.points.len() {
                 let (p_0, p_1) = (points[i].point, points[i + 1].point);
                 area += p_0.x * p_1.y - p_1.x * p_0.y;
@@ -123,11 +130,11 @@ impl Polygon {
         }
     }
 
-    fn from_dig_plan(dig_plan: Vec<String>) -> Polygon {
+    fn from_dig_plan(dig_plan: &Vec<String>, swapped: bool) -> Polygon {
         let mut polygon: Polygon = Polygon::new();
         let mut p = grid::Point::new(0, 0);
         for op in dig_plan {
-            let (d, l, c) = {
+            let (mut d, mut l, c) = {
                 let mut i = op.split_whitespace();
                 (
                     i.next().unwrap(),
@@ -136,6 +143,18 @@ impl Polygon {
                 )
             };
             let c = &c[1..c.len() - 1].to_string();
+            if swapped {
+                let hex_l = &c[1..6];
+                let hex_d = &c[6..7];
+                l = Int::from_str_radix(hex_l, 16).unwrap();
+                d = match hex_d {
+                    "0" => "R",
+                    "1" => "D",
+                    "2" => "L",
+                    "3" => "U",
+                    _ => panic!("Invalid hex direction: '{}'", hex_d),
+                };
+            }
             let direction = match d {
                 "R" => East,
                 "D" => South,
@@ -143,9 +162,14 @@ impl Polygon {
                 "L" => West,
                 _ => panic!("Invalid direction: '{}'", d),
             };
-            for _ in 0..l {
+            if swapped {
                 polygon.points.push(Point::new(p, c.clone()));
-                p = p.move_to(&direction);
+                p = p.move_distance(&direction, l);
+            } else {
+                for _ in 0..l {
+                    polygon.points.push(Point::new(p, c.clone()));
+                    p = p.move_to(&direction);
+                }
             }
         }
         debug!(false, "{:?}", &polygon);
@@ -173,12 +197,18 @@ fn main() {
         "L 2 (#015232)",
         "U 2 (#7a21e3)",
     ];
-    let polygon = Polygon::from_dig_plan(dig_plan);
+    let polygon = Polygon::from_dig_plan(&dig_plan, false);
+    dbg!(&polygon);
     polygon.print();
     let a = polygon.calc_area();
     test!(62, a);
     // Part 1
-    let polygon = Polygon::from_dig_plan(aoc::get(2023, 18));
+    let polygon = Polygon::from_dig_plan(&aoc::get(2023, 18), false);
     let a = polygon.calc_area();
     test!(48652, a);
+    // Part 2 - Example
+    let polygon = Polygon::from_dig_plan(&dig_plan, true);
+    //dbg!(&polygon);
+    let a = polygon.calc_area();
+    test!(952408144115 as i64, a);
 }

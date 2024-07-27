@@ -10,5 +10,5 @@ WORK_DIR=$(pwd)
 for i in {1..25}
 do
   printf "Run day%02d\n" "$i"
-  cargo run --bin "$(printf "day%02d\n" "$i")"
+  cargo run --release --bin "$(printf "day%02d\n" "$i")"
 done

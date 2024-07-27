@@ -10,7 +10,7 @@ use std::{
 };
 
 /// Custom types
-type Int = i32;
+type Int = i64;
 type Distance = Int;
 type DistanceOption = Option<Distance>;
 pub type NodeRefs<T> = Vec<NodeRef<T>>;

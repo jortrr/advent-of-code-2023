@@ -163,7 +163,7 @@ fn test(i: Interval, dest_a: Int, a: &Almanac) {
     test!(dest_a, s[0].a);
 }
 
-fn parse(e: Vec<String>) -> (Vec<Interval>, Almanac) {
+fn parse(e: &Vec<String>, seeds_is_range: bool) -> (Vec<Interval>, Almanac) {
     let mut s: Vec<Interval> = Vec::new();
     let mut a: Almanac = Vec::new();
     a.push(Vec::new());
@@ -174,8 +174,17 @@ fn parse(e: Vec<String>) -> (Vec<Interval>, Almanac) {
                 .split_whitespace()
                 .map(|x| x.parse::<Int>().unwrap())
                 .collect();
-            for x in i {
-                s.push(Interval::new(x, x));
+            if seeds_is_range {
+                for mut x in 0..i.len() {
+                    if x % 2 == 1 {
+                        continue;
+                    }
+                    s.push(Interval::new(i[x], i[x] + i[x + 1] - 1));
+                }
+            } else {
+                for x in i {
+                    s.push(Interval::new(x, x));
+                }
             }
         } else if l.contains("map:") {
             a.push(Vec::new());
@@ -233,7 +242,7 @@ fn main() {
         "60 56 37",
         "56 93 4",
     ];
-    let (s, a) = parse(e);
+    let (s, a) = parse(&e, false);
     dbg!(&a);
     dbg!(&s);
     let s = apply_almanac(s, &a);
@@ -243,9 +252,17 @@ fn main() {
     test!(Interval::single(86), s[2]);
     test!(Interval::single(35), s[3]);
     //Part 1
-    let (s, a) = parse(aoc::get(2023, 5));
+    let i = aoc::get(2023, 5);
+    let (s, a) = parse(&i, false);
     let mut s = apply_almanac(s, &a);
     s.sort_by_key(|i| i.a);
     //dbg!(&s[0]);
     test!(251346198, s[0].a);
+    // Part 2 - Example
+    let (s, a) = parse(&e, true);
+    dbg!(&s);
+    let mut s = apply_almanac(s, &a);
+    s.sort_by_key(|i| i.a);
+    let l = s[0].a;
+    test!(46, l);
 }

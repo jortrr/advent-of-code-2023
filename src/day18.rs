@@ -177,4 +177,8 @@ fn main() {
     polygon.print();
     let a = polygon.calc_area();
     test!(62, a);
+    // Part 1
+    let polygon = Polygon::from_dig_plan(aoc::get(2023, 18));
+    let a = polygon.calc_area();
+    test!(48652, a);
 }

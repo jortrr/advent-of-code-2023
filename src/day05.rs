@@ -163,6 +163,39 @@ fn test(i: Interval, dest_a: Int, a: &Almanac) {
     test!(dest_a, s[0].a);
 }
 
+fn parse(e: Vec<String>) -> (Vec<Interval>, Almanac) {
+    let mut s: Vec<Interval> = Vec::new();
+    let mut a: Almanac = Vec::new();
+    a.push(Vec::new());
+    let mut c = 0;
+    for l in e {
+        if l.contains("seeds:") {
+            let i: Vec<_> = l[6..]
+                .split_whitespace()
+                .map(|x| x.parse::<i32>().unwrap())
+                .collect();
+            for x in i {
+                s.push(Interval::new(x, x));
+            }
+        } else if l.contains("map:") {
+            a.push(Vec::new());
+            if !a[c].is_empty() {
+                c += 1;
+            }
+        } else if l.is_empty() {
+            continue;
+        } else {
+            let i: Vec<_> = l
+                .split_whitespace()
+                .map(|x| x.parse::<i32>().unwrap())
+                .collect();
+
+            a[c].push(Transform::new(i[0], i[1], i[2]));
+        }
+    }
+    (s, a)
+}
+
 fn main() {
     // Part 1 - Example
     let e = vec_of_strings![
@@ -200,45 +233,14 @@ fn main() {
         "60 56 37",
         "56 93 4",
     ];
-    let mut s: Vec<Interval> = Vec::new();
-    let mut a: Almanac = Vec::new();
-    a.push(Vec::new());
-    let mut c = 0;
-    for l in e {
-        if l.contains("seeds:") {
-            let i: Vec<_> = l[6..]
-                .split_whitespace()
-                .map(|x| x.parse::<i32>().unwrap())
-                .collect();
-            for x in i {
-                s.push(Interval::new(x, x));
-            }
-        } else if l.contains("map:") {
-            a.push(Vec::new());
-            if !a[c].is_empty() {
-                c += 1;
-            }
-        } else if l.is_empty() {
-            continue;
-        } else {
-            let i: Vec<_> = l
-                .split_whitespace()
-                .map(|x| x.parse::<i32>().unwrap())
-                .collect();
-
-            a[c].push(Transform::new(i[0], i[1], i[2]));
-        }
-    }
+    let (s, a) = parse(e);
     dbg!(&a);
     dbg!(&s);
-    test(Interval::new(79, 79), 82, &a);
-    test(Interval::new(14, 14), 43, &a);
-    test(Interval::new(55, 55), 86, &a);
-    test(Interval::new(13, 13), 35, &a);
     let s = apply_almanac(s, &a);
     dbg!(&s);
     test!(Interval::single(82), s[0]);
     test!(Interval::single(43), s[1]);
     test!(Interval::single(86), s[2]);
     test!(Interval::single(35), s[3]);
+    //Part 1
 }

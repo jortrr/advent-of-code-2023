@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 aocf = "0.1.21"
 colored = "2.1.0"
+hex_color = "3.0.0"
 mut-binary-heap = "0.1.0"
 regex = "1.10.2"
 serde_json = "1.0.120"

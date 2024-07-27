@@ -222,4 +222,10 @@ impl Point {
         };
         self
     }
+
+    pub fn translate(mut self, x: Int, y: Int) -> Point {
+        self.x += x;
+        self.y += y;
+        self
+    }
 }

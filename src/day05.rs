@@ -1,6 +1,4 @@
-use std::{fmt::Debug, iter};
-
-use colored::Colorize;
+use std::fmt::Debug;
 
 mod macros;
 
@@ -146,21 +144,15 @@ fn apply_almanac(s: Vec<Interval>, a: &Almanac) -> Vec<Interval> {
             let old_s = s.clone();
             s = t.apply(s);
             if old_s != s {
-                dbg!((old_s, t, &s));
+                debug!(false, "({:?},{:?},{:?})", old_s, t, &s);
             }
         }
-        println!("[{}]: {:?}", i, &s);
+        debug!(false, "[{}]: {:?}", i, &s);
         for i in &mut s {
             i.v = false;
         }
     }
     s
-}
-
-fn test(i: Interval, dest_a: Int, a: &Almanac) {
-    let s = vec![i];
-    let s = apply_almanac(s, a);
-    test!(dest_a, s[0].a);
 }
 
 fn parse(e: &Vec<String>, seeds_is_range: bool) -> (Vec<Interval>, Almanac) {
@@ -175,7 +167,7 @@ fn parse(e: &Vec<String>, seeds_is_range: bool) -> (Vec<Interval>, Almanac) {
                 .map(|x| x.parse::<Int>().unwrap())
                 .collect();
             if seeds_is_range {
-                for mut x in 0..i.len() {
+                for x in 0..i.len() {
                     if x % 2 == 1 {
                         continue;
                     }
@@ -243,10 +235,9 @@ fn main() {
         "56 93 4",
     ];
     let (s, a) = parse(&e, false);
-    dbg!(&a);
-    dbg!(&s);
     let s = apply_almanac(s, &a);
     dbg!(&s);
+    dbg!(&a);
     test!(Interval::single(82), s[0]);
     test!(Interval::single(43), s[1]);
     test!(Interval::single(86), s[2]);
@@ -260,9 +251,14 @@ fn main() {
     test!(251346198, s[0].a);
     // Part 2 - Example
     let (s, a) = parse(&e, true);
-    dbg!(&s);
     let mut s = apply_almanac(s, &a);
     s.sort_by_key(|i| i.a);
     let l = s[0].a;
     test!(46, l);
+    // Part 2
+    let (s, a) = parse(&i, true);
+    let mut s = apply_almanac(s, &a);
+    s.sort_by_key(|i| i.a);
+    let l = s[0].a;
+    test!(72263011, l);
 }

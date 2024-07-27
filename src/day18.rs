@@ -203,7 +203,8 @@ fn main() {
     let a = polygon.calc_area();
     test!(62, a);
     // Part 1
-    let polygon = Polygon::from_dig_plan(&aoc::get(2023, 18), false);
+    let i = aoc::get(2023, 18);
+    let polygon = Polygon::from_dig_plan(&i, false);
     let a = polygon.calc_area();
     test!(48652, a);
     // Part 2 - Example
@@ -211,4 +212,8 @@ fn main() {
     //dbg!(&polygon);
     let a = polygon.calc_area();
     test!(952408144115 as i64, a);
+    // Part 2
+    let polygon = Polygon::from_dig_plan(&i, true);
+    let a = polygon.calc_area();
+    test!(45757884535661 as i64, a);
 }

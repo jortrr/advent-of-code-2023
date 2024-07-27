@@ -4,7 +4,7 @@ use colored::Colorize;
 
 mod macros;
 
-type Int = i32;
+type Int = i64;
 type Almanac = Vec<Vec<Transform>>;
 
 #[derive(Clone)]
@@ -172,7 +172,7 @@ fn parse(e: Vec<String>) -> (Vec<Interval>, Almanac) {
         if l.contains("seeds:") {
             let i: Vec<_> = l[6..]
                 .split_whitespace()
-                .map(|x| x.parse::<i32>().unwrap())
+                .map(|x| x.parse::<Int>().unwrap())
                 .collect();
             for x in i {
                 s.push(Interval::new(x, x));
@@ -187,7 +187,7 @@ fn parse(e: Vec<String>) -> (Vec<Interval>, Almanac) {
         } else {
             let i: Vec<_> = l
                 .split_whitespace()
-                .map(|x| x.parse::<i32>().unwrap())
+                .map(|x| x.parse::<Int>().unwrap())
                 .collect();
 
             a[c].push(Transform::new(i[0], i[1], i[2]));
@@ -243,4 +243,9 @@ fn main() {
     test!(Interval::single(86), s[2]);
     test!(Interval::single(35), s[3]);
     //Part 1
+    let (s, a) = parse(aoc::get(2023, 5));
+    let mut s = apply_almanac(s, &a);
+    s.sort_by_key(|i| i.a);
+    //dbg!(&s[0]);
+    test!(251346198, s[0].a);
 }

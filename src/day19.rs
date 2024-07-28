@@ -137,7 +137,7 @@ impl Rule {
     fn apply(&self, part: &mut Part) {
         let new_part = (self.rule)(part.clone());
         if new_part.workflow != part.workflow {
-            debug!(true, "{:?} + {:?} == {:?}", part, self, new_part);
+            debug!(false, "{:?} + {:?} == {:?}", part, self, new_part);
         }
         *part = new_part;
     }
@@ -168,7 +168,7 @@ impl System {
 
     fn process(mut self) -> System {
         for p in &mut self.parts {
-            debug!(true, "{:#?}", &p);
+            debug!(false, "{:#?}", &p);
             while !(p.workflow == "R" || p.workflow == "A") {
                 debug!(false, "{:?}", &p);
                 let w: &Workflow = self
@@ -176,7 +176,7 @@ impl System {
                     .iter()
                     .find(|w| w.name == p.workflow)
                     .unwrap();
-                debug!(true, "{:?}", &w);
+                debug!(false, "{:?}", &w);
                 for rule in &w.rules {
                     rule.apply(p);
                     if p.workflow != w.name {
@@ -230,4 +230,9 @@ fn main() {
     test!("A", system.parts[4].workflow);
     let sum = system.sum_of_accepted_parts();
     test!(19114, sum);
+    //Part 1
+    let sum = System::from_workflows_and_parts(&aoc::get(2023, 19))
+        .process()
+        .sum_of_accepted_parts();
+    test!(348378, sum);
 }

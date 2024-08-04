@@ -1,9 +1,97 @@
+use std::collections::HashMap;
 use std::fmt::Debug;
+use std::time::Instant;
+
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::{alpha1, digit1, one_of};
+use nom::combinator::{map, map_res};
+use nom::multi::separated_list1;
+use nom::sequence::{preceded, terminated, tuple};
+use nom::IResult;
 
 mod macros;
 
 type Int = i32;
-type RuleFn = Box<dyn Fn(Part) -> Part>;
+type Workflows = HashMap<String, Workflow>;
+
+#[derive(Clone, Debug, PartialEq)]
+enum Destination {
+    Accept,
+    Reject,
+    Workflow(String),
+}
+
+impl Destination {
+    fn parse(input: &str) -> IResult<&str, Destination> {
+        let (input, destination) = alt((tag("A"), tag("R"), alpha1))(input)?;
+        match destination {
+            "A" => Ok((input, Destination::Accept)),
+            "R" => Ok((input, Destination::Reject)),
+            _ => Ok((input, Destination::Workflow(destination.to_string()))),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+enum Condition {
+    GreaterThan(char, Int),
+    LessThan(char, Int),
+}
+
+impl Condition {
+    fn parse(input: &str) -> IResult<&str, Condition> {
+        let (input, (var, op, val)) = tuple((
+            one_of("xmas"),
+            one_of("<>"),
+            map_res(digit1, |s: &str| s.parse()),
+        ))(input)?;
+        let condition = match op {
+            '>' => Condition::GreaterThan(var, val),
+            '<' => Condition::LessThan(var, val),
+            _ => unreachable!(),
+        };
+        Ok((input, condition))
+    }
+
+    fn evaluate(&self, part: Part) -> bool {
+        match self {
+            Condition::GreaterThan(var, val) => part.get(*var) > *val,
+            Condition::LessThan(var, val) => part.get(*var) < *val,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+enum Rule {
+    Evaluation(Condition, Destination),
+    Tautology(Destination),
+}
+
+impl Rule {
+    fn parse(input: &str) -> IResult<&str, Rule> {
+        alt((
+            map(
+                tuple((Condition::parse, tag(":"), Destination::parse)),
+                |(c, _, d)| Rule::Evaluation(c, d),
+            ),
+            map(Destination::parse, Rule::Tautology),
+        ))(input)
+    }
+
+    fn evaluate(&self, part: Part) -> Option<Destination> {
+        match self {
+            Rule::Evaluation(condition, destination) => {
+                if condition.evaluate(part) {
+                    Some(destination.clone())
+                } else {
+                    None
+                }
+            }
+            Rule::Tautology(destination) => Some(destination.clone()),
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 struct Part {
@@ -11,196 +99,106 @@ struct Part {
     m: Int,
     a: Int,
     s: Int,
-    workflow: String,
 }
 
 impl Part {
-    fn from_string(input: &String) -> Part {
-        let mut i = input.split(&['{', ',', '}']).filter(|s| !s.is_empty());
-        let opt_parse_int = |s: Option<&str>| s.unwrap()[2..].parse::<Int>().unwrap();
-        let (x, m, a, s) = (
-            opt_parse_int(i.next()),
-            opt_parse_int(i.next()),
-            opt_parse_int(i.next()),
-            opt_parse_int(i.next()),
-        );
-        Part {
-            x,
-            m,
-            a,
-            s,
-            workflow: "in".to_string(),
+    fn parse(input: &str) -> IResult<&str, Part> {
+        let parse_num = |input| map_res(digit1, str::parse::<i32>)(input);
+
+        let (input, (x, m, a, s)) = tuple((
+            preceded(tag("{x="), parse_num),
+            preceded(tag(",m="), parse_num),
+            preceded(tag(",a="), parse_num),
+            preceded(tag(",s="), terminated(parse_num, tag("}"))),
+        ))(input)?;
+
+        Ok((input, Part { x, m, a, s }))
+    }
+
+    fn set(&mut self, var: char, val: Int) {
+        match var {
+            'x' => self.x = val,
+            'm' => self.m = val,
+            'a' => self.a = val,
+            's' => self.s = val,
+            _ => unreachable!(),
         }
     }
 
-    fn sum_categories(&self) -> Int {
+    fn get(&self, var: char) -> Int {
+        match var {
+            'x' => self.x,
+            'm' => self.m,
+            'a' => self.a,
+            's' => self.s,
+            _ => unreachable!(),
+        }
+    }
+
+    fn process(&self, workflows: &Workflows) -> Destination {
+        let mut workflow = workflows.get("in").unwrap();
+        loop {
+            match workflow.evaluate(self) {
+                Destination::Accept => return Destination::Accept,
+                Destination::Reject => return Destination::Reject,
+                Destination::Workflow(next) => workflow = workflows.get(&next).unwrap(),
+            }
+        }
+    }
+
+    fn total_rating(&self) -> Int {
         self.x + self.m + self.a + self.s
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Workflow {
     name: String,
     rules: Vec<Rule>,
 }
 
 impl Workflow {
-    fn new(name: &str) -> Workflow {
-        Workflow {
-            name: name.to_string(),
-            rules: Vec::new(),
-        }
+    fn parse(input: &str) -> IResult<&str, Workflow> {
+        let (input, (name, rules)) = tuple((
+            terminated(map(alpha1, |s: &str| s.to_string()), tag("{")),
+            terminated(separated_list1(tag(","), Rule::parse), tag("}")),
+        ))(input)?;
+        Ok((input, Workflow { name, rules }))
     }
 
-    fn from_string(input: &String) -> Workflow {
-        let mut i = input.split(&['{', '}', ',']).filter(|s| !s.is_empty());
-        let name = i.next().unwrap();
-        let mut w = Workflow::new(name);
-        w.rules = i.map(|s| Rule::from_string(s.into())).collect();
-        w
-    }
-}
-
-struct Rule {
-    to_string: String,
-    rule: RuleFn,
-}
-
-impl Debug for Rule {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Rule")
-            .field("to_string", &self.to_string)
-            .finish()
-    }
-}
-
-impl Rule {
-    fn from_string(input: String) -> Rule {
-        assert!(!input.is_empty());
-        if let Some(sep) = input.find(":") {
-            let (c, o, v, w) = (
-                input.chars().nth(0).unwrap(),
-                input.chars().nth(1).unwrap(),
-                input[2..sep].to_string().parse::<Int>().unwrap(),
-                input[sep + 1..].to_string(),
-            );
-
-            let comparison_fn = match o {
-                '>' => Box::new(move |a, b| a > b) as Box<dyn Fn(i32, i32) -> bool>,
-                '<' => Box::new(move |a, b| a < b) as Box<dyn Fn(i32, i32) -> bool>,
-                _ => panic!("Invalid operator: {}", o),
-            };
-
-            let rule: RuleFn = match c {
-                'x' => Box::new(move |mut p: Part| {
-                    if comparison_fn(p.x, v) {
-                        p.workflow = w.clone();
-                    }
-                    p
-                }),
-                'm' => Box::new(move |mut p: Part| {
-                    if comparison_fn(p.m, v) {
-                        p.workflow = w.clone();
-                    }
-                    p
-                }),
-                'a' => Box::new(move |mut p: Part| {
-                    if comparison_fn(p.a, v) {
-                        p.workflow = w.clone();
-                    }
-                    p
-                }),
-                's' => Box::new(move |mut p: Part| {
-                    if comparison_fn(p.s, v) {
-                        p.workflow = w.clone();
-                    }
-                    p
-                }),
-                _ => panic!("Invalid category: '{}'", c),
-            };
-
-            Rule {
-                to_string: input,
-                rule,
-            }
-        } else {
-            Rule {
-                to_string: input.clone(),
-                rule: Box::new(move |mut p: Part| {
-                    p.workflow = input.clone();
-                    p
-                }),
-            }
-        }
-    }
-
-    fn apply(&self, part: &mut Part) {
-        let new_part = (self.rule)(part.clone());
-        if new_part.workflow != part.workflow {
-            debug!(false, "{:?} + {:?} == {:?}", part, self, new_part);
-        }
-        *part = new_part;
-    }
-}
-
-#[derive(Debug)]
-struct System {
-    workflows: Vec<Workflow>,
-    parts: Vec<Part>,
-}
-
-impl System {
-    fn new() -> System {
-        System {
-            workflows: Vec::new(),
-            parts: Vec::new(),
-        }
-    }
-
-    fn from_workflows_and_parts(input: &Vec<String>) -> System {
-        let mut s = System::new();
-        let mut i = input.split(|l| l.is_empty());
-        let (w_input, p_input) = (i.next().unwrap(), i.next().unwrap());
-        s.workflows = w_input.iter().map(|s| Workflow::from_string(s)).collect();
-        s.parts = p_input.iter().map(|s| Part::from_string(s)).collect();
-        s
-    }
-
-    fn process(mut self) -> System {
-        for p in &mut self.parts {
-            debug!(false, "{:#?}", &p);
-            while !(p.workflow == "R" || p.workflow == "A") {
-                debug!(false, "{:?}", &p);
-                let w: &Workflow = self
-                    .workflows
-                    .iter()
-                    .find(|w| w.name == p.workflow)
-                    .unwrap();
-                debug!(false, "{:?}", &w);
-                for rule in &w.rules {
-                    rule.apply(p);
-                    if p.workflow != w.name {
-                        break;
-                    }
-                }
-            }
-        }
-        self
-    }
-
-    fn sum_of_accepted_parts(&self) -> Int {
-        self.parts
+    fn evaluate(&self, part: &Part) -> Destination {
+        self.rules
             .iter()
-            .filter(|p| p.workflow == "A")
-            .map(|p| p.sum_categories())
-            .sum()
+            .find_map(|r| r.evaluate(part.clone()))
+            .unwrap()
     }
+}
+
+fn part_1(input: String, expected: Int, example: bool) {
+    let time = Instant::now();
+    let (rest, workflows) = separated_list1(tag("\n"), Workflow::parse)(&input).unwrap();
+    let workflows: Workflows = workflows.into_iter().map(|w| (w.name.clone(), w)).collect();
+    debug!(example, "{:#?}", &workflows);
+    let (_, parts) = separated_list1(tag("\n"), Part::parse)(rest.trim()).unwrap();
+    debug!(example, "{:#?}", &parts);
+
+    let sum_total_ratings: Int = parts
+        .iter()
+        .filter(|p| p.process(&workflows) == Destination::Accept)
+        .map(|p| p.total_rating())
+        .sum();
+
+    test!(expected, sum_total_ratings);
+    println!(
+        "Part 1 ({}): {:?}",
+        if example { "Example" } else { "Actual" },
+        time.elapsed()
+    );
 }
 
 fn main() {
-    println!("Hello, World! from src/day19.rs!");
     // Part 1 - Example
-    let workflows_and_parts = vec_of_strings![
+    let input = string![
         "px{a<2006:qkq,m>2090:A,rfg}",
         "pv{a>1716:R,A}",
         "lnx{m>1548:A,A}",
@@ -219,20 +217,6 @@ fn main() {
         "{x=2461,m=1339,a=466,s=291}",
         "{x=2127,m=1623,a=2188,s=1013} ",
     ];
-    let mut system = System::from_workflows_and_parts(&workflows_and_parts);
-    dbg!(&system);
-    system = system.process();
-    dbg!(&system);
-    test!("A", system.parts[0].workflow);
-    test!("R", system.parts[1].workflow);
-    test!("A", system.parts[2].workflow);
-    test!("R", system.parts[3].workflow);
-    test!("A", system.parts[4].workflow);
-    let sum = system.sum_of_accepted_parts();
-    test!(19114, sum);
-    //Part 1
-    let sum = System::from_workflows_and_parts(&aoc::get(2023, 19))
-        .process()
-        .sum_of_accepted_parts();
-    test!(348378, sum);
+    part_1(input, 19114, true);
+    part_1(aoc::get_string(2023, 19), 348378, false);
 }

@@ -45,7 +45,7 @@ macro_rules! test {
             "[Test Case] ❌ ({:?}, {:?})",
             $expected, $name
         );
-        println!("[Test Case] ✅ ({:?}, {:?})", stringify!($expected), $name);
+        println!("[Test Case] ✅ ({:?}, {:?})", $expected, $name);
     };
 
 }
@@ -108,6 +108,12 @@ macro_rules! define_convertable_enum {
 #[macro_export]
 macro_rules! vec_of_strings {
     ($($x:expr),* $(,)?) => (vec![$($x.to_string()),*]);
+}
+
+/// A String from a Vec<&str>
+#[macro_export]
+macro_rules! string {
+    ($($x:expr),* $(,)?) => (vec![$($x.to_string()),*].join("\n"));
 }
 
 /// A Vec<Vec<Char>> from a Vec<&str>

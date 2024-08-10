@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::iter::once;
 use std::time::Instant;
 
 use nom::branch::alt;
@@ -12,8 +13,9 @@ use nom::IResult;
 
 mod macros;
 
-type Int = i32;
+type Int = i64;
 type Workflows = HashMap<String, Workflow>;
+type Path = Vec<Condition>;
 
 #[derive(Clone, Debug, PartialEq)]
 enum Destination {
@@ -37,6 +39,8 @@ impl Destination {
 enum Condition {
     GreaterThan(char, Int),
     LessThan(char, Int),
+    GreaterThanOrEqual(char, Int),
+    LessThanOrEqual(char, Int),
 }
 
 impl Condition {
@@ -56,8 +60,19 @@ impl Condition {
 
     fn evaluate(&self, part: Part) -> bool {
         match self {
-            Condition::GreaterThan(var, val) => part.get(*var) > *val,
-            Condition::LessThan(var, val) => part.get(*var) < *val,
+            Condition::GreaterThan(var, val) => part.get(var) > *val,
+            Condition::LessThan(var, val) => part.get(var) < *val,
+            Condition::GreaterThanOrEqual(var, val) => part.get(var) >= *val,
+            Condition::LessThanOrEqual(var, val) => part.get(var) <= *val,
+        }
+    }
+
+    fn opposite(&self) -> Condition {
+        match self {
+            Condition::GreaterThan(var, val) => Condition::LessThanOrEqual(*var, *val),
+            Condition::LessThan(var, val) => Condition::GreaterThanOrEqual(*var, *val),
+            Condition::GreaterThanOrEqual(var, val) => Condition::LessThan(*var, *val),
+            Condition::LessThanOrEqual(var, val) => Condition::GreaterThan(*var, *val),
         }
     }
 }
@@ -103,7 +118,7 @@ struct Part {
 
 impl Part {
     fn parse(input: &str) -> IResult<&str, Part> {
-        let parse_num = |input| map_res(digit1, str::parse::<i32>)(input);
+        let parse_num = |input| map_res(digit1, str::parse::<Int>)(input);
 
         let (input, (x, m, a, s)) = tuple((
             preceded(tag("{x="), parse_num),
@@ -115,7 +130,7 @@ impl Part {
         Ok((input, Part { x, m, a, s }))
     }
 
-    fn set(&mut self, var: char, val: Int) {
+    fn set(&mut self, var: &char, val: Int) {
         match var {
             'x' => self.x = val,
             'm' => self.m = val,
@@ -125,7 +140,7 @@ impl Part {
         }
     }
 
-    fn get(&self, var: char) -> Int {
+    fn get(&self, var: &char) -> Int {
         match var {
             'x' => self.x,
             'm' => self.m,
@@ -174,7 +189,94 @@ impl Workflow {
     }
 }
 
-fn part_1(input: String, expected: Int, example: bool) {
+fn generate_accepted_paths(
+    paths: &mut Vec<Path>,
+    current_path: Path,
+    workflow: &str,
+    workflows: &Workflows,
+) {
+    let current_workflow = workflows.get(workflow).unwrap();
+    let mut path = current_path;
+    for rule in &current_workflow.rules {
+        match rule {
+            Rule::Evaluation(con, des) => {
+                let yes_path = path.clone().into_iter().chain(once(con.clone())).collect();
+                match des {
+                    Destination::Accept => paths.push(yes_path),
+                    Destination::Reject => (),
+                    Destination::Workflow(name) => {
+                        generate_accepted_paths(paths, yes_path, name, workflows)
+                    }
+                }
+                let opposite = con.opposite();
+                path.push(opposite);
+            }
+            Rule::Tautology(des) => {
+                match des {
+                    Destination::Accept => paths.push(path),
+                    Destination::Reject => (),
+                    Destination::Workflow(name) => {
+                        generate_accepted_paths(paths, path, name, workflows)
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
+/// Here we compute all possible combinations of accepted parts, which is range(x) * range(m) * range(a) * range(s)
+fn compute_distinct_combinations(paths: &Vec<Path>) -> Int {
+    let mut sum: Int = 0;
+    for path in paths {
+        dbg!(path);
+        let mut min_part = Part {
+            x: 1,
+            m: 1,
+            a: 1,
+            s: 1,
+        };
+        let mut max_part = Part {
+            x: 4000,
+            m: 4000,
+            a: 4000,
+            s: 4000,
+        };
+        for condition in path {
+            dbg!(condition);
+            match condition {
+                Condition::LessThan(var, val) => {
+                    max_part.set(var, max_part.get(var).min(val - 1));
+                }
+                Condition::LessThanOrEqual(var, val) => {
+                    max_part.set(var, max_part.get(var).min(*val));
+                }
+                Condition::GreaterThan(var, val) => {
+                    min_part.set(var, min_part.get(var).max(val + 1));
+                }
+                Condition::GreaterThanOrEqual(var, val) => {
+                    min_part.set(var, min_part.get(var).max(*val));
+                }
+            }
+        }
+        assert!(min_part.x <= max_part.x);
+        assert!(min_part.m <= max_part.m);
+        assert!(min_part.a <= max_part.a);
+        assert!(min_part.s <= max_part.s);
+        dbg!(&min_part);
+        dbg!(&max_part);
+        let combinations = (max_part.x - min_part.x + 1)
+            * (max_part.m - min_part.m + 1)
+            * (max_part.a - min_part.a + 1)
+            * (max_part.s - min_part.s + 1);
+        dbg!(combinations);
+        println!();
+        sum += combinations;
+    }
+    sum
+}
+
+fn part_1(input: String, expected: Int, example: bool) -> Workflows {
     let time = Instant::now();
     let (rest, workflows) = separated_list1(tag("\n"), Workflow::parse)(&input).unwrap();
     let workflows: Workflows = workflows.into_iter().map(|w| (w.name.clone(), w)).collect();
@@ -194,6 +296,15 @@ fn part_1(input: String, expected: Int, example: bool) {
         if example { "Example" } else { "Actual" },
         time.elapsed()
     );
+    workflows
+}
+
+fn part_2(workflows: &Workflows, expected: Int) {
+    let mut paths = Vec::new();
+    generate_accepted_paths(&mut paths, Path::new(), "in", workflows);
+    dbg!(&paths);
+    let sum = compute_distinct_combinations(&paths);
+    test!(expected, sum);
 }
 
 fn main() {
@@ -217,6 +328,9 @@ fn main() {
         "{x=2461,m=1339,a=466,s=291}",
         "{x=2127,m=1623,a=2188,s=1013} ",
     ];
-    part_1(input, 19114, true);
-    part_1(aoc::get_string(2023, 19), 348378, false);
+    let example_workflows = part_1(input, 19114, true);
+    let workflows = part_1(aoc::get_string(2023, 19), 348378, false);
+
+    part_2(&example_workflows, 167409079868000);
+    part_2(&workflows, 0);
 }

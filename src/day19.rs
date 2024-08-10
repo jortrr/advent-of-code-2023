@@ -1,20 +1,5 @@
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::iter::once;
-use std::sync::LazyLock;
-use std::time::Instant;
-
-use nom::branch::alt;
-use nom::bytes::complete::tag;
-use nom::character::complete::{alpha1, digit1, one_of};
-use nom::combinator::{map, map_res};
-use nom::multi::separated_list1;
-use nom::sequence::{preceded, terminated, tuple};
-use nom::IResult;
-
-mod macros;
-
-type Int = i64;
+mod problem;
+use problem::*;
 type Workflows = HashMap<String, Workflow>;
 type Path = Vec<Condition>;
 
@@ -277,74 +262,61 @@ fn get_workflows(input: &String) -> (&str, Workflows) {
     (rest, workflows)
 }
 
-fn part_1_solve(input: String, example: bool) -> Int {
-    let (rest, workflows) = get_workflows(&input);
-    debug!(example, "{:#?}", &workflows);
-    let (_, parts) = separated_list1(tag("\n"), Part::parse)(rest.trim()).unwrap();
-    debug!(example, "{:#?}", &parts);
+struct DayNineteen {}
 
-    let sum_total_ratings: Int = parts
-        .iter()
-        .filter(|p| p.process(&workflows) == Destination::Accept)
-        .map(|p| p.total_rating())
-        .sum();
+impl Problem for DayNineteen {
+    const YEAR: Year = 2023;
+    const DAY: Day = 19;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 19114;
+    const PART_ONE_EXPECTED: Answer = 348378;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 167409079868000;
+    const PART_TWO_EXPECTED: Answer = 121158073425385;
 
-    sum_total_ratings
+    fn example_input() -> &'static str {
+        "
+        px{a<2006:qkq,m>2090:A,rfg}
+        pv{a>1716:R,A}
+        lnx{m>1548:A,A}
+        rfg{s<537:gd,x>2440:R,A}
+        qs{s>3448:A,lnx}
+        qkq{x<1416:A,crn}
+        crn{x>2662:A,R}
+        in{s<1351:px,qqz}
+        qqz{s>2770:qs,m<1801:hdj,R}
+        gd{a>3333:R,R}
+        hdj{m>838:A,pv}
+
+        {x=787,m=2655,a=1222,s=2876}
+        {x=1679,m=44,a=2067,s=496}
+        {x=2036,m=264,a=79,s=2244}
+        {x=2461,m=1339,a=466,s=291}
+        {x=2127,m=1623,a=2188,s=1013}
+        "
+    }
+
+    fn solve_part_one(input: String, example: bool) -> Answer {
+        let (rest, workflows) = get_workflows(&input);
+        debug!(example, &workflows);
+        let (_, parts) = separated_list1(tag("\n"), Part::parse)(rest.trim()).unwrap();
+        debug!(example, &parts);
+
+        let sum_total_ratings: Int = parts
+            .iter()
+            .filter(|p| p.process(&workflows) == Destination::Accept)
+            .map(|p| p.total_rating())
+            .sum();
+
+        sum_total_ratings
+    }
+
+    fn solve_part_two(input: String, example: bool) -> Answer {
+        let workflows = get_workflows(&input).1;
+        let mut paths = Vec::new();
+        generate_accepted_paths(&mut paths, Path::new(), "in", &workflows);
+        debug!(example, paths);
+        let sum = compute_distinct_combinations(&paths);
+        sum
+    }
 }
 
-fn part_2_solve(input: String, example: bool) -> Int {
-    let workflows = get_workflows(&input).1;
-    let mut paths = Vec::new();
-    generate_accepted_paths(&mut paths, Path::new(), "in", &workflows);
-    debug!(example, "{:#?}", paths);
-    let sum = compute_distinct_combinations(&paths);
-    sum
-}
-
-static INPUT: LazyLock<String> = LazyLock::new(|| {
-    string![
-        "px{a<2006:qkq,m>2090:A,rfg}",
-        "pv{a>1716:R,A}",
-        "lnx{m>1548:A,A}",
-        "rfg{s<537:gd,x>2440:R,A}",
-        "qs{s>3448:A,lnx}",
-        "qkq{x<1416:A,crn}",
-        "crn{x>2662:A,R}",
-        "in{s<1351:px,qqz}",
-        "qqz{s>2770:qs,m<1801:hdj,R}",
-        "gd{a>3333:R,R}",
-        "hdj{m>838:A,pv}",
-        "",
-        "{x=787,m=2655,a=1222,s=2876}",
-        "{x=1679,m=44,a=2067,s=496}",
-        "{x=2036,m=264,a=79,s=2244}",
-        "{x=2461,m=1339,a=466,s=291}",
-        "{x=2127,m=1623,a=2188,s=1013}",
-    ]
-});
-
-fn part_1_example() -> Int {
-    let solution = part_1_solve(INPUT.clone(), true);
-    test!(19114, solution);
-    solution
-}
-
-fn part_1() -> Int {
-    let solution = part_1_solve(aoc::get_string(2023, 19), false);
-    test!(348378, solution);
-    solution
-}
-
-fn part_2_example() -> Int {
-    let solution = part_2_solve(INPUT.clone(), true);
-    test!(167409079868000 as Int, solution);
-    solution
-}
-
-fn part_2() -> Int {
-    let solution = part_2_solve(aoc::get_string(2023, 19), false);
-    test!(121158073425385 as Int, solution);
-    solution
-}
-
-benchmark_functions!(part_1_example, part_1, part_2_example, part_2);
+run!(DayNineteen);

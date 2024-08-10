@@ -60,6 +60,13 @@ macro_rules! debug {
         }
     };
 
+    // Match arm with a condition and a single message
+    ($should_print:ident, $message:expr) => {
+        if $should_print {
+            println!("[{}:{}] {:#?}", file!(), line!(), $message);
+        }
+    };
+
     (true, $message:expr) => {
         println!("[{}:{}] {}", file!(), line!(), $message);
     };
@@ -131,14 +138,12 @@ macro_rules! clear_console {
 
 #[macro_export]
 macro_rules! benchmark_functions {
-    ($($func:ident),+) => {
-        fn main() {
+    ($($func:expr),+) => {
             $(
                 let start = Instant::now();
                 let result = $func();
                 let duration = start.elapsed();
                 println!("{}() took {:?} and returned {}", stringify!($func), duration, result);
             )+
-        }
     };
 }

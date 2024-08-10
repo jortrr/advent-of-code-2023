@@ -30,6 +30,7 @@ pub trait Problem {
     const PART_ONE_EXPECTED: Answer;
     const PART_TWO_EXAMPLE_EXPECTED: Answer;
     const PART_TWO_EXPECTED: Answer;
+    const RUN_EXAMPLE: bool = true;
 
     /// Solve AoC(`YEAR`, `DAY`) part one
     fn solve_part_one(input: Input, is_example: bool) -> Answer;
@@ -98,12 +99,16 @@ macro_rules! run {
             assert_impl_problem::<$problem>();
 
             // Use the benchmark_functions macro to benchmark all parts
-            benchmark_functions!(
-                <$problem>::part_one_example,
-                <$problem>::part_one,
-                <$problem>::part_two_example,
-                <$problem>::part_two
-            );
+            if <$problem>::RUN_EXAMPLE {
+                benchmark_functions!(
+                    <$problem>::part_one_example,
+                    <$problem>::part_one,
+                    <$problem>::part_two_example,
+                    <$problem>::part_two
+                );
+            } else {
+                benchmark_functions!(<$problem>::part_one, <$problem>::part_two);
+            }
         }
     };
 }

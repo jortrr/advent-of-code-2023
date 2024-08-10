@@ -1,7 +1,8 @@
 use core::panic;
 use std::cmp::{max, min};
 
-mod macros;
+mod problem;
+use problem::*;
 
 static PRINT_DISTANCES: bool = false;
 
@@ -97,6 +98,10 @@ struct Maze {
 }
 
 impl Maze {
+    fn parse(input: Input) -> Maze {
+        Maze::from_strings(&input.lines().map(|s| s.to_string()).collect())
+    }
+
     fn from_strings(tiles: &Vec<String>) -> Maze {
         let maze: Vec<Tiles> = tiles
             .iter()
@@ -286,23 +291,6 @@ impl Maze {
             }
         }
     }
-
-    // Test case for Example Part 1
-    fn test_distance(input: Vec<&str>, expected_distance: Int) {
-        let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
-        let distance = maze.find_longest_distance_from_animal_starting_position();
-        dbg!(maze.to_strings);
-        test!(expected_distance, distance);
-    }
-
-    // Test case for Example Part 2
-    fn test_interior_points(input: Vec<&str>, expected_interior_points: Int) {
-        let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
-        let _ = maze.find_longest_distance_from_animal_starting_position();
-        let interior_points = maze.get_interior_points();
-        dbg!(maze.to_strings);
-        test!(expected_interior_points, interior_points);
-    }
 }
 
 impl std::fmt::Debug for Maze {
@@ -335,9 +323,33 @@ impl std::fmt::Debug for Maze {
     }
 }
 
-/// Run Part 1 Example test cases
-fn run_example_test_cases_part_1() {
-    #[rustfmt::skip]
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    impl Maze {
+        // Test case for Example Part 1
+        fn test_distance(input: Vec<&str>, expected_distance: Int) {
+            let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
+            let distance = maze.find_longest_distance_from_animal_starting_position();
+            dbg!(maze.to_strings);
+            test!(expected_distance, distance);
+        }
+
+        // Test case for Example Part 2
+        fn test_interior_points(input: Vec<&str>, expected_interior_points: Int) {
+            let mut maze = Maze::from_strings(&input.iter().map(|s| s.to_string()).collect());
+            let _ = maze.find_longest_distance_from_animal_starting_position();
+            let interior_points = maze.get_interior_points();
+            dbg!(maze.to_strings);
+            test!(expected_interior_points, interior_points);
+        }
+    }
+
+    /// Run Part 1 Example test cases
+    #[test]
+    fn run_example_test_cases_part_1() {
+        #[rustfmt::skip]
     let example_input_4_d_a: Vec<&str> = vec![
         ".....",
         ".S-7.",
@@ -345,8 +357,8 @@ fn run_example_test_cases_part_1() {
         ".L-J.",
         ".....",
     ];
-    Maze::test_distance(example_input_4_d_a, 4);
-    #[rustfmt::skip]
+        Maze::test_distance(example_input_4_d_a, 4);
+        #[rustfmt::skip]
     let example_input_4_d_b: Vec<&str> = vec![
         "-L|F7",
         "7S-7|",
@@ -354,8 +366,8 @@ fn run_example_test_cases_part_1() {
         "-L-J|",
         "L|-JF",
     ];
-    Maze::test_distance(example_input_4_d_b, 4);
-    #[rustfmt::skip]
+        Maze::test_distance(example_input_4_d_b, 4);
+        #[rustfmt::skip]
     let example_input_8_d_a: Vec<&str> = vec![
         "..F7.",
         ".FJ|.",
@@ -363,8 +375,8 @@ fn run_example_test_cases_part_1() {
         "|F--J",
         "LJ...",
     ];
-    Maze::test_distance(example_input_8_d_a, 8);
-    #[rustfmt::skip]
+        Maze::test_distance(example_input_8_d_a, 8);
+        #[rustfmt::skip]
     let example_input_8_d_b: Vec<&str> = vec![
         "7-F7-",
         ".FJ|7",
@@ -372,79 +384,93 @@ fn run_example_test_cases_part_1() {
         "|F--J",
         "LJ.LJ",
     ];
-    Maze::test_distance(example_input_8_d_b, 8);
+        Maze::test_distance(example_input_8_d_b, 8);
+    }
+
+    /// Run Example Part 2 test cases
+    #[test]
+    fn run_example_test_cases_part_2() {
+        let example_input_4_i_a: Vec<&str> = vec![
+            "...........",
+            ".S-------7.",
+            ".|F-----7|.",
+            ".||.....||.",
+            ".||.....||.",
+            ".|L-7.F-J|.",
+            ".|..|.|..|.",
+            ".L--J.L--J.",
+            "...........",
+        ];
+        Maze::test_interior_points(example_input_4_i_a, 4);
+        let example_input_4_i_b: Vec<&str> = vec![
+            "..........",
+            ".S------7.",
+            ".|F----7|.",
+            ".||OOOO||.",
+            ".||OOOO||.",
+            ".|L-7F-J|.",
+            ".|II||II|.",
+            ".L--JL--J.",
+            "..........",
+        ];
+        Maze::test_interior_points(example_input_4_i_b, 4);
+        let example_input_8_i: Vec<&str> = vec![
+            "OF----7F7F7F7F-7OOOO",
+            "O|F--7||||||||FJOOOO",
+            "O||OFJ||||||||L7OOOO",
+            "FJL7L7LJLJ||LJIL-7OO",
+            "L--JOL7IIILJS7F-7L7O",
+            "OOOOF-JIIF7FJ|L7L7L7",
+            "OOOOL7IF7||L7|IL7L7|",
+            "OOOOO|FJLJ|FJ|F7|OLJ",
+            "OOOOFJL-7O||O||||OOO",
+            "OOOOL---JOLJOLJLJOOO",
+        ];
+        Maze::test_interior_points(example_input_8_i, 8);
+        let example_input_10_i: Vec<&str> = vec![
+            "FF7FSF7F7F7F7F7F---7",
+            "L|LJ||||||||||||F--J",
+            "FL-7LJLJ||||||LJL-77",
+            "F--JF--7||LJLJ7F7FJ-",
+            "L---JF-JLJ.||-FJLJJ7",
+            "|F|F-JF---7F7-L7L|7|",
+            "|FFJF7L7F-JF7|JL---7",
+            "7-L-JL7||F7|L7F-7F7|",
+            "L.L7LFJ|||||FJL7||LJ",
+            "L7JLJL-JLJLJL--JLJ.L",
+        ];
+        Maze::test_interior_points(example_input_10_i, 10);
+    }
 }
 
-/// Run Example Part 2 test cases
-fn run_example_test_cases_part_2() {
-    let example_input_4_i_a: Vec<&str> = vec![
-        "...........",
-        ".S-------7.",
-        ".|F-----7|.",
-        ".||.....||.",
-        ".||.....||.",
-        ".|L-7.F-J|.",
-        ".|..|.|..|.",
-        ".L--J.L--J.",
-        "...........",
-    ];
-    Maze::test_interior_points(example_input_4_i_a, 4);
-    let example_input_4_i_b: Vec<&str> = vec![
-        "..........",
-        ".S------7.",
-        ".|F----7|.",
-        ".||OOOO||.",
-        ".||OOOO||.",
-        ".|L-7F-J|.",
-        ".|II||II|.",
-        ".L--JL--J.",
-        "..........",
-    ];
-    Maze::test_interior_points(example_input_4_i_b, 4);
-    let example_input_8_i: Vec<&str> = vec![
-        "OF----7F7F7F7F-7OOOO",
-        "O|F--7||||||||FJOOOO",
-        "O||OFJ||||||||L7OOOO",
-        "FJL7L7LJLJ||LJIL-7OO",
-        "L--JOL7IIILJS7F-7L7O",
-        "OOOOF-JIIF7FJ|L7L7L7",
-        "OOOOL7IF7||L7|IL7L7|",
-        "OOOOO|FJLJ|FJ|F7|OLJ",
-        "OOOOFJL-7O||O||||OOO",
-        "OOOOL---JOLJOLJLJOOO",
-    ];
-    Maze::test_interior_points(example_input_8_i, 8);
-    let example_input_10_i: Vec<&str> = vec![
-        "FF7FSF7F7F7F7F7F---7",
-        "L|LJ||||||||||||F--J",
-        "FL-7LJLJ||||||LJL-77",
-        "F--JF--7||LJLJ7F7FJ-",
-        "L---JF-JLJ.||-FJLJJ7",
-        "|F|F-JF---7F7-L7L|7|",
-        "|FFJF7L7F-JF7|JL---7",
-        "7-L-JL7||F7|L7F-7F7|",
-        "L.L7LFJ|||||FJL7||LJ",
-        "L7JLJL-JLJLJL--JLJ.L",
-    ];
-    Maze::test_interior_points(example_input_10_i, 10);
+struct DayTen {}
+
+impl Problem for DayTen {
+    const YEAR: Year = 2023;
+    const DAY: Day = 10;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = -1;
+    const PART_ONE_EXPECTED: Answer = 6951;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = -1;
+    const PART_TWO_EXPECTED: Answer = 563;
+    const RUN_EXAMPLE: bool = false;
+
+    fn example_input() -> ExampleInput {
+        //TODO: Use procedural macro's to have all test cases as a function of Problem, with expected values for part_one or part_two as attribute
+        ""
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let mut maze = Maze::parse(input);
+        let distance = maze.find_longest_distance_from_animal_starting_position();
+        distance as Answer
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let mut maze = Maze::parse(input);
+        maze.find_longest_distance_from_animal_starting_position();
+        let interior_points = maze.get_interior_points();
+        interior_points as Answer
+    }
 }
 
-fn main() {
-    println!("Hello, World! from src/day10.rs!");
-
-    // Part 1 - Example
-    run_example_test_cases_part_1();
-
-    // Part 2 - Example
-    run_example_test_cases_part_2();
-
-    // Part 1
-    let input = aoc::get(2023, 10);
-    let mut maze = Maze::from_strings(&input);
-    let distance = maze.find_longest_distance_from_animal_starting_position();
-    test!(6951, distance);
-
-    // Part 2
-    let interior_points = maze.get_interior_points();
-    test!(563, interior_points);
-}
+run!(DayTen);

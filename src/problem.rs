@@ -53,7 +53,9 @@ pub trait Problem {
                     line.trim_start() // Trim leading spaces from non-empty lines
                 }
             })
-            .collect::<Vec<_>>()[1..]
+            .skip(1) // Skip first
+            .take(Self::example_input().lines().count() - 2) // Skip last
+            .collect::<Vec<_>>()
             .join("\n")
     }
 

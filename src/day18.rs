@@ -9,6 +9,8 @@ use hex_color::HexColor;
 
 mod grid;
 mod macros;
+mod problem;
+use problem::*;
 
 type Int = i64;
 
@@ -178,42 +180,52 @@ impl Polygon {
     }
 }
 
-fn main() {
-    println!("Hello, World! from src/day18.rs!");
-    // Part 1 - Example
-    let dig_plan = vec_of_strings![
-        "R 6 (#70c710)",
-        "D 5 (#0dc571)",
-        "L 2 (#5713f0)",
-        "D 2 (#d2c081)",
-        "R 2 (#59c680)",
-        "D 2 (#411b91)",
-        "L 5 (#8ceee2)",
-        "U 2 (#caa173)",
-        "L 1 (#1b58a2)",
-        "U 2 (#caa171)",
-        "R 2 (#7807d2)",
-        "U 3 (#a77fa3)",
-        "L 2 (#015232)",
-        "U 2 (#7a21e3)",
-    ];
-    let polygon = Polygon::from_dig_plan(&dig_plan, false);
-    dbg!(&polygon);
-    polygon.print();
-    let a = polygon.calc_area();
-    test!(62, a);
-    // Part 1
-    let i = aoc::get(2023, 18);
-    let polygon = Polygon::from_dig_plan(&i, false);
-    let a = polygon.calc_area();
-    test!(48652, a);
-    // Part 2 - Example
-    let polygon = Polygon::from_dig_plan(&dig_plan, true);
-    //dbg!(&polygon);
-    let a = polygon.calc_area();
-    test!(952408144115 as i64, a);
-    // Part 2
-    let polygon = Polygon::from_dig_plan(&i, true);
-    let a = polygon.calc_area();
-    test!(45757884535661 as i64, a);
+struct DayEighteen {}
+
+impl Problem for DayEighteen {
+    const YEAR: Year = 2023;
+    const DAY: Day = 18;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 62;
+    const PART_ONE_EXPECTED: Answer = 48652;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 952408144115;
+    const PART_TWO_EXPECTED: Answer = 45757884535661;
+
+    fn example_input() -> ExampleInput {
+        "
+        R 6 (#70c710)
+        D 5 (#0dc571)
+        L 2 (#5713f0)
+        D 2 (#d2c081)
+        R 2 (#59c680)
+        D 2 (#411b91)
+        L 5 (#8ceee2)
+        U 2 (#caa173)
+        L 1 (#1b58a2)
+        U 2 (#caa171)
+        R 2 (#7807d2)
+        U 3 (#a77fa3)
+        L 2 (#015232)
+        U 2 (#7a21e3)
+        "
+    }
+
+    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+        let dig_plan = input.lines().map(|s| s.to_string()).collect();
+        let polygon = Polygon::from_dig_plan(&dig_plan, false);
+        debug!(is_example, &polygon);
+        if is_example {
+            polygon.print();
+        }
+        let a = polygon.calc_area();
+        a
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let dig_plan = input.lines().map(|s| s.to_string()).collect();
+        let polygon = Polygon::from_dig_plan(&dig_plan, true);
+        let a = polygon.calc_area();
+        a
+    }
 }
+
+run!(DayEighteen);

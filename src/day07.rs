@@ -1,6 +1,8 @@
 use core::panic;
 
 mod macros;
+mod problem;
+use problem::*;
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 enum Card {
@@ -241,6 +243,18 @@ impl Play {
 
 type Plays = Vec<Play>;
 
+impl Parse for Plays {
+    fn parse(input: Input) -> Self {
+        input
+            .lines()
+            .map(|s| s.split_ascii_whitespace().collect::<Vec<_>>())
+            .filter(|v| v.len() == 2)
+            .map(|t| (t[0], t[1]))
+            .map(|t| Play::from_tuple(&t))
+            .collect()
+    }
+}
+
 fn get_total_winnings(plays: &Plays) -> u32 {
     let mut winnings = 0;
     for (i, play) in plays.iter().enumerate() {
@@ -250,48 +264,46 @@ fn get_total_winnings(plays: &Plays) -> u32 {
     winnings
 }
 
-fn main() {
-    println!("Hello, World! from src/day07.rs!");
-    let input: Vec<String> = aoc::get(2023, 7);
+struct DaySeven {}
 
-    // Example
-    let mut plays: Plays = vec![
-        ("32T3K", "765"),
-        ("T55J5", "684"),
-        ("KK677", "28"),
-        ("KTJJT", "220"),
-        ("QQQJA", "483"),
-    ]
-    .iter()
-    .map(|t| Play::from_tuple(t))
-    .collect();
-    plays.sort();
-    dbg!(&plays);
-    let example_total_winnings = get_total_winnings(&plays);
-    test!(6440, example_total_winnings);
+impl Problem for DaySeven {
+    const YEAR: Year = 2023;
+    const DAY: Day = 7;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 6440;
+    const PART_ONE_EXPECTED: Answer = 251806792;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 5905;
+    const PART_TWO_EXPECTED: Answer = 252113488;
 
-    // Part 1
-    let mut plays: Plays = input
-        .iter()
-        .map(|s| s.split_ascii_whitespace().collect::<Vec<_>>())
-        .filter(|v| v.len() == 2)
-        .map(|t| (t[0], t[1]))
-        .map(|t| Play::from_tuple(&t))
-        .collect();
-    plays.sort();
-    let total_winnings = get_total_winnings(&plays);
-    test!(251806792, total_winnings);
+    fn example_input() -> ExampleInput {
+        "
+        32T3K 765
+        T55J5 684
+        KK677 28
+        KTJJT 220
+        QQQJA 483
+        "
+    }
 
-    // Part 2
-    // Replace J with Joker
-    plays = plays
-        .iter()
-        .map(|play| Play {
-            bid: play.bid,
-            hand: play.hand.replace_all_j_with_joker(),
-        })
-        .collect();
-    plays.sort();
-    let total_winnings_with_jokers = get_total_winnings(&plays);
-    test!(252113488, total_winnings_with_jokers);
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let mut plays = Plays::parse(input);
+        plays.sort();
+        let total_winnings = get_total_winnings(&plays);
+        total_winnings as Answer
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let mut plays = Plays::parse(input);
+        plays = plays
+            .iter()
+            .map(|play| Play {
+                bid: play.bid,
+                hand: play.hand.replace_all_j_with_joker(),
+            })
+            .collect();
+        plays.sort();
+        let total_winnings_with_jokers = get_total_winnings(&plays);
+        total_winnings_with_jokers as Answer
+    }
 }
+
+run!(DaySeven);

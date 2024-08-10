@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
-mod macros;
+mod problem;
+use problem::*;
 
 type Int = i32;
 type Sequence = VecDeque<Int>;
@@ -87,6 +88,10 @@ struct OASIS {
 }
 
 impl OASIS {
+    fn parse(input: Input) -> OASIS {
+        OASIS::from_strings(&input.lines().map(|s| s.to_string()).collect())
+    }
+
     fn from_strings(sequences: &Vec<String>) -> OASIS {
         let histories: Vec<History> = sequences
             .iter()
@@ -119,24 +124,37 @@ impl OASIS {
     }
 }
 
-fn main() {
-    println!("Hello, World! from src/day09.rs!");
-    // Example
-    let input: Vec<String> = vec!["0 3 6 9 12 15", "1 3 6 10 15 21", "10 13 16 21 30 45"]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
-    let mut oasis = OASIS::from_strings(&input);
-    oasis.extrapolate_histories();
-    dbg!(&oasis);
-    let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
-    test!(114, sum_of_histories_last_values);
-    // Part 1
-    let input = aoc::get(2023, 9);
-    let mut oasis = OASIS::from_strings(&input);
-    oasis.extrapolate_histories();
-    let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
-    test!(2005352194, sum_of_histories_last_values);
-    let sum_of_histories_first_values = oasis.sum_of_histories_first_values();
-    test!(1077, sum_of_histories_first_values);
+struct DayNine {}
+
+impl Problem for DayNine {
+    const YEAR: Year = 2023;
+    const DAY: Day = 9;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 114;
+    const PART_ONE_EXPECTED: Answer = 2005352194;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 2;
+    const PART_TWO_EXPECTED: Answer = 1077;
+
+    fn example_input() -> ExampleInput {
+        "
+        0 3 6 9 12 15
+        1 3 6 10 15 21
+        10 13 16 21 30 45
+        "
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let mut oasis = OASIS::parse(input);
+        oasis.extrapolate_histories();
+        let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
+        sum_of_histories_last_values as Answer
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let mut oasis = OASIS::parse(input);
+        oasis.extrapolate_histories();
+        let sum_of_histories_first_values = oasis.sum_of_histories_first_values();
+        sum_of_histories_first_values as Answer
+    }
 }
+
+run!(DayNine);

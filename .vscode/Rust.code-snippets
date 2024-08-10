@@ -1,57 +1,35 @@
 {
-	// Place your mounted workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
-	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
-	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
-	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
-	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
-	// Placeholders with the same ids are connected.
-	// Example:
-	// "Print to console": {
-	// 	"scope": "javascript,typescript",
-	// 	"prefix": "log",
-	// 	"body": [
-	// 		"console.log('$1');",
-	// 		"$2"
-	// 	],
-	// 	"description": "Log output to console"
-	// }
-	"Ranged for-loop": {
+	"Implement AoC Problem": {
 		"scope": "rust",
-		"prefix": "ranged-for-loop",
+		"prefix": "prob",
 		"body": [
-			"for i in 0..=$1 {",
-				"//TODO: Your code here", 
-        "println!(\"{}\", i);",
-    	"}" 
-		],
-		"description": "A ranged for-loop, inclusive"
-	},
-	"Advent of Code Fetch": {
-		"scope": "rust",
-		"prefix": "advent-of-code-fetch",
-		"body": [
-			"use aocf::Aoc;",
+			"struct $1 {}",
 			"",
-			"fn main() {",
-			"		let mut aoc = Aoc::new().year(Some(2023)).day(Some($1)).init().unwrap();",
+			"impl Problem for $1 {",
+			"const YEAR: Year = $2;",
+			"const DAY: Day = $3;",
+			"const PART_ONE_EXAMPLE_EXPECTED: Answer = 0;",
+			"const PART_ONE_EXPECTED: Answer = 0;",
+			"const PART_TWO_EXAMPLE_EXPECTED: Answer = 0;",
+			"const PART_TWO_EXPECTED: Answer = 0;",
 			"",
-			"		// Get input data (don't force)",
-			"		let input = aoc.get_input(false);",
+			"fn example_input() -> ExampleInput {",
+			"\"",
 			"",
-			"		if let Ok(i) = input {",
-			"       println!(\"Input for day {:02}:\n\", aoc.day.unwrap());",
-			"				println!(\"{}\", i);",
-			"		}",
+			"\"",
 			"}",
+			"",
+			"fn solve_part_one(input: Input, _is_example: bool) -> Answer {",
+			"0",
+			"}",
+			"",
+			"fn solve_part_two(input: Input, _is_example: bool) -> Answer {",
+			"0",
+			"}",
+			"}",
+			"",
+			"run!($1);",
 		],
-		"description": "Insert the Advent of Code Fetch main function"
-	},
-	"For-each iter print": {
-		"scope": "rust",
-		"prefix": "for-each-iter-print",
-		"body": [
-			".for_each(|f| println!(\"{:?}\", f));"
-		],
-		"description": "Print each iterator element"
+		"description": "Implement AoC Problem"
 	},
 }

@@ -1,6 +1,9 @@
 mod macros;
+mod problem;
+use problem::*;
 
-type Int = i32;
+static NUMBER_OF_CYCLES: Int = 1000000000;
+
 type Grid<T> = Vec<Vec<T>>;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -96,6 +99,10 @@ impl Debug for Platform {
 }
 
 impl Platform {
+    fn parse(input: Input) -> Platform {
+        Platform::from_strings(input.lines().map(|s| s.to_string()).collect::<Vec<_>>())
+    }
+
     fn run_spin_cycle(&mut self) {
         vec![North, West, South, East]
             .iter()
@@ -248,11 +255,6 @@ impl Platform {
         self.get_total_load()
     }
 
-    fn from_string_slices(input: &Vec<&str>) -> Platform {
-        let input_strings = input.iter().map(|s| s.to_string()).collect();
-        Platform::from_strings(input_strings)
-    }
-
     fn from_strings(input: Vec<String>) -> Platform {
         let grid: Grid<Terrain> = input
             .iter()
@@ -285,112 +287,131 @@ fn grid_to_string(grid: &Grid<Terrain>) -> String {
     result
 }
 
-fn main() {
-    println!("Hello, World! from src/day14.rs!");
-    // Part 1 - Example
-    let example_input = vec![
-        "O....#....",
-        "O.OO#....#",
-        ".....##...",
-        "OO.#O....O",
-        ".O.....O#.",
-        "O.#..O.#.#",
-        "..O..#O..O",
-        ".......O..",
-        "#....###..",
-        "#OO..#....",
-    ];
-    let mut example_platform = Platform::from_string_slices(&example_input);
-    dbg!(&example_platform);
-    example_platform.tilt(North);
-    dbg!(&example_platform);
-    let example_total_load = example_platform.get_total_load();
-    test!(136, example_total_load);
-    let example_input_tilted = vec![
-        "OOOO.#.O..",
-        "OO..#....#",
-        "OO..O##..O",
-        "O..#.OO...",
-        "........#.",
-        "..#....#.#",
-        "..O..#.O.O",
-        "..O.......",
-        "#....###..",
-        "#....#....",
-    ];
-    let example_platform_tilted = Platform::from_string_slices(&example_input_tilted);
-    //dbg!(&example_platform_tilted);
-    for y in 0..example_platform_tilted.rows {
-        for x in 0..example_platform_tilted.columns {
-            let point = Point::new(x as Int, y as Int);
-            let tilted_terrain = example_platform_tilted.get(&point).unwrap();
-            test!(
-                tilted_terrain,
-                example_platform.get(&point).unwrap(),
-                "Tilt: {:?}",
-                point
-            );
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tilt_part_one() {
+        let mut example_platform = Platform::parse(DayFourteen::trimmed_example_input());
+        dbg!(&example_platform);
+        example_platform.tilt(North);
+        dbg!(&example_platform);
+        let example_total_load = example_platform.get_total_load();
+        test!(136, example_total_load);
+        let example_input_tilted = vec_of_strings![
+            "OOOO.#.O..",
+            "OO..#....#",
+            "OO..O##..O",
+            "O..#.OO...",
+            "........#.",
+            "..#....#.#",
+            "..O..#.O.O",
+            "..O.......",
+            "#....###..",
+            "#....#....",
+        ];
+        let example_platform_tilted = Platform::from_strings(example_input_tilted);
+        //dbg!(&example_platform_tilted);
+        for y in 0..example_platform_tilted.rows {
+            for x in 0..example_platform_tilted.columns {
+                let point = Point::new(x as Int, y as Int);
+                let tilted_terrain = example_platform_tilted.get(&point).unwrap();
+                test!(
+                    tilted_terrain,
+                    example_platform.get(&point).unwrap(),
+                    "Tilt: {:?}",
+                    point
+                );
+            }
         }
     }
-    test!(136, example_total_load);
 
-    // Part 1
-    let mut platform = Platform::from_strings(aoc::get(2023, 14));
-    platform.tilt(North);
-    let total_load = platform.get_total_load();
-    test!(109098, total_load);
-
-    // Part 2 - Example
-    static NUMBER_OF_CYCLES: Int = 1000000000;
-    let mut example_platform = Platform::from_string_slices(&example_input);
-    let example_platform_1_cycle = Platform::from_string_slices(&vec![
-        ".....#....",
-        "....#...O#",
-        "...OO##...",
-        ".OO#......",
-        ".....OOO#.",
-        ".O#...O#.#",
-        "....O#....",
-        "......OOOO",
-        "#...O###..",
-        "#..OO#....",
-    ]);
-    let example_platform_2_cycle = Platform::from_string_slices(&vec![
-        ".....#....",
-        "....#...O#",
-        ".....##...",
-        "..O#......",
-        ".....OOO#.",
-        ".O#...O#.#",
-        "....O#...O",
-        ".......OOO",
-        "#..OO###..",
-        "#.OOO#...O",
-    ]);
-    let example_platform_3_cycle = Platform::from_string_slices(&vec![
-        ".....#....",
-        "....#...O#",
-        ".....##...",
-        "..O#......",
-        ".....OOO#.",
-        ".O#...O#.#",
-        "....O#...O",
-        ".......OOO",
-        "#...O###.O",
-        "#.OOO#...O",
-    ]);
-    example_platform.run_spin_cycle();
-    test!(example_platform_1_cycle, example_platform);
-    example_platform.run_spin_cycle();
-    test!(example_platform_2_cycle, example_platform);
-    example_platform.run_spin_cycle();
-    test!(example_platform_3_cycle, example_platform);
-
-    let total_load = example_platform.get_total_load_after_cycles(NUMBER_OF_CYCLES - 3);
-    test!(64, total_load);
-
-    // Part 2
-    let total_load_after_many_cycles =
-        Platform::from_strings(aoc::get(2023, 14)).get_total_load_after_cycles(NUMBER_OF_CYCLES);
-    test!(100064, total_load_after_many_cycles);
+    #[test]
+    fn test_tilt_part_two() {
+        let mut example_platform = Platform::parse(DayFourteen::trimmed_example_input());
+        let example_platform_1_cycle = Platform::from_strings(vec_of_strings![
+            ".....#....",
+            "....#...O#",
+            "...OO##...",
+            ".OO#......",
+            ".....OOO#.",
+            ".O#...O#.#",
+            "....O#....",
+            "......OOOO",
+            "#...O###..",
+            "#..OO#....",
+        ]);
+        let example_platform_2_cycle = Platform::from_strings(vec_of_strings![
+            ".....#....",
+            "....#...O#",
+            ".....##...",
+            "..O#......",
+            ".....OOO#.",
+            ".O#...O#.#",
+            "....O#...O",
+            ".......OOO",
+            "#..OO###..",
+            "#.OOO#...O",
+        ]);
+        let example_platform_3_cycle = Platform::from_strings(vec_of_strings![
+            ".....#....",
+            "....#...O#",
+            ".....##...",
+            "..O#......",
+            ".....OOO#.",
+            ".O#...O#.#",
+            "....O#...O",
+            ".......OOO",
+            "#...O###.O",
+            "#.OOO#...O",
+        ]);
+        example_platform.run_spin_cycle();
+        test!(example_platform_1_cycle, example_platform);
+        example_platform.run_spin_cycle();
+        test!(example_platform_2_cycle, example_platform);
+        example_platform.run_spin_cycle();
+        test!(example_platform_3_cycle, example_platform);
+    }
 }
+
+struct DayFourteen {}
+
+impl Problem for DayFourteen {
+    const YEAR: Year = 2023;
+    const DAY: Day = 14;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 136;
+    const PART_ONE_EXPECTED: Answer = 109098;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 64;
+    const PART_TWO_EXPECTED: Answer = 100064;
+
+    fn example_input() -> ExampleInput {
+        "
+        O....#....
+        O.OO#....#
+        .....##...
+        OO.#O....O
+        .O.....O#.
+        O.#..O.#.#
+        ..O..#O..O
+        .......O..
+        #....###..
+        #OO..#....
+        "
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let mut platform = Platform::parse(input);
+        platform.tilt(North);
+        let total_load = platform.get_total_load();
+        total_load
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let total_load_after_many_cycles =
+            Platform::parse(input).get_total_load_after_cycles(NUMBER_OF_CYCLES);
+        total_load_after_many_cycles
+    }
+}
+
+run!(DayFourteen);

@@ -1,17 +1,10 @@
-type Int = i64;
-
-mod macros;
+mod problem;
+use problem::*;
 
 #[derive(Debug, PartialEq, Clone)]
 struct Position {
     x: Int,
     y: Int,
-}
-
-impl Position {
-    fn new(x: Int, y: Int) -> Position {
-        Position { x, y }
-    }
 }
 
 #[derive(PartialEq, Clone)]
@@ -41,10 +34,6 @@ impl Data {
             _ => panic!("Not valid Data: '{}'.", c),
         }
     }
-
-    fn new_galaxy(x: Int, y: Int) -> Data {
-        Data::Galaxy(Some(Position::new(x, y)))
-    }
 }
 
 type Grid<T> = Vec<Vec<T>>;
@@ -70,6 +59,15 @@ struct Image {
 }
 
 impl Image {
+    fn parse(input: Input) -> Image {
+        let input: Vec<String> = input
+            .lines()
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string())
+            .collect();
+        Image::from_strings(&input)
+    }
+
     fn from_strings(input: &Vec<String>) -> Image {
         let data: Grid<Data> = input
             .iter()
@@ -213,155 +211,170 @@ impl Image {
         }
         sum / 2
     }
+}
 
-    fn test_image(expected: &Image, actual: &Image) -> bool {
-        test!(
-            expected.rows,
-            actual.rows,
-            "Rows compare failed: '{}' != '{}",
-            expected.rows,
-            actual.rows
-        );
-        test!(expected.data.len(), expected.rows as usize);
-        test!(actual.data.len(), actual.rows as usize);
-        test!(
-            expected.columns,
-            actual.columns,
-            "Columns compare failed: '{}' != '{}",
-            expected.columns,
-            actual.columns
-        );
-        test!(
-            expected.data.first().unwrap().len(),
-            expected.columns as usize
-        );
-        test!(actual.data.first().unwrap().len(), actual.columns as usize);
-        test!(
-            expected.to_strings,
-            actual.to_strings,
-            "ToStrings compare failed."
-        );
-        test!(expected.number_of_galaxies, actual.number_of_galaxies);
-        for y in 0..actual.rows {
-            for x in 0..actual.columns {
-                let (x, y) = (x as usize, y as usize);
-                //dbg!((x, y));
-                let expected_data = &expected.data[y][x];
-                let actual_data = &actual.data[y][x];
-                test!(expected_data, actual_data, "data({}, {})", x, y);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_expansion() {
+        let example_input: Vec<&str> = vec![
+            "...#......",
+            ".......#..",
+            "#.........",
+            "..........",
+            "......#...",
+            ".#........",
+            ".........#",
+            "..........",
+            ".......#..",
+            "#...#.....",
+        ];
+        let example_input_expanded: Vec<&str> = vec![
+            "....#........",
+            ".........#...",
+            "#............",
+            ".............",
+            ".............",
+            "........#....",
+            ".#...........",
+            "............#",
+            ".............",
+            ".............",
+            ".........#...",
+            "#....#.......",
+        ];
+        let image = Image::test_expansion(&example_input, &example_input_expanded);
+        test!(image.number_of_galaxies, 9);
+        image.test_distance(1, 7, 15);
+        image.test_distance(3, 6, 17);
+        image.test_distance(8, 9, 5);
+        image.test_sum_of_distances(374);
+    }
+
+    impl Image {
+        fn test_image(expected: &Image, actual: &Image) -> bool {
+            test!(
+                expected.rows,
+                actual.rows,
+                "Rows compare failed: '{}' != '{}",
+                expected.rows,
+                actual.rows
+            );
+            test!(expected.data.len(), expected.rows as usize);
+            test!(actual.data.len(), actual.rows as usize);
+            test!(
+                expected.columns,
+                actual.columns,
+                "Columns compare failed: '{}' != '{}",
+                expected.columns,
+                actual.columns
+            );
+            test!(
+                expected.data.first().unwrap().len(),
+                expected.columns as usize
+            );
+            test!(actual.data.first().unwrap().len(), actual.columns as usize);
+            test!(
+                expected.to_strings,
+                actual.to_strings,
+                "ToStrings compare failed."
+            );
+            test!(expected.number_of_galaxies, actual.number_of_galaxies);
+            for y in 0..actual.rows {
+                for x in 0..actual.columns {
+                    let (x, y) = (x as usize, y as usize);
+                    let expected_data = &expected.data[y][x];
+                    let actual_data = &actual.data[y][x];
+                    test!(expected_data, actual_data, "data({}, {})", x, y);
+                }
             }
+            test!(expected.data, actual.data, "Data compare failed.");
+            true
         }
-        test!(expected.data, actual.data, "Data compare failed.");
-        true
-    }
 
-    fn test_expansion(input: &Vec<&str>, expected_expansion: &Vec<&str>) -> Image {
-        let image = Image::from_strings(&input.iter().map(|s| s.to_string()).collect());
-        dbg!(&image);
-        let expected_expanded_mage =
-            Image::from_strings(&expected_expansion.iter().map(|s| s.to_string()).collect());
-        let actual_expanded_image = image.expand_universe();
-        dbg!(&actual_expanded_image);
-        Image::test_image(&expected_expanded_mage, &actual_expanded_image);
-        actual_expanded_image
-    }
+        fn test_expansion(input: &Vec<&str>, expected_expansion: &Vec<&str>) -> Image {
+            let image = Image::from_strings(&input.iter().map(|s| s.to_string()).collect());
+            dbg!(&image);
+            let expected_expanded_mage =
+                Image::from_strings(&expected_expansion.iter().map(|s| s.to_string()).collect());
+            let actual_expanded_image = image.expand_universe();
+            dbg!(&actual_expanded_image);
+            Image::test_image(&expected_expanded_mage, &actual_expanded_image);
+            actual_expanded_image
+        }
 
-    /// Test the distance between Galaxy a and Galaxy b
-    fn test_distance(&self, galaxy_a: usize, galaxy_b: usize, expected_distance: Int) {
-        let a = galaxy_a - 1;
-        let b = galaxy_b - 1;
-        test!(a < self.number_of_galaxies as usize);
-        test!(b < self.number_of_galaxies as usize);
-        let distance =
-            Image::compute_distance_between_galaxies(&self.galaxies[a], &self.galaxies[b]);
-        println!("Distance ({}, {}): {}", a + 1, b + 1, distance);
-        test!(
-            expected_distance,
-            distance,
-            "Test case failed (Galaxy {} -> {}): this distance should always equal '{}'.",
-            a + 1,
-            b + 1,
-            expected_distance
-        );
-    }
+        /// Test the distance between Galaxy a and Galaxy b
+        fn test_distance(&self, galaxy_a: usize, galaxy_b: usize, expected_distance: Int) {
+            let a = galaxy_a - 1;
+            let b = galaxy_b - 1;
+            test!(a < self.number_of_galaxies as usize);
+            test!(b < self.number_of_galaxies as usize);
+            let distance =
+                Image::compute_distance_between_galaxies(&self.galaxies[a], &self.galaxies[b]);
+            println!("Distance ({}, {}): {}", a + 1, b + 1, distance);
+            test!(
+                expected_distance,
+                distance,
+                "Test case failed (Galaxy {} -> {}): this distance should always equal '{}'.",
+                a + 1,
+                b + 1,
+                expected_distance
+            );
+        }
 
-    fn test_sum_of_distances(&self, expected_sum_of_distances: Int) {
-        let sum_of_distances = self.compute_sum_of_distances_between_all_galaxies();
-        test!(
-            expected_sum_of_distances,
-            sum_of_distances,
-            "Test case failed: this value should always equal '{}'.",
-            expected_sum_of_distances
-        );
-    }
-
-    fn test_galaxy(&self, index: usize, x: Int, y: Int) {
-        let index = index - 1;
-        test!(index < self.number_of_galaxies as usize);
-        let expected_galaxy = Data::new_galaxy(x, y);
-        let actual_galaxy = &self.galaxies[index];
-        test!(expected_galaxy, *actual_galaxy);
+        fn test_sum_of_distances(&self, expected_sum_of_distances: Int) {
+            let sum_of_distances = self.compute_sum_of_distances_between_all_galaxies();
+            test!(
+                expected_sum_of_distances,
+                sum_of_distances,
+                "Test case failed: this value should always equal '{}'.",
+                expected_sum_of_distances
+            );
+        }
     }
 }
 
-fn main() {
-    println!("Hello, World! from src/day11.rs!");
-    // Example - Part 1
-    let example_input: Vec<&str> = vec![
-        "...#......",
-        ".......#..",
-        "#.........",
-        "..........",
-        "......#...",
-        ".#........",
-        ".........#",
-        "..........",
-        ".......#..",
-        "#...#.....",
-    ];
-    let example_input_expanded: Vec<&str> = vec![
-        "....#........",
-        ".........#...",
-        "#............",
-        ".............",
-        ".............",
-        "........#....",
-        ".#...........",
-        "............#",
-        ".............",
-        ".............",
-        ".........#...",
-        "#....#.......",
-    ];
-    let image = Image::test_expansion(&example_input, &example_input_expanded);
-    test!(image.number_of_galaxies, 9);
-    image.test_distance(1, 7, 15);
-    image.test_distance(3, 6, 17);
-    image.test_distance(8, 9, 5);
-    image.test_sum_of_distances(374);
+struct DayEleven {}
 
-    // Example - Part 2
-    let image = Image::from_strings(&example_input.iter().map(|s| s.to_string()).collect());
-    let image_10x = image.expand_universe_with_factor(10);
-    dbg!(&image_10x);
-    image_10x.test_galaxy(1, 12, 0); //Calculated by hand
-    image_10x.test_sum_of_distances(1030);
-    let image_100x = image.expand_universe_with_factor(100);
-    image_100x.test_sum_of_distances(8410);
+impl Problem for DayEleven {
+    const YEAR: Year = 2023;
+    const DAY: Day = 11;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 374;
+    const PART_ONE_EXPECTED: Answer = 9918828;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 8410;
+    const PART_TWO_EXPECTED: Answer = 692506533832;
 
-    // Part 1
-    let input: Vec<String> = aoc::get(2023, 11)
-        .iter()
-        .filter(|s| !s.is_empty())
-        .map(|s| s.clone())
-        .collect();
-    let image = Image::from_strings(&input);
-    let expanded_image = image.expand_universe();
-    let sum_of_distances = expanded_image.compute_sum_of_distances_between_all_galaxies();
-    test!(9918828, sum_of_distances);
+    fn example_input() -> ExampleInput {
+        "
+        ...#......
+        .......#..
+        #.........
+        ..........
+        ......#...
+        .#........
+        .........#
+        ..........
+        .......#..
+        #...#.....
+        "
+    }
 
-    // Part 2
-    let image_1_000_000x = image.expand_universe_with_factor(1_000_000);
-    let sum_of_distances = image_1_000_000x.compute_sum_of_distances_between_all_galaxies();
-    test!(692506533832 as i64, sum_of_distances);
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let image = Image::parse(input);
+        let expanded_image = image.expand_universe();
+        let sum_of_distances = expanded_image.compute_sum_of_distances_between_all_galaxies();
+        sum_of_distances
+    }
+
+    fn solve_part_two(input: Input, is_example: bool) -> Answer {
+        let image = Image::parse(input);
+        let scale = if is_example { 100 } else { 1_000_000 };
+        let scaled_image = image.expand_universe_with_factor(scale);
+        let sum_of_distances = scaled_image.compute_sum_of_distances_between_all_galaxies();
+        sum_of_distances
+    }
 }
+
+run!(DayEleven);

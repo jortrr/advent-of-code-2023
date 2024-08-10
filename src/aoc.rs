@@ -4,6 +4,9 @@ use serde_json::Value;
 
 mod macros;
 
+/// Default Integer type
+pub type Int = i64;
+
 pub fn get(year: i32, day: u32) -> Vec<String> {
     let aoc_json_cache_path = format!(".aocf/cache/aoc{}_{:02}.json", year, day);
     let aoc_json_cache = aocf::Aoc::load_json_from(&aoc_json_cache_path);

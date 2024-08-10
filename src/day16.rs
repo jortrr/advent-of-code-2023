@@ -1,5 +1,7 @@
 mod grid;
 mod macros;
+mod problem;
+use problem::*;
 
 use std::{cmp::max, collections::HashSet};
 
@@ -63,6 +65,12 @@ struct ContraptionMap {
 }
 
 impl ContraptionMap {
+    fn parse(input: Input) -> ContraptionMap {
+        let input = input.lines().map(|s| s.to_string()).collect();
+        let map = ContraptionMap::from_strings(&input);
+        map
+    }
+
     fn from_strings(input: &Vec<String>) -> ContraptionMap {
         let grid: Grid<Terrain> = input
             .iter()
@@ -178,59 +186,66 @@ impl ContraptionMap {
     }
 }
 
-fn main() {
-    println!("Hello, World! from src/day16.rs!");
+struct DaySixteen {}
 
-    // Part 1 - Example
-    let example_input = vec![
-        r#".|...\...."#,
-        r#"|.-.\....."#,
-        r#".....|-..."#,
-        r#"........|."#,
-        r#".........."#,
-        r#".........\"#,
-        r#"..../.\\.."#,
-        r#".-.-/..|.."#,
-        r#".|....-|.\"#,
-        r#"..//.|...."#,
-    ];
-    let mut example_map = ContraptionMap::from_string_slices(&example_input);
-    let amount_of_energized_tiles =
-        example_map.get_amount_of_energized_tiles(&Point::new(0, 0), East);
-    let terrain_map = example_map.get_terrain_map();
-    let energy_map = example_map.get_energy_map();
-    println!("Terrain map:\n{}\n", terrain_map);
-    println!("Energy map:\n{}\n", energy_map);
-    let example_expected_energized_map = vec![
-        "######....",
-        ".#...#....",
-        ".#...#####",
-        ".#...##...",
-        ".#...##...",
-        ".#...##...",
-        ".#..####..",
-        "########..",
-        ".#######..",
-        ".#...#.#..",
-    ]
-    .iter()
-    .map(|s| s.to_string())
-    .collect::<Vec<String>>()
-    .join("\n");
-    test!(example_expected_energized_map, energy_map);
-    test!(46, amount_of_energized_tiles);
+impl Problem for DaySixteen {
+    const YEAR: Year = 2023;
+    const DAY: Day = 16;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 46;
+    const PART_ONE_EXPECTED: Answer = 6906;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 51;
+    const PART_TWO_EXPECTED: Answer = 7330;
 
-    // Part 2 - Example
-    let example_most_amount_energized = example_map.get_most_amount_of_energized_tiles();
-    test!(51, example_most_amount_energized);
+    fn example_input() -> ExampleInput {
+        r"
+        .|...\....
+        |.-.\.....
+        .....|-...
+        ........|.
+        ..........
+        .........\
+        ..../.\\..
+        .-.-/..|..
+        .|....-|.\
+        ..//.|....
+        "
+    }
 
-    // Part 1
-    let mut map = ContraptionMap::from_strings(&aoc::get(2023, 16));
-    map.shoot_beam(&Point::new(0, 0), East);
-    let amount_of_energized_tiles = map.get_amount_of_energized_tiles(&Point::new(0, 0), East);
-    test!(6906, amount_of_energized_tiles);
+    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+        let mut map = ContraptionMap::parse(input);
+        map.shoot_beam(&Point::new(0, 0), East);
+        let amount_of_energized_tiles = map.get_amount_of_energized_tiles(&Point::new(0, 0), East);
+        if is_example {
+            let terrain_map = map.get_terrain_map();
+            let energy_map = map.get_energy_map();
+            println!("Terrain map:\n{}\n", terrain_map);
+            println!("Energy map:\n{}\n", energy_map);
+            let example_expected_energized_map = vec![
+                "######....",
+                ".#...#....",
+                ".#...#####",
+                ".#...##...",
+                ".#...##...",
+                ".#...##...",
+                ".#..####..",
+                "########..",
+                ".#######..",
+                ".#...#.#..",
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>()
+            .join("\n");
+            test!(example_expected_energized_map, energy_map, "energy_map");
+        }
+        amount_of_energized_tiles
+    }
 
-    // Part 2
-    let most_amount_energized = map.get_most_amount_of_energized_tiles();
-    test!(7330, most_amount_energized);
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let mut map = ContraptionMap::parse(input);
+        let most_amount_energized = map.get_most_amount_of_energized_tiles();
+        most_amount_energized
+    }
 }
+
+run!(DaySixteen);

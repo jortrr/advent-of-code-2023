@@ -1,7 +1,6 @@
+use aoc::Int;
 use std::fmt::Debug;
 use std::fmt::Display;
-
-pub type Int = i64;
 
 #[derive(Debug)]
 pub struct Grid<T> {

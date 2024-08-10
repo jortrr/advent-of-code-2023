@@ -13,8 +13,6 @@ pub use std::fmt::Debug;
 pub use std::iter::once;
 pub use std::time::Instant;
 
-/// Default Integer type
-pub type Int = i64;
 pub type Answer = Int;
 pub type Year = i32;
 pub type Day = u32;

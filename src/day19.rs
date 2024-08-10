@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::iter::once;
+use std::sync::LazyLock;
 use std::time::Instant;
 
 use nom::branch::alt;
@@ -229,7 +230,6 @@ fn generate_accepted_paths(
 fn compute_distinct_combinations(paths: &Vec<Path>) -> Int {
     let mut sum: Int = 0;
     for path in paths {
-        dbg!(path);
         let mut min_part = Part {
             x: 1,
             m: 1,
@@ -243,7 +243,6 @@ fn compute_distinct_combinations(paths: &Vec<Path>) -> Int {
             s: 4000,
         };
         for condition in path {
-            dbg!(condition);
             match condition {
                 Condition::LessThan(var, val) => {
                     max_part.set(var, max_part.get(var).min(val - 1));
@@ -263,23 +262,23 @@ fn compute_distinct_combinations(paths: &Vec<Path>) -> Int {
         assert!(min_part.m <= max_part.m);
         assert!(min_part.a <= max_part.a);
         assert!(min_part.s <= max_part.s);
-        dbg!(&min_part);
-        dbg!(&max_part);
         let combinations = (max_part.x - min_part.x + 1)
             * (max_part.m - min_part.m + 1)
             * (max_part.a - min_part.a + 1)
             * (max_part.s - min_part.s + 1);
-        dbg!(combinations);
-        println!();
         sum += combinations;
     }
     sum
 }
 
-fn part_1(input: String, expected: Int, example: bool) -> Workflows {
-    let time = Instant::now();
+fn get_workflows(input: &String) -> (&str, Workflows) {
     let (rest, workflows) = separated_list1(tag("\n"), Workflow::parse)(&input).unwrap();
     let workflows: Workflows = workflows.into_iter().map(|w| (w.name.clone(), w)).collect();
+    (rest, workflows)
+}
+
+fn part_1_solve(input: String, example: bool) -> Int {
+    let (rest, workflows) = get_workflows(&input);
     debug!(example, "{:#?}", &workflows);
     let (_, parts) = separated_list1(tag("\n"), Part::parse)(rest.trim()).unwrap();
     debug!(example, "{:#?}", &parts);
@@ -290,26 +289,20 @@ fn part_1(input: String, expected: Int, example: bool) -> Workflows {
         .map(|p| p.total_rating())
         .sum();
 
-    test!(expected, sum_total_ratings);
-    println!(
-        "Part 1 ({}): {:?}",
-        if example { "Example" } else { "Actual" },
-        time.elapsed()
-    );
-    workflows
+    sum_total_ratings
 }
 
-fn part_2(workflows: &Workflows, expected: Int) {
+fn part_2_solve(input: String, example: bool) -> Int {
+    let workflows = get_workflows(&input).1;
     let mut paths = Vec::new();
-    generate_accepted_paths(&mut paths, Path::new(), "in", workflows);
-    dbg!(&paths);
+    generate_accepted_paths(&mut paths, Path::new(), "in", &workflows);
+    debug!(example, "{:#?}", paths);
     let sum = compute_distinct_combinations(&paths);
-    test!(expected, sum);
+    sum
 }
 
-fn main() {
-    // Part 1 - Example
-    let input = string![
+static INPUT: LazyLock<String> = LazyLock::new(|| {
+    string![
         "px{a<2006:qkq,m>2090:A,rfg}",
         "pv{a>1716:R,A}",
         "lnx{m>1548:A,A}",
@@ -326,11 +319,32 @@ fn main() {
         "{x=1679,m=44,a=2067,s=496}",
         "{x=2036,m=264,a=79,s=2244}",
         "{x=2461,m=1339,a=466,s=291}",
-        "{x=2127,m=1623,a=2188,s=1013} ",
-    ];
-    let example_workflows = part_1(input, 19114, true);
-    let workflows = part_1(aoc::get_string(2023, 19), 348378, false);
+        "{x=2127,m=1623,a=2188,s=1013}",
+    ]
+});
 
-    part_2(&example_workflows, 167409079868000);
-    part_2(&workflows, 0);
+fn part_1_example() -> Int {
+    let solution = part_1_solve(INPUT.clone(), true);
+    test!(19114, solution);
+    solution
 }
+
+fn part_1() -> Int {
+    let solution = part_1_solve(aoc::get_string(2023, 19), false);
+    test!(348378, solution);
+    solution
+}
+
+fn part_2_example() -> Int {
+    let solution = part_2_solve(INPUT.clone(), true);
+    test!(167409079868000 as Int, solution);
+    solution
+}
+
+fn part_2() -> Int {
+    let solution = part_2_solve(aoc::get_string(2023, 19), false);
+    test!(121158073425385 as Int, solution);
+    solution
+}
+
+benchmark_functions!(part_1_example, part_1, part_2_example, part_2);

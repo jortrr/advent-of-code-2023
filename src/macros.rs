@@ -128,3 +128,17 @@ macro_rules! clear_console {
         print!("{}[2J", 27 as char);
     };
 }
+
+#[macro_export]
+macro_rules! benchmark_functions {
+    ($($func:ident),+) => {
+        fn main() {
+            $(
+                let start = Instant::now();
+                let result = $func();
+                let duration = start.elapsed();
+                println!("{}() took {:?} and returned {}", stringify!($func), duration, result);
+            )+
+        }
+    };
+}

@@ -1,8 +1,6 @@
-use std::fmt::Debug;
+mod problem;
+use problem::*;
 
-mod macros;
-
-type Int = i64;
 type Almanac = Vec<Vec<Transform>>;
 
 #[derive(Clone)]
@@ -36,10 +34,6 @@ impl Interval {
             b
         );
         Interval { a, b, v: false }
-    }
-
-    fn single(a: Int) -> Interval {
-        Interval { a, b: a, v: false }
     }
 
     fn len(&self) -> Int {
@@ -197,68 +191,70 @@ fn parse(e: &Vec<String>, seeds_is_range: bool) -> (Vec<Interval>, Almanac) {
     (s, a)
 }
 
-fn main() {
-    // Part 1 - Example
-    let e = vec_of_strings![
-        "seeds: 79 14 55 13",
-        "",
-        "seed-to-soil map:",
-        "50 98 2",
-        "52 50 48",
-        "",
-        "soil-to-fertilizer map:",
-        "0 15 37",
-        "37 52 2",
-        "39 0 15",
-        "",
-        "fertilizer-to-water map:",
-        "49 53 8",
-        "0 11 42",
-        "42 0 7",
-        "57 7 4",
-        "",
-        "water-to-light map:",
-        "88 18 7",
-        "18 25 70",
-        "",
-        "light-to-temperature map:",
-        "45 77 23",
-        "81 45 19",
-        "68 64 13",
-        "",
-        "temperature-to-humidity map:",
-        "0 69 1",
-        "1 0 69",
-        "",
-        "humidity-to-location map:",
-        "60 56 37",
-        "56 93 4",
-    ];
-    let (s, a) = parse(&e, false);
-    let s = apply_almanac(s, &a);
-    dbg!(&s);
-    dbg!(&a);
-    test!(Interval::single(82), s[0]);
-    test!(Interval::single(43), s[1]);
-    test!(Interval::single(86), s[2]);
-    test!(Interval::single(35), s[3]);
-    //Part 1
-    let i = aoc::get(2023, 5);
-    let (s, a) = parse(&i, false);
-    let mut s = apply_almanac(s, &a);
-    s.sort_by_key(|i| i.a);
-    //dbg!(&s[0]);
-    test!(251346198, s[0].a);
-    // Part 2 - Example
-    let (s, a) = parse(&e, true);
-    let mut s = apply_almanac(s, &a);
-    s.sort_by_key(|i| i.a);
-    let l = s[0].a;
-    test!(46, l);
-    // Part 2
-    let (s, a) = parse(&i, true);
-    let mut s = apply_almanac(s, &a);
-    s.sort_by_key(|i| i.a);
-    let l = s[0].a;
-    test!(72263011, l);
+struct DayFive {}
+
+impl Problem for DayFive {
+    const YEAR: Year = 2023;
+    const DAY: Day = 5;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 35;
+    const PART_ONE_EXPECTED: Answer = 251346198;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 46;
+    const PART_TWO_EXPECTED: Answer = 72263011;
+
+    fn example_input() -> ExampleInput {
+        "
+        seeds: 79 14 55 13
+
+        seed-to-soil map:
+        50 98 2
+        52 50 48
+
+        soil-to-fertilizer map:
+        0 15 37
+        37 52 2
+        39 0 15
+
+        fertilizer-to-water map:
+        49 53 8
+        0 11 42
+        42 0 7
+        57 7 4
+
+        water-to-light map:
+        88 18 7
+        18 25 70
+
+        light-to-temperature map:
+        45 77 23
+        81 45 19
+        68 64 13
+
+        temperature-to-humidity map:
+        0 69 1
+        1 0 69
+
+        humidity-to-location map:
+        60 56 37
+        56 93 4
+
+        "
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let input = input.lines().map(|s| s.to_string()).collect(); // Todo: Make Input convertible to Vec<String>, and vice versa
+        let (s, a) = parse(&input, false);
+        let mut s = apply_almanac(s, &a);
+        s.sort_by_key(|i| i.a);
+        s[0].a
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let input = input.lines().map(|s| s.to_string()).collect();
+        let (s, a) = parse(&input, true);
+        let mut s = apply_almanac(s, &a);
+        s.sort_by_key(|i| i.a);
+        s[0].a
+    }
 }
+
+run!(DayFive);

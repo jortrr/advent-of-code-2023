@@ -52,7 +52,7 @@ pub trait Problem {
                 }
             })
             .skip(1) // Skip first
-            .take(Self::example_input().lines().count() - 2) // Skip last
+            .take(Self::example_input().lines().count().saturating_sub(2)) // Skip last
             .collect::<Vec<_>>()
             .join("\n")
     }

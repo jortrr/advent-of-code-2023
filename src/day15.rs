@@ -1,4 +1,6 @@
 mod macros;
+mod problem;
+use problem::*;
 use std::fmt::Debug;
 
 type Int = i32;
@@ -199,52 +201,62 @@ fn sum_steps(initialization_sequence: &InitializationSequence) -> Int {
     initialization_sequence.iter().map(|s| s.hash_value).sum()
 }
 
-fn main() {
-    println!("Hello, World! from src/day15.rs!");
-    // Part 1 - Examples
-    let test_cases = vec![
-        ("rn=1", 30),
-        ("cm-", 253),
-        ("qp=3", 97),
-        ("cm=2", 47),
-        ("qp-", 14),
-        ("pc=4", 180),
-        ("ot=9", 9),
-        ("ab=5", 197),
-        ("pc-", 48),
-        ("pc=6", 214),
-        ("ot=7", 231),
-    ];
-    for (input, hash_value) in test_cases {
-        test!(hash_value, Step::from_string_slice(input).hash_value, input);
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_cases() {
+        // Part 1 - Examples
+        let test_cases = vec![
+            ("rn=1", 30),
+            ("cm-", 253),
+            ("qp=3", 97),
+            ("cm=2", 47),
+            ("qp-", 14),
+            ("pc=4", 180),
+            ("ot=9", 9),
+            ("ab=5", 197),
+            ("pc-", 48),
+            ("pc=6", 214),
+            ("ot=7", 231),
+        ];
+        for (input, hash_value) in test_cases {
+            test!(hash_value, Step::from_string_slice(input).hash_value, input);
+        }
     }
-    let example_sequence_input = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7";
-    let example_sequence = Step::from_string_slice_list(&example_sequence_input);
-    let example_sequence_sum = sum_steps(&example_sequence);
-    test!(1320, example_sequence_sum);
-
-    // Part 1
-    let input: String = aoc::get(2023, 15)
-        .iter()
-        .filter(|s| !s.is_empty())
-        .cloned()
-        .collect();
-
-    let sequence = Step::from_string_list(&input);
-    let steps_sum = sum_steps(&sequence);
-    test!(507769, steps_sum, "Part 1: steps_sum == {}", steps_sum);
-
-    // Part 2 - Example
-    let mut example_box_sequence = BoxSequence::new();
-    example_sequence
-        .iter()
-        .for_each(|s| example_box_sequence.execute(&s));
-    let example_total_focussing_power = example_box_sequence.get_total_focussing_power();
-    test!(145, example_total_focussing_power);
-
-    // Part 2
-    let mut box_sequence = BoxSequence::new();
-    sequence.iter().for_each(|s| box_sequence.execute(&s));
-    let total_focussing_power = box_sequence.get_total_focussing_power();
-    test!(269747, total_focussing_power);
 }
+
+struct DayFifteen {}
+
+impl Problem for DayFifteen {
+    const YEAR: Year = 2023;
+    const DAY: Day = 15;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 1320;
+    const PART_ONE_EXPECTED: Answer = 507769;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 145;
+    const PART_TWO_EXPECTED: Answer = 269747;
+
+    fn example_input() -> ExampleInput {
+        "
+        rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
+        "
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let sequence = Step::from_string_list(&input);
+        let steps_sum = sum_steps(&sequence);
+        steps_sum as Answer
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let sequence = Step::from_string_list(&input);
+        let mut box_sequence = BoxSequence::new();
+        sequence.iter().for_each(|s| box_sequence.execute(&s));
+        let total_focussing_power = box_sequence.get_total_focussing_power();
+        total_focussing_power as Answer
+    }
+}
+
+run!(DayFifteen);

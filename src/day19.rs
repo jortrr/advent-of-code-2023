@@ -272,7 +272,7 @@ impl Problem for DayNineteen {
     const PART_TWO_EXAMPLE_EXPECTED: Answer = 167409079868000;
     const PART_TWO_EXPECTED: Answer = 121158073425385;
 
-    fn example_input() -> &'static str {
+    fn example_input() -> ExampleInput {
         "
         px{a<2006:qkq,m>2090:A,rfg}
         pv{a>1716:R,A}
@@ -294,7 +294,7 @@ impl Problem for DayNineteen {
         "
     }
 
-    fn solve_part_one(input: String, example: bool) -> Answer {
+    fn solve_part_one(input: Input, example: bool) -> Answer {
         let (rest, workflows) = get_workflows(&input);
         debug!(example, &workflows);
         let (_, parts) = separated_list1(tag("\n"), Part::parse)(rest.trim()).unwrap();
@@ -309,7 +309,7 @@ impl Problem for DayNineteen {
         sum_total_ratings
     }
 
-    fn solve_part_two(input: String, example: bool) -> Answer {
+    fn solve_part_two(input: Input, example: bool) -> Answer {
         let workflows = get_workflows(&input).1;
         let mut paths = Vec::new();
         generate_accepted_paths(&mut paths, Path::new(), "in", &workflows);

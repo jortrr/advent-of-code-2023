@@ -18,6 +18,8 @@ pub type Int = i64;
 pub type Answer = Int;
 pub type Year = i32;
 pub type Day = u32;
+pub type Input = String;
+pub type ExampleInput = &'static str;
 
 /// Trait for implementing an Advent of Code problem
 pub trait Problem {
@@ -32,15 +34,16 @@ pub trait Problem {
     const PART_TWO_EXPECTED: Answer;
 
     /// Solve AoC(`YEAR`, `DAY`) part one
-    fn solve_part_one(input: String, is_example: bool) -> Answer;
+    fn solve_part_one(input: Input, is_example: bool) -> Answer;
 
     /// Solve AoC(`YEAR`, `DAY`) part two
-    fn solve_part_two(input: String, is_example: bool) -> Answer;
+    fn solve_part_two(input: Input, is_example: bool) -> Answer;
 
-    fn example_input() -> &'static str;
+    /// The Advent of Code example input
+    fn example_input() -> ExampleInput;
 
     /// Trim example_input, remove preceding spaces from all lines, remove first \n, keep empty lines intact
-    fn trimmed_example_input() -> String {
+    fn trimmed_example_input() -> Input {
         Self::example_input()
             .lines()
             .map(|line| {

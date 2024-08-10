@@ -1,7 +1,7 @@
 use colored::Colorize;
-use std::fmt::Debug;
 
-mod macros;
+mod problem;
+use problem::*;
 
 type Int = i32;
 type Grid<T> = Vec<Vec<T>>;
@@ -62,7 +62,12 @@ impl Debug for Pattern {
 }
 
 impl Pattern {
-    fn from_strings(input: Vec<String>, smudges: Int) -> Pattern {
+    fn parse(input: Input, smudges: Int) -> Vec<Pattern> {
+        Pattern::parse_patterns(&input.lines().map(|s| s.to_string()).collect(), smudges)
+    }
+
+    /// Parse a single Pattern
+    fn parse_pattern(input: Vec<String>, smudges: Int) -> Pattern {
         let rows = input.len();
         let columns = input.first().unwrap().len();
         let grid: Grid<char> = input.iter().map(|s| s.chars().collect()).collect();
@@ -80,19 +85,20 @@ impl Pattern {
         result
     }
 
-    fn from_vec_strings(input: &Vec<String>, smudges: Int) -> Vec<Pattern> {
+    /// Parse Patterns separated by empty lines
+    fn parse_patterns(input: &Vec<String>, smudges: Int) -> Vec<Pattern> {
         let mut result: Vec<Pattern> = Vec::new();
         let mut current: Vec<String> = Vec::new();
         for line in input {
             if line.is_empty() {
-                result.push(Pattern::from_strings(current.clone(), smudges));
+                result.push(Pattern::parse_pattern(current.clone(), smudges));
                 current.clear();
             } else {
                 current.push(line.clone());
             }
         }
         if !current.is_empty() {
-            result.push(Pattern::from_strings(current.clone(), smudges));
+            result.push(Pattern::parse_pattern(current.clone(), smudges));
             current.clear();
         }
 
@@ -181,69 +187,50 @@ impl Pattern {
     }
 }
 
-fn main() {
-    // Part 1 - Example
-    let example_input: Vec<String> = vec![
-        "#.##..##.",
-        "..#.##.#.",
-        "##......#",
-        "##......#",
-        "..#.##.#.",
-        "..##..##.",
-        "#.#.##.#.",
-        "",
-        "#...##..#",
-        "#....#..#",
-        "..##..###",
-        "#####.##.",
-        "#####.##.",
-        "..##..###",
-        "#....#..#",
-        "",
-    ]
-    .iter()
-    .map(|s| s.to_string())
-    .collect();
-    let mut example_patterns = Pattern::from_vec_strings(&example_input.clone(), 0);
-    //dbg!(&example_patterns);
-    test!(2, example_patterns.len());
-    test!(5, example_patterns[0].summary.unwrap());
-    test!(400, example_patterns[1].summary.unwrap());
-    let sum: Int = example_patterns
-        .iter_mut()
-        .map(|p| p.summary.unwrap())
-        .sum();
-    test!(405, sum);
-    dbg!(example_patterns);
+struct DayThirteen {}
 
-    #[rustfmt::skip]
-    let test_a_input: Vec<String> = vec![
-        "###..##",
-        "##.#.#.",
-        "..#...#",
-        "##..#..",
-        "#####.#",
-        "###..#.",
-        "###....",
-    ].iter().map(|s|s.to_string()).collect();
-    let test_a_patterns = Pattern::from_strings(test_a_input, 0);
-    dbg!(test_a_patterns);
+impl Problem for DayThirteen {
+    const YEAR: Year = 2023;
+    const DAY: Day = 13;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 405;
+    const PART_ONE_EXPECTED: Answer = 30535;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 400;
+    const PART_TWO_EXPECTED: Answer = 30844;
 
-    // Part 2 - Example
-    let example_patterns_with_smudge = Pattern::from_vec_strings(&example_input, 1);
-    test!(300, example_patterns_with_smudge[0].summary.unwrap());
-    test!(100, example_patterns_with_smudge[1].summary.unwrap());
+    fn example_input() -> ExampleInput {
+        "
+        #.##..##.
+        ..#.##.#.
+        ##......#
+        ##......#
+        ..#.##.#.
+        ..##..##.
+        #.#.##.#.
 
-    // Part 1
-    let input = aoc::get(2023, 13);
-    dbg!(&input);
-    let part_1_patterns = Pattern::from_vec_strings(&input, 0);
-    //dbg!(&part_1_patterns);
-    let sum: Int = part_1_patterns.iter().map(|p| p.summary.unwrap()).sum();
-    test!(30535, sum);
+        #...##..#
+        #....#..#
+        ..##..###
+        #####.##.
+        #####.##.
+        ..##..###
+        #....#..#
 
-    // Part 2
-    let part_2_patterns = Pattern::from_vec_strings(&input, 1);
-    let sum: Int = part_2_patterns.iter().map(|p| p.summary.unwrap()).sum();
-    test!(30844, sum);
+        "
+    }
+
+    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+        debug!(is_example, &input);
+        let part_1_patterns = Pattern::parse(input, 0);
+        debug!(is_example, &part_1_patterns);
+        let sum: Int = part_1_patterns.iter().map(|p| p.summary.unwrap()).sum();
+        sum as Answer
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let part_2_patterns = Pattern::parse(input, 1);
+        let sum: Int = part_2_patterns.iter().map(|p| p.summary.unwrap()).sum();
+        sum as Answer
+    }
 }
+
+run!(DayThirteen);

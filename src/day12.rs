@@ -1,13 +1,8 @@
-use std::collections::HashMap;
+mod problem;
+use problem::*;
 
-mod macros;
-
-type Int = i64;
 type Key = (String, Vec<Int>);
 type Memo = HashMap<Key, Int>;
-
-static RUN_PART_1: bool = true;
-static RUN_PART_2: bool = true;
 
 struct Record {
     springs: String,
@@ -50,6 +45,7 @@ impl Record {
         }
     }
 
+    #[cfg(test)]
     fn test(input: &str, expected_arrangements: Int, memo: &mut Memo) {
         let record = Record::from_string(input);
         let actual_arrangements = record.solve(memo);
@@ -62,6 +58,7 @@ impl Record {
         );
     }
 
+    #[cfg(test)]
     fn test_expanded(input: &str, expected_arrangements: Int, memo: &mut Memo) {
         let record = Record::from_string(input).expand();
         let actual_arrangements = record.solve(memo);
@@ -128,58 +125,72 @@ fn solve(record: String, groups: Vec<Int>, memo: &mut Memo) -> Int {
     result
 }
 
-fn main() {
-    let mut memo = Memo::new();
-    // Part 1 - Example
-    Record::test("???.### 1,1,3", 1, &mut memo);
-    Record::test(".??..??...?##. 1,1,3", 4, &mut memo);
-    Record::test("?#?#?#?#?#?#?#? 1,3,1,6", 1, &mut memo);
-    Record::test("????.#...#... 4,1,1", 1, &mut memo);
-    Record::test("????.######..#####. 1,6,5", 4, &mut memo);
-    Record::test("?###???????? 3,2,1", 10, &mut memo);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_part_one_example() {
+        let mut memo = Memo::new();
+        Record::test("???.### 1,1,3", 1, &mut memo);
+        Record::test(".??..??...?##. 1,1,3", 4, &mut memo);
+        Record::test("?#?#?#?#?#?#?#? 1,3,1,6", 1, &mut memo);
+        Record::test("????.#...#... 4,1,1", 1, &mut memo);
+        Record::test("????.######..#####. 1,6,5", 4, &mut memo);
+        Record::test("?###???????? 3,2,1", 10, &mut memo);
+    }
 
-    let sum: Int = vec![
-        "???.### 1,1,3",
-        ".??..??...?##. 1,1,3",
-        "?#?#?#?#?#?#?#? 1,3,1,6",
-        "????.#...#... 4,1,1",
-        "????.######..#####. 1,6,5",
-        "?###???????? 3,2,1",
-    ]
-    .iter()
-    .map(|s| Record::from_string(s).solve(&mut memo))
-    .sum();
-    test!(21, sum);
+    #[test]
+    fn test_part_two_example() {
+        let mut memo = Memo::new();
+        Record::test_expanded("???.### 1,1,3", 1, &mut memo);
+        Record::test_expanded(".??..??...?##. 1,1,3", 16384, &mut memo);
+        Record::test_expanded("?#?#?#?#?#?#?#? 1,3,1,6", 1, &mut memo);
+        Record::test_expanded("????.#...#... 4,1,1", 16, &mut memo);
+        Record::test_expanded("????.######..#####. 1,6,5", 2500, &mut memo);
+        Record::test_expanded("?###???????? 3,2,1", 506250, &mut memo);
+    }
+}
 
-    // Part 2 - Example
-    Record::test_expanded("???.### 1,1,3", 1, &mut memo);
-    Record::test_expanded(".??..??...?##. 1,1,3", 16384, &mut memo);
-    Record::test_expanded("?#?#?#?#?#?#?#? 1,3,1,6", 1, &mut memo);
-    Record::test_expanded("????.#...#... 4,1,1", 16, &mut memo);
-    Record::test_expanded("????.######..#####. 1,6,5", 2500, &mut memo);
-    Record::test_expanded("?###???????? 3,2,1", 506250, &mut memo);
+struct DayTwelve {}
 
-    // Part 1
-    if RUN_PART_1 {
-        let sum: Int = aoc::get(2023, 12)
-            .iter()
+impl Problem for DayTwelve {
+    const YEAR: Year = 2023;
+    const DAY: Day = 12;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 21;
+    const PART_ONE_EXPECTED: Answer = 6935;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 525152;
+    const PART_TWO_EXPECTED: Answer = 3920437278260;
+
+    fn example_input() -> ExampleInput {
+        "
+        ???.### 1,1,3
+        .??..??...?##. 1,1,3
+        ?#?#?#?#?#?#?#? 1,3,1,6
+        ????.#...#... 4,1,1
+        ????.######..#####. 1,6,5
+        ?###???????? 3,2,1
+        "
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let mut memo = Memo::new();
+        let sum: Int = input
+            .lines()
             .filter(|s| !s.is_empty())
             .map(|s| Record::from_string(s).solve(&mut memo))
             .sum();
-        test!(6935, sum, "This AOC value is always equal to 6935 for me.");
+        sum
     }
 
-    // Part 2
-    if RUN_PART_2 {
-        let sum: Int = aoc::get(2023, 12)
-            .iter()
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let mut memo = Memo::new();
+        let sum: Int = input
+            .lines()
             .filter(|s| !s.is_empty())
             .map(|s| Record::from_string(s).expand().solve(&mut memo))
             .sum();
-        test!(
-            3920437278260 as i64,
-            sum,
-            "This AOC value is always equal to 3920437278260 for me."
-        );
+        sum
     }
 }
+
+run!(DayTwelve);

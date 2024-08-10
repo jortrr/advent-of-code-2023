@@ -112,3 +112,8 @@ macro_rules! run {
         }
     };
 }
+
+/// Trait to allow a type to be parsed from Problem Input
+pub trait Parse {
+    fn parse(input: Input) -> Self;
+}

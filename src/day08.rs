@@ -1,4 +1,5 @@
-mod macros;
+mod problem;
+use problem::*;
 
 #[derive(Debug)]
 enum Instruction {
@@ -19,8 +20,14 @@ impl Instruction {
 
 type Instructions = Vec<Instruction>;
 
-fn instructions_from_string(string: &str) -> Instructions {
-    string.chars().map(|c| Instruction::from_char(c)).collect()
+impl Parse for Instructions {
+    fn parse(input: Input) -> Self {
+        let first_line = input.lines().next().unwrap();
+        first_line
+            .chars()
+            .map(|c| Instruction::from_char(c))
+            .collect()
+    }
 }
 
 #[derive(Debug)]
@@ -68,6 +75,12 @@ type StepsFromNode<'a> = (&'a Node, i32);
 #[derive(Debug)]
 struct Network {
     nodes: Vec<Node>,
+}
+
+impl Parse for Network {
+    fn parse(input: Input) -> Self {
+        Network::from_strings(&input.lines().map(|s| s.to_string()).collect())
+    }
 }
 
 impl Network {
@@ -146,33 +159,42 @@ impl Network {
     }
 }
 
-fn main() {
-    println!("Hello, World! from src/day08.rs!");
-    // Example
-    let input: Vec<String> = vec![
-        "LLR",
-        "",
-        "AAA = (BBB, BBB)",
-        "BBB = (AAA, ZZZ)",
-        "ZZZ = (ZZZ, ZZZ)",
-    ]
-    .iter()
-    .map(|s| s.to_string())
-    .collect();
-    let instructions = instructions_from_string(&input[0]);
-    let network = Network::from_strings(&input);
-    let example_camel_steps_until_zzz_is_reached =
-        network.camel_steps_until_zzz_is_reached(&instructions);
-    test!(6, example_camel_steps_until_zzz_is_reached);
-    //Part 1
-    let input = aoc::get(2023, 8);
-    let instructions = instructions_from_string(&input[0]);
-    let network = Network::from_strings(&input);
-    let camel_steps_until_zzz_is_reached = network.camel_steps_until_zzz_is_reached(&instructions);
-    //dbg!(&network);
-    //dbg!(&instructions);
-    test!(14257, camel_steps_until_zzz_is_reached);
-    //Part 2
-    let ghost_steps_until_zzz_is_reached = network.ghost_steps_until_zzz_is_reached(&instructions);
-    test!(16187743689077 as u64, ghost_steps_until_zzz_is_reached);
+struct DayEight {}
+
+impl Problem for DayEight {
+    const YEAR: Year = 2023;
+    const DAY: Day = 8;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 6;
+    const PART_ONE_EXPECTED: Answer = 14257;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = 6;
+    const PART_TWO_EXPECTED: Answer = 16187743689077;
+
+    //TODO: Use procedural macro's to have all test cases as a function of Problem, with expected values for part_one or part_two as attribute
+    fn example_input() -> ExampleInput {
+        "
+        LLR
+
+        AAA = (BBB, BBB)
+        BBB = (AAA, ZZZ)
+        ZZZ = (ZZZ, ZZZ)
+        "
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let instructions = Instructions::parse(input.clone());
+        let network = Network::parse(input);
+        let camel_steps_until_zzz_is_reached =
+            network.camel_steps_until_zzz_is_reached(&instructions);
+        camel_steps_until_zzz_is_reached as Answer
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let instructions = Instructions::parse(input.clone());
+        let network = Network::parse(input);
+        let ghost_steps_until_zzz_is_reached =
+            network.ghost_steps_until_zzz_is_reached(&instructions);
+        ghost_steps_until_zzz_is_reached as Answer
+    }
 }
+
+run!(DayEight);

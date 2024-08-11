@@ -19,6 +19,32 @@ pub type Day = u32;
 pub type Input = String;
 pub type ExampleInput = &'static str;
 
+/// Use the newtype pattern to implement `From` and `Into` for `Input` and `Vec<String>`. \
+/// `InputLines` is only a wrapper for `Vec<String>`.
+///
+/// See: https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#using-the-newtype-pattern-to-implement-external-traits-on-external-types
+pub struct InputLines(Vec<String>);
+
+impl InputLines {
+    pub fn filter_empty_lines(self) -> InputLines {
+        InputLines(self.0.into_iter().filter(|line| !line.is_empty()).collect())
+    }
+}
+
+/// Make Input convertible to InputLines(Vec<String>) by lines()
+impl From<Input> for InputLines {
+    fn from(input: Input) -> Self {
+        InputLines(input.lines().map(String::from).collect())
+    }
+}
+
+/// Make InputLines convertible to Vec<String>
+impl Into<Vec<String>> for InputLines {
+    fn into(self) -> Vec<String> {
+        self.0
+    }
+}
+
 /// Trait for implementing an Advent of Code problem
 pub trait Problem {
     // Advent of Code year and day, used to fetch AoC input

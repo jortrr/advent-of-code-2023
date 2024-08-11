@@ -1,11 +1,40 @@
-mod macros;
+mod problem;
+use problem::*;
 
-fn main() {
-    let solution = aoc::get(2023, 1)
-        .iter()
-        .map(|line| {
-            (vec![
-                line.clone(),
+fn get_calibration_value(input: &String) -> Int {
+    let digits: Vec<_> = input.chars().filter(|c| c.is_digit(10)).collect();
+    format!("{}{}", digits.first().unwrap(), digits.last().unwrap())
+        .parse::<Int>()
+        .unwrap()
+}
+
+struct DayOne {}
+
+impl Problem for DayOne {
+    const YEAR: Year = 2023;
+    const DAY: Day = 1;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = -1;
+    const PART_ONE_EXPECTED: Answer = 55386;
+    const PART_TWO_EXAMPLE_EXPECTED: Answer = -1;
+    const PART_TWO_EXPECTED: Answer = 54824;
+    const RUN_EXAMPLE: bool = false;
+
+    fn example_input() -> ExampleInput {
+        "
+        "
+    }
+
+    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        let input: Vec<String> = InputLines::from(input).filter_empty_lines().into();
+        let solution = input.iter().map(|line| get_calibration_value(line)).sum();
+        solution
+    }
+
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let input: Vec<String> = InputLines::from(input).filter_empty_lines().into();
+        let solution = input
+            .iter()
+            .map(|line| {
                 line.replace("one", "o1e")
                     .replace("two", "t2o")
                     .replace("three", "t3e")
@@ -14,35 +43,12 @@ fn main() {
                     .replace("six", "s6x")
                     .replace("seven", "s7n")
                     .replace("eight", "e8t")
-                    .replace("nine", "n9e"),
-            ])
-        })
-        .map(|lines| {
-            lines
-                .iter()
-                .map(|line| line.chars().filter(|c| c.is_digit(10)).collect::<String>())
-                .collect::<Vec<String>>()
-        })
-        .filter(|lines| !lines.iter().any(String::is_empty))
-        .map(|lines| {
-            lines
-                .iter()
-                .map(|line| {
-                    format!(
-                        "{}{}",
-                        line.chars().next().unwrap(),
-                        line.chars().last().unwrap()
-                    )
-                    .parse::<u32>()
-                    .unwrap()
-                })
-                .collect::<Vec<u32>>()
-        })
-        .fold((0, 0), |acc: (u32, u32), lines| {
-            (acc.0 + lines[0], acc.1 + lines[1])
-        });
-
-    println!("Solution: {:?}", solution);
-    test!(55386, solution.0);
-    test!(54824, solution.1);
+                    .replace("nine", "n9e")
+            })
+            .map(|line| get_calibration_value(&line))
+            .sum();
+        solution
+    }
 }
+
+run!(DayOne);

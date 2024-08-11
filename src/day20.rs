@@ -7,7 +7,7 @@ type Name = String;
 type Modules = HashMap<Name, Module>;
 type Memory = HashMap<Name, PulseKind>;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum State {
     On,
     Off,
@@ -32,12 +32,12 @@ impl State {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum ModuleKind {
     FlipFlop(State),
     Conjuction(Memory),
-    Output,
     Broadcaster,
+    Untyped,
 }
 
 impl ModuleKind {
@@ -122,7 +122,8 @@ impl Module {
                 system.enqueue_pulses(self.generate_pulses(new_pulse));
             }
             Broadcaster => system.enqueue_pulses(self.generate_pulses(pulse.kind)),
-            _ => unreachable!(),
+            Untyped => (),
+            _ => unreachable!("Type: {:?}", self.kind),
         }
     }
 }
@@ -156,18 +157,11 @@ struct System {
 impl Parse for System {
     fn parse(input: Input) -> Self {
         let lines: Vec<String> = InputLines::from(input).into();
-        let mut modules: Modules = lines
+        let modules: Modules = lines
             .into_iter()
             .map(Module::parse)
             .map(|m| (m.name.clone(), m))
             .collect();
-        // Always add output module, since we do not parse these
-        let output = Module {
-            kind: ModuleKind::Output,
-            name: String::from("output"),
-            destinations: Vec::new(),
-        };
-        modules.insert(output.name.clone(), output);
         System {
             modules,
             pulses: Queue::new(),
@@ -215,7 +209,15 @@ impl System {
             let pulse = self.pulses.pop_front().unwrap();
             //dbg!(&pulse);
 
-            let mut destination = self.modules.get(&pulse.to).unwrap().clone();
+            let mut destination = self
+                .modules
+                .get(&pulse.to)
+                .unwrap_or(&Module {
+                    kind: ModuleKind::Untyped,
+                    name: pulse.to.clone(),
+                    destinations: Vec::new(),
+                })
+                .clone();
             destination.handle_pulse(pulse, self);
 
             // Overwrite the old destination module with the possibly changed one
@@ -229,24 +231,27 @@ struct DayTwenty {}
 impl Problem for DayTwenty {
     const YEAR: Year = 2023;
     const DAY: Day = 20;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 32000000;
+    const PART_ONE_EXAMPLE_EXPECTED: Answer = 11687500;
     const PART_ONE_EXPECTED: Answer = 0;
     const PART_TWO_EXAMPLE_EXPECTED: Answer = 0;
     const PART_TWO_EXPECTED: Answer = 0;
 
     fn example_input() -> ExampleInput {
+        //TODO: Split up examples, so I can have multiple
         "
-        broadcaster -> a, b, c
-        %a -> b
-        %b -> c
-        %c -> inv
-        &inv -> a
+        broadcaster -> a
+        %a -> inv, con
+        &inv -> b
+        %b -> con
+        &con -> output
         "
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+        dbg!(InputLines::from(input.clone()));
         let mut system = System::parse(input);
         system.press_button_repeatedly(1000);
+        dbg!((system.high_pulses, system.low_pulses));
         system.high_pulses * system.low_pulses
     }
 

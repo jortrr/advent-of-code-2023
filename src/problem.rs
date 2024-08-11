@@ -32,6 +32,12 @@ impl InputLines {
     }
 }
 
+impl Debug for InputLines {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self.0)
+    }
+}
+
 /// Make Input convertible to InputLines(Vec<String>) by lines()
 impl From<Input> for InputLines {
     fn from(input: Input) -> Self {

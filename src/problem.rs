@@ -24,7 +24,6 @@ pub type ExampleInput = &'static str;
 ///
 /// See: https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#using-the-newtype-pattern-to-implement-external-traits-on-external-types
 pub struct InputLines(Vec<String>);
-pub type Grid<T> = Vec<Vec<T>>;
 
 impl InputLines {
     pub fn filter_empty_lines(self) -> InputLines {

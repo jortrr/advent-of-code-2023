@@ -1,13 +1,15 @@
+use aoc::Grid;
 use aoc::Int;
 use std::fmt::Debug;
 use std::fmt::Display;
 
+/// Generic 2D grid with helper functions to move around
 #[derive(Debug)]
-pub struct Grid<T> {
-    grid: Vec<Vec<T>>,
+pub struct Map<T> {
+    grid: Grid<T>,
 }
 
-impl<T> Grid<T> {
+impl<T> Map<T> {
     pub fn get_rows(&self) -> usize {
         self.grid.len()
     }
@@ -70,7 +72,7 @@ impl<T> Grid<T> {
 }
 
 // Deref and DerefMut allow us to extend a Grid<T> in Grid2D<T>
-impl<T> Deref for Grid<T> {
+impl<T> Deref for Map<T> {
     type Target = Vec<Vec<T>>;
 
     fn deref(&self) -> &Self::Target {
@@ -78,17 +80,17 @@ impl<T> Deref for Grid<T> {
     }
 }
 
-impl<T> DerefMut for Grid<T> {
+impl<T> DerefMut for Map<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.grid
     }
 }
 
 // Implement FromIterator for Grid2D
-impl<T> FromIterator<Vec<T>> for Grid<T> {
+impl<T> FromIterator<Vec<T>> for Map<T> {
     fn from_iter<I: IntoIterator<Item = Vec<T>>>(iter: I) -> Self {
         let grid: Vec<Vec<T>> = iter.into_iter().collect();
-        Grid { grid }
+        Map { grid }
     }
 }
 

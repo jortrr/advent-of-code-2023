@@ -17,7 +17,6 @@ impl Parse for Game {
 impl Game {
     /// Use nom to parse a single Game
     fn parse_game(input: &str) -> IResult<&str, Game> {
-        let parse_num = |input| map_res(digit1, str::parse::<Int>)(input);
         let parse_rgb = tuple((
             parse_num,
             preceded(tag(" "), alt((tag("red"), tag("green"), tag("blue")))),

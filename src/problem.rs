@@ -159,3 +159,8 @@ macro_rules! run {
 pub trait Parse {
     fn parse(input: Input) -> Self;
 }
+
+/// Parse a single number
+pub fn parse_num(input: &str) -> IResult<&str, Int> {
+    map_res(digit1, str::parse::<Int>)(input)
+}

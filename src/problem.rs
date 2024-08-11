@@ -1,3 +1,4 @@
+#![allow(unused_imports, dead_code)]
 pub use aoc::*;
 
 pub use nom::branch::alt;
@@ -103,7 +104,7 @@ pub trait Problem {
     }
 
     fn part_one() -> Answer {
-        let input = aoc::get_string(Self::YEAR, Self::DAY);
+        let input = aoc::get(Self::YEAR, Self::DAY);
         let solution = Self::solve_part_one(input, false);
         test!(Self::PART_ONE_EXPECTED, solution, "part_one");
         solution
@@ -121,7 +122,7 @@ pub trait Problem {
     }
 
     fn part_two() -> Answer {
-        let input = aoc::get_string(Self::YEAR, Self::DAY);
+        let input = aoc::get(Self::YEAR, Self::DAY);
         let solution = Self::solve_part_two(input, false);
         test!(Self::PART_TWO_EXPECTED, solution, "part_two");
         solution

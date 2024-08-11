@@ -161,6 +161,7 @@ impl Step {
 
     fn from_string_slice_list(input: &str) -> InitializationSequence {
         input
+            .replace("\n", "")
             .split(",")
             .collect::<Vec<&str>>()
             .iter()

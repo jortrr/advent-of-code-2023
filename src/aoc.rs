@@ -7,9 +7,10 @@ mod macros;
 /// Default Integer type
 pub type Int = i64;
 
+/// Default Grid type
 pub type Grid<T> = Vec<Vec<T>>;
 
-pub fn get(year: i32, day: u32) -> Vec<String> {
+pub fn get(year: i32, day: u32) -> String {
     let aoc_json_cache_path = format!(".aocf/cache/aoc{}_{:02}.json", year, day);
     let aoc_json_cache = aocf::Aoc::load_json_from(&aoc_json_cache_path);
     if aoc_json_cache.is_ok() {
@@ -17,7 +18,7 @@ pub fn get(year: i32, day: u32) -> Vec<String> {
             serde_json::from_str(&read_to_string(&aoc_json_cache_path).unwrap()).unwrap();
 
         match &json_struct["input"] {
-            Value::String(s) => return s.lines().map(|s| s.to_string()).collect(),
+            Value::String(s) => return s.clone(),
             _ => {
                 debug!(
                     true,
@@ -39,15 +40,4 @@ pub fn get(year: i32, day: u32) -> Vec<String> {
         .unwrap()
         .get_input(true)
         .unwrap()
-        .split("\n")
-        .map(str::to_string)
-        .collect::<Vec<String>>()
-}
-
-pub fn get_string(year: i32, day: u32) -> String {
-    get(year, day).join("\n")
-}
-
-pub fn grid(year: i32, day: u32) -> Vec<Vec<char>> {
-    get(year, day).iter().map(|s| s.chars().collect()).collect()
 }

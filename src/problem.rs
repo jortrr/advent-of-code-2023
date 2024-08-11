@@ -24,6 +24,7 @@ pub type ExampleInput = &'static str;
 ///
 /// See: https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#using-the-newtype-pattern-to-implement-external-traits-on-external-types
 pub struct InputLines(Vec<String>);
+pub type Grid<T> = Vec<Vec<T>>;
 
 impl InputLines {
     pub fn filter_empty_lines(self) -> InputLines {
@@ -42,6 +43,13 @@ impl From<Input> for InputLines {
 impl Into<Vec<String>> for InputLines {
     fn into(self) -> Vec<String> {
         self.0
+    }
+}
+
+/// Make InputLines convertible to Grid<char>
+impl Into<Grid<char>> for InputLines {
+    fn into(self) -> Grid<char> {
+        self.0.into_iter().map(|s| s.chars().collect()).collect()
     }
 }
 
@@ -87,28 +95,36 @@ pub trait Problem {
     fn part_one_example() -> Answer {
         let input = Self::trimmed_example_input();
         let solution = Self::solve_part_one(input, true);
-        test!(Self::PART_ONE_EXAMPLE_EXPECTED, solution);
+        test!(
+            Self::PART_ONE_EXAMPLE_EXPECTED,
+            solution,
+            "part_one_example"
+        );
         solution
     }
 
     fn part_one() -> Answer {
         let input = aoc::get_string(Self::YEAR, Self::DAY);
         let solution = Self::solve_part_one(input, false);
-        test!(Self::PART_ONE_EXPECTED, solution);
+        test!(Self::PART_ONE_EXPECTED, solution, "part_one");
         solution
     }
 
     fn part_two_example() -> Answer {
         let input = Self::trimmed_example_input();
         let solution = Self::solve_part_two(input, true);
-        test!(Self::PART_TWO_EXAMPLE_EXPECTED, solution);
+        test!(
+            Self::PART_TWO_EXAMPLE_EXPECTED,
+            solution,
+            "part_two_example"
+        );
         solution
     }
 
     fn part_two() -> Answer {
         let input = aoc::get_string(Self::YEAR, Self::DAY);
         let solution = Self::solve_part_two(input, false);
-        test!(Self::PART_TWO_EXPECTED, solution);
+        test!(Self::PART_TWO_EXPECTED, solution, "part_two");
         solution
     }
 }

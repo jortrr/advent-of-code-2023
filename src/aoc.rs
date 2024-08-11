@@ -1,4 +1,4 @@
-use std::fs::read_to_string;
+use std::{collections::VecDeque, fs::read_to_string};
 
 use serde_json::Value;
 
@@ -9,6 +9,9 @@ pub type Int = i64;
 
 /// Default Grid type
 pub type Grid<T> = Vec<Vec<T>>;
+
+/// Default Queue type
+pub type Queue<T> = VecDeque<T>;
 
 pub fn get(year: i32, day: u32) -> String {
     let aoc_json_cache_path = format!(".aocf/cache/aoc{}_{:02}.json", year, day);

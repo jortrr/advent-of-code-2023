@@ -6,6 +6,7 @@ use problem::*;
 type Name = String;
 type Modules = HashMap<Name, Module>;
 type Memory = HashMap<Name, PulseKind>;
+static DEBUG: bool = false;
 
 #[derive(Copy, Clone, Debug)]
 enum State {
@@ -51,7 +52,7 @@ impl ModuleKind {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Module {
     kind: ModuleKind,
     name: Name,
@@ -123,7 +124,6 @@ impl Module {
             }
             Broadcaster => system.enqueue_pulses(self.generate_pulses(pulse.kind)),
             Untyped => (),
-            _ => unreachable!("Type: {:?}", self.kind),
         }
     }
 }
@@ -147,6 +147,7 @@ impl Debug for Pulse {
 }
 
 /// A System of wired up Modules that can send pulses to eachother
+#[derive(Debug)]
 struct System {
     modules: Modules,
     pulses: Queue<Pulse>,
@@ -199,15 +200,20 @@ impl System {
 
     /// Press the button and run the System, until all pulses have been handled, `times` times after each other
     fn press_button_repeatedly(&mut self, times: Int) {
-        for _ in 0..times {
+        for i in 0..times {
+            debug!(DEBUG, "Press button: {}", i);
             self.press_button();
+            debug!(
+                DEBUG,
+                "(high: {}, low: {})\n", self.high_pulses, self.low_pulses
+            );
         }
     }
 
     fn run_until_all_pulses_handled(&mut self) {
         while !self.pulses.is_empty() {
             let pulse = self.pulses.pop_front().unwrap();
-            //dbg!(&pulse);
+            debug!(DEBUG, &pulse);
 
             let mut destination = self
                 .modules
@@ -224,6 +230,21 @@ impl System {
             self.modules.insert(destination.name.clone(), destination);
         }
     }
+
+    /// Initialize all conjunctions by remembering a low pulse for each input
+    fn initialize_conjunctions(mut self) -> System {
+        let modules: Vec<Module> = self.modules.values().cloned().collect();
+        for module in modules {
+            for destination in &module.destinations {
+                if let Some(dest_module) = self.modules.get_mut(destination) {
+                    if let ModuleKind::Conjuction(memory) = &mut dest_module.kind {
+                        memory.insert(module.name.clone(), PulseKind::Low);
+                    }
+                }
+            }
+        }
+        self
+    }
 }
 
 struct DayTwenty {}
@@ -231,27 +252,36 @@ struct DayTwenty {}
 impl Problem for DayTwenty {
     const YEAR: Year = 2023;
     const DAY: Day = 20;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 11687500;
-    const PART_ONE_EXPECTED: Answer = 0;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 0;
+    const PART_ONE_EXPECTED: Answer = 886701120;
     const PART_TWO_EXPECTED: Answer = 0;
 
-    fn example_input() -> ExampleInput {
-        //TODO: Split up examples, so I can have multiple
-        "
-        broadcaster -> a
-        %a -> inv, con
-        &inv -> b
-        %b -> con
-        &con -> output
-        "
+    define_examples! {
+        (
+            "
+                broadcaster -> a, b, c
+                %a -> b
+                %b -> c
+                %c -> inv
+                &inv -> a
+            ",
+            Expect::PartOne(32000000),
+        ),
+        (
+            "
+                broadcaster -> a
+                %a -> inv, con
+                &inv -> b
+                %b -> con
+                &con -> output
+            ",
+            Expect::PartOne(11687500),
+        )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
-        dbg!(InputLines::from(input.clone()));
-        let mut system = System::parse(input);
+    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+        debug!(is_example, InputLines::from(input.clone()));
+        let mut system = System::parse(input).initialize_conjunctions();
         system.press_button_repeatedly(1000);
-        dbg!((system.high_pulses, system.low_pulses));
         system.high_pulses * system.low_pulses
     }
 
@@ -261,19 +291,3 @@ impl Problem for DayTwenty {
 }
 
 run!(DayTwenty);
-
-/*
-Expected:
-button -low-> broadcaster
-broadcaster -low-> a
-broadcaster -low-> b
-broadcaster -low-> c
-a -high-> b
-b -high-> c
-c -high-> inv
-inv -low-> a
-a -low-> b
-b -low-> c
-c -low-> inv
-inv -high-> a
-*/

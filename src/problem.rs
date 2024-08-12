@@ -11,6 +11,7 @@ pub use nom::IResult;
 
 pub use std::collections::HashMap;
 pub use std::fmt::Debug;
+use std::iter;
 pub use std::iter::once;
 pub use std::time::Instant;
 
@@ -66,11 +67,8 @@ pub trait Problem {
     const DAY: Day;
 
     // Expected values for the inputs, will be tested
-    const PART_ONE_EXAMPLE_EXPECTED: Answer;
     const PART_ONE_EXPECTED: Answer;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer;
     const PART_TWO_EXPECTED: Answer;
-    const RUN_EXAMPLE: bool = true;
 
     /// Solve AoC(`YEAR`, `DAY`) part one
     fn solve_part_one(input: Input, is_example: bool) -> Answer;
@@ -78,12 +76,12 @@ pub trait Problem {
     /// Solve AoC(`YEAR`, `DAY`) part two
     fn solve_part_two(input: Input, is_example: bool) -> Answer;
 
-    /// The Advent of Code example input
-    fn example_input() -> ExampleInput;
+    /// Define Advent of Code examples
+    fn define_examples() -> Vec<Example>;
 
     /// Trim example_input, remove preceding spaces from all lines, remove first \n, keep empty lines intact
-    fn trimmed_example_input() -> Input {
-        Self::example_input()
+    fn trim_example_input(input: ExampleInput) -> Input {
+        input
             .lines()
             .map(|line| {
                 if line.trim().is_empty() {
@@ -93,20 +91,9 @@ pub trait Problem {
                 }
             })
             .skip(1) // Skip first
-            .take(Self::example_input().lines().count().saturating_sub(2)) // Skip last
+            .take(input.lines().count().saturating_sub(2)) // Skip last
             .collect::<Vec<_>>()
             .join("\n")
-    }
-
-    fn part_one_example() -> Answer {
-        let input = Self::trimmed_example_input();
-        let solution = Self::solve_part_one(input, true);
-        test!(
-            Self::PART_ONE_EXAMPLE_EXPECTED,
-            solution,
-            "part_one_example"
-        );
-        solution
     }
 
     fn part_one() -> Answer {
@@ -116,26 +103,47 @@ pub trait Problem {
         solution
     }
 
-    fn part_two_example() -> Answer {
-        let input = Self::trimmed_example_input();
-        let solution = Self::solve_part_two(input, true);
-        test!(
-            Self::PART_TWO_EXAMPLE_EXPECTED,
-            solution,
-            "part_two_example"
-        );
-        solution
-    }
-
     fn part_two() -> Answer {
         let input = aoc::get(Self::YEAR, Self::DAY);
         let solution = Self::solve_part_two(input, false);
         test!(Self::PART_TWO_EXPECTED, solution, "part_two");
         solution
     }
+
+    /// Run all given examples
+    fn run_examples() -> bool {
+        static NAME_ONE: &str = "example_part_one()";
+        static NAME_TWO: &str = "example_part_two()";
+        let format = |part: &str, i: usize| {
+            format!("{} [{}/{}]", part, i + 1, Self::define_examples().len(),)
+        };
+
+        for (i, example) in Self::define_examples().iter().enumerate() {
+            let input = Self::trim_example_input(example.input);
+            match example.expect {
+                Expect::One(one) => {
+                    test!(one, Self::solve_part_one(input, true), format(NAME_ONE, i));
+                }
+                Expect::Two(two) => {
+                    test!(two, Self::solve_part_two(input, true), format(NAME_TWO, i));
+                }
+                Expect::Both(one, two) => {
+                    test!(
+                        one,
+                        Self::solve_part_one(input.clone(), true),
+                        format(NAME_ONE, i)
+                    );
+                    test!(two, Self::solve_part_two(input, true), format(NAME_TWO, i));
+                }
+                Expect::Any => (),
+            }
+        }
+        true
+    }
 }
 
 /// Benchmark and run all parts of an Advent of Code problem
+/// Also runs all examples specified inside the run_examples function or define_examples() macro
 #[macro_export]
 macro_rules! run {
     ($problem:ty) => {
@@ -147,16 +155,11 @@ macro_rules! run {
             assert_impl_problem::<$problem>();
 
             // Use the benchmark_functions macro to benchmark all parts
-            if <$problem>::RUN_EXAMPLE {
-                benchmark_functions!(
-                    <$problem>::part_one_example,
-                    <$problem>::part_one,
-                    <$problem>::part_two_example,
-                    <$problem>::part_two
-                );
-            } else {
-                benchmark_functions!(<$problem>::part_one, <$problem>::part_two);
-            }
+            benchmark_functions!(
+                <$problem>::run_examples,
+                <$problem>::part_one,
+                <$problem>::part_two
+            );
         }
     };
 }
@@ -169,4 +172,42 @@ pub trait Parse {
 /// Parse a single number
 pub fn parse_num(input: &str) -> IResult<&str, Int> {
     map_res(digit1, str::parse::<Int>)(input)
+}
+
+/// Advent of Code ExampleInput expectation for Problem part one, part two, or both
+pub enum Expect {
+    PartOne(Answer),
+    PartTwo(Answer),
+    PartsOneAndTwo(Answer, Answer),
+    Any,
+}
+
+/// Advent of Code ExampleInput and expectation
+pub struct Example {
+    pub input: ExampleInput,
+    pub expect: Expect,
+}
+
+/// Define Advent of Code Examples
+#[macro_export]
+macro_rules! define_examples {
+    (
+        $(
+            (
+                $input:expr,
+                $expect:expr,
+            )
+        ),* $(,)?
+    ) => {
+        fn define_examples() -> Vec<Example> {
+            vec![
+                $(
+                    Example {
+                        input: $input,
+                        expect: $expect,
+                    },
+                )*
+            ]
+        }
+    };
 }

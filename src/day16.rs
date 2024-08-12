@@ -191,24 +191,25 @@ struct DaySixteen {}
 impl Problem for DaySixteen {
     const YEAR: Year = 2023;
     const DAY: Day = 16;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 46;
     const PART_ONE_EXPECTED: Answer = 6906;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 51;
     const PART_TWO_EXPECTED: Answer = 7330;
 
-    fn example_input() -> ExampleInput {
-        r"
-        .|...\....
-        |.-.\.....
-        .....|-...
-        ........|.
-        ..........
-        .........\
-        ..../.\\..
-        .-.-/..|..
-        .|....-|.\
-        ..//.|....
-        "
+    define_examples! {
+        (
+            r"
+            .|...\....
+            |.-.\.....
+            .....|-...
+            ........|.
+            ..........
+            .........\
+            ..../.\\..
+            .-.-/..|..
+            .|....-|.\
+            ..//.|....
+            ",
+            Expect::PartsOneAndTwo(46, 51),
+        )
     }
 
     fn solve_part_one(input: Input, is_example: bool) -> Answer {

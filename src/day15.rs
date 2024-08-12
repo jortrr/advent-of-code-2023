@@ -234,15 +234,16 @@ struct DayFifteen {}
 impl Problem for DayFifteen {
     const YEAR: Year = 2023;
     const DAY: Day = 15;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 1320;
     const PART_ONE_EXPECTED: Answer = 507769;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 145;
     const PART_TWO_EXPECTED: Answer = 269747;
 
-    fn example_input() -> ExampleInput {
-        "
-        rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
-        "
+    define_examples! {
+        (
+            "
+            rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
+            ",
+            Expect::PartsOneAndTwo(1320, 145),
+        )
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {

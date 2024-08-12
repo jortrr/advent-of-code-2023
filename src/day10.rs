@@ -448,16 +448,8 @@ struct DayTen {}
 impl Problem for DayTen {
     const YEAR: Year = 2023;
     const DAY: Day = 10;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = -1;
     const PART_ONE_EXPECTED: Answer = 6951;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = -1;
     const PART_TWO_EXPECTED: Answer = 563;
-    const RUN_EXAMPLE: bool = false;
-
-    fn example_input() -> ExampleInput {
-        //TODO: Use procedural macro's to have all test cases as a function of Problem, with expected values for part_one or part_two as attribute
-        ""
-    }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {
         let mut maze = Maze::parse(input);

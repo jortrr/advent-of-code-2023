@@ -60,6 +60,23 @@ impl Into<Grid<char>> for InputLines {
     }
 }
 
+/// Trim example_input, remove preceding spaces from all lines, remove first \n, keep empty lines intact
+fn trim_example_input(input: ExampleInput) -> Input {
+    input
+        .lines()
+        .map(|line| {
+            if line.trim().is_empty() {
+                line // Keep empty lines intact
+            } else {
+                line.trim_start() // Trim leading spaces from non-empty lines
+            }
+        })
+        .skip(1) // Skip first
+        .take(input.lines().count().saturating_sub(2)) // Skip last
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 /// Trait for implementing an Advent of Code problem
 pub trait Problem {
     // Advent of Code year and day, used to fetch AoC input
@@ -77,23 +94,8 @@ pub trait Problem {
     fn solve_part_two(input: Input, is_example: bool) -> Answer;
 
     /// Define Advent of Code examples
-    fn define_examples() -> Vec<Example>;
-
-    /// Trim example_input, remove preceding spaces from all lines, remove first \n, keep empty lines intact
-    fn trim_example_input(input: ExampleInput) -> Input {
-        input
-            .lines()
-            .map(|line| {
-                if line.trim().is_empty() {
-                    line // Keep empty lines intact
-                } else {
-                    line.trim_start() // Trim leading spaces from non-empty lines
-                }
-            })
-            .skip(1) // Skip first
-            .take(input.lines().count().saturating_sub(2)) // Skip last
-            .collect::<Vec<_>>()
-            .join("\n")
+    fn define_examples() -> Vec<Example> {
+        Vec::new()
     }
 
     fn part_one() -> Answer {
@@ -119,15 +121,15 @@ pub trait Problem {
         };
 
         for (i, example) in Self::define_examples().iter().enumerate() {
-            let input = Self::trim_example_input(example.input);
+            let input = trim_example_input(example.input);
             match example.expect {
-                Expect::One(one) => {
+                Expect::PartOne(one) => {
                     test!(one, Self::solve_part_one(input, true), format(NAME_ONE, i));
                 }
-                Expect::Two(two) => {
+                Expect::PartTwo(two) => {
                     test!(two, Self::solve_part_two(input, true), format(NAME_TWO, i));
                 }
-                Expect::Both(one, two) => {
+                Expect::PartsOneAndTwo(one, two) => {
                     test!(
                         one,
                         Self::solve_part_one(input.clone(), true),
@@ -186,6 +188,12 @@ pub enum Expect {
 pub struct Example {
     pub input: ExampleInput,
     pub expect: Expect,
+}
+
+impl Example {
+    pub fn get_input(&self) -> Input {
+        trim_example_input(self.input)
+    }
 }
 
 /// Define Advent of Code Examples

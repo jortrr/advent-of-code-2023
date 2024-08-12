@@ -129,17 +129,18 @@ struct DayNine {}
 impl Problem for DayNine {
     const YEAR: Year = 2023;
     const DAY: Day = 9;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 114;
     const PART_ONE_EXPECTED: Answer = 2005352194;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 2;
     const PART_TWO_EXPECTED: Answer = 1077;
 
-    fn example_input() -> ExampleInput {
-        "
-        0 3 6 9 12 15
-        1 3 6 10 15 21
-        10 13 16 21 30 45
-        "
+    define_examples! {
+        (
+            "
+            0 3 6 9 12 15
+            1 3 6 10 15 21
+            10 13 16 21 30 45
+            ",
+            Expect::PartOne(114),
+        )
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {

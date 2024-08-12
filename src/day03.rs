@@ -66,24 +66,25 @@ struct DayThree {}
 impl Problem for DayThree {
     const YEAR: Year = 2023;
     const DAY: Day = 3;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 4361;
     const PART_ONE_EXPECTED: Answer = 540131;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 467835;
     const PART_TWO_EXPECTED: Answer = 86879020;
 
-    fn example_input() -> ExampleInput {
-        "
-        467..114..
-        ...*......
-        ..35..633.
-        ......#...
-        617*......
-        .....+.58.
-        ..592.....
-        ......755.
-        ...$.*....
-        .664.598..
-        "
+    define_examples! {
+        (
+            "
+            467..114..
+            ...*......
+            ..35..633.
+            ......#...
+            617*......
+            .....+.58.
+            ..592.....
+            ......755.
+            ...$.*....
+            .664.598..
+            ",
+            Expect::PartsOneAndTwo(4361, 467835),
+        )
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {

@@ -269,19 +269,20 @@ struct DaySeven {}
 impl Problem for DaySeven {
     const YEAR: Year = 2023;
     const DAY: Day = 7;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 6440;
     const PART_ONE_EXPECTED: Answer = 251806792;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 5905;
     const PART_TWO_EXPECTED: Answer = 252113488;
 
-    fn example_input() -> ExampleInput {
-        "
-        32T3K 765
-        T55J5 684
-        KK677 28
-        KTJJT 220
-        QQQJA 483
-        "
+    define_examples! {
+        (
+            "
+            32T3K 765
+            T55J5 684
+            KK677 28
+            KTJJT 220
+            QQQJA 483
+            ",
+            Expect::PartsOneAndTwo(6440, 5905),
+        )
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {

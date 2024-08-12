@@ -185,12 +185,11 @@ struct DayEighteen {}
 impl Problem for DayEighteen {
     const YEAR: Year = 2023;
     const DAY: Day = 18;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 62;
     const PART_ONE_EXPECTED: Answer = 48652;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 952408144115;
     const PART_TWO_EXPECTED: Answer = 45757884535661;
 
-    fn example_input() -> ExampleInput {
+    define_examples! {
+    (
         "
         R 6 (#70c710)
         D 5 (#0dc571)
@@ -206,7 +205,9 @@ impl Problem for DayEighteen {
         U 3 (#a77fa3)
         L 2 (#015232)
         U 2 (#7a21e3)
-        "
+        ",
+        Expect::PartsOneAndTwo(62,952408144115),
+    )
     }
 
     fn solve_part_one(input: Input, is_example: bool) -> Answer {

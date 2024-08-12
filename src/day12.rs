@@ -156,20 +156,21 @@ struct DayTwelve {}
 impl Problem for DayTwelve {
     const YEAR: Year = 2023;
     const DAY: Day = 12;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 21;
     const PART_ONE_EXPECTED: Answer = 6935;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 525152;
     const PART_TWO_EXPECTED: Answer = 3920437278260;
 
-    fn example_input() -> ExampleInput {
-        "
-        ???.### 1,1,3
-        .??..??...?##. 1,1,3
-        ?#?#?#?#?#?#?#? 1,3,1,6
-        ????.#...#... 4,1,1
-        ????.######..#####. 1,6,5
-        ?###???????? 3,2,1
-        "
+    define_examples! {
+        (
+            "
+            ???.### 1,1,3
+            .??..??...?##. 1,1,3
+            ?#?#?#?#?#?#?#? 1,3,1,6
+            ????.#...#... 4,1,1
+            ????.######..#####. 1,6,5
+            ?###???????? 3,2,1
+            ",
+            Expect::PartsOneAndTwo(21, 525152),
+        )
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {

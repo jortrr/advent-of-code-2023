@@ -164,20 +164,20 @@ struct DayEight {}
 impl Problem for DayEight {
     const YEAR: Year = 2023;
     const DAY: Day = 8;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 6;
     const PART_ONE_EXPECTED: Answer = 14257;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 6;
     const PART_TWO_EXPECTED: Answer = 16187743689077;
 
-    //TODO: Use procedural macro's to have all test cases as a function of Problem, with expected values for part_one or part_two as attribute
-    fn example_input() -> ExampleInput {
-        "
-        LLR
+    define_examples! {
+        (
+            "
+            LLR
 
-        AAA = (BBB, BBB)
-        BBB = (AAA, ZZZ)
-        ZZZ = (ZZZ, ZZZ)
-        "
+            AAA = (BBB, BBB)
+            BBB = (AAA, ZZZ)
+            ZZZ = (ZZZ, ZZZ)
+            ",
+            Expect::PartsOneAndTwo(6, 6),
+        )
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {

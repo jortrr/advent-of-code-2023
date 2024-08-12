@@ -267,31 +267,32 @@ struct DayNineteen {}
 impl Problem for DayNineteen {
     const YEAR: Year = 2023;
     const DAY: Day = 19;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 19114;
     const PART_ONE_EXPECTED: Answer = 348378;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 167409079868000;
     const PART_TWO_EXPECTED: Answer = 121158073425385;
 
-    fn example_input() -> ExampleInput {
-        "
-        px{a<2006:qkq,m>2090:A,rfg}
-        pv{a>1716:R,A}
-        lnx{m>1548:A,A}
-        rfg{s<537:gd,x>2440:R,A}
-        qs{s>3448:A,lnx}
-        qkq{x<1416:A,crn}
-        crn{x>2662:A,R}
-        in{s<1351:px,qqz}
-        qqz{s>2770:qs,m<1801:hdj,R}
-        gd{a>3333:R,R}
-        hdj{m>838:A,pv}
+    define_examples! {
+        (
+            "
+            px{a<2006:qkq,m>2090:A,rfg}
+            pv{a>1716:R,A}
+            lnx{m>1548:A,A}
+            rfg{s<537:gd,x>2440:R,A}
+            qs{s>3448:A,lnx}
+            qkq{x<1416:A,crn}
+            crn{x>2662:A,R}
+            in{s<1351:px,qqz}
+            qqz{s>2770:qs,m<1801:hdj,R}
+            gd{a>3333:R,R}
+            hdj{m>838:A,pv}
 
-        {x=787,m=2655,a=1222,s=2876}
-        {x=1679,m=44,a=2067,s=496}
-        {x=2036,m=264,a=79,s=2244}
-        {x=2461,m=1339,a=466,s=291}
-        {x=2127,m=1623,a=2188,s=1013}
-        "
+            {x=787,m=2655,a=1222,s=2876}
+            {x=1679,m=44,a=2067,s=496}
+            {x=2036,m=264,a=79,s=2244}
+            {x=2461,m=1339,a=466,s=291}
+            {x=2127,m=1623,a=2188,s=1013}
+            ",
+            Expect::PartsOneAndTwo(19114, 167409079868000),
+        )
     }
 
     fn solve_part_one(input: Input, example: bool) -> Answer {

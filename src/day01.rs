@@ -13,16 +13,8 @@ struct DayOne {}
 impl Problem for DayOne {
     const YEAR: Year = 2023;
     const DAY: Day = 1;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = -1;
     const PART_ONE_EXPECTED: Answer = 55386;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = -1;
     const PART_TWO_EXPECTED: Answer = 54824;
-    const RUN_EXAMPLE: bool = false;
-
-    fn example_input() -> ExampleInput {
-        "
-        "
-    }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {
         let input: Vec<String> = InputLines::from(input).filter_empty_lines().into();

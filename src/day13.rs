@@ -192,30 +192,31 @@ struct DayThirteen {}
 impl Problem for DayThirteen {
     const YEAR: Year = 2023;
     const DAY: Day = 13;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 405;
     const PART_ONE_EXPECTED: Answer = 30535;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 400;
     const PART_TWO_EXPECTED: Answer = 30844;
 
-    fn example_input() -> ExampleInput {
-        "
-        #.##..##.
-        ..#.##.#.
-        ##......#
-        ##......#
-        ..#.##.#.
-        ..##..##.
-        #.#.##.#.
+    define_examples! {
+        (
+            "
+            #.##..##.
+            ..#.##.#.
+            ##......#
+            ##......#
+            ..#.##.#.
+            ..##..##.
+            #.#.##.#.
 
-        #...##..#
-        #....#..#
-        ..##..###
-        #####.##.
-        #####.##.
-        ..##..###
-        #....#..#
+            #...##..#
+            #....#..#
+            ..##..###
+            #####.##.
+            #####.##.
+            ..##..###
+            #....#..#
 
-        "
+            ",
+            Expect::PartsOneAndTwo(405, 400),
+        )
     }
 
     fn solve_part_one(input: Input, is_example: bool) -> Answer {

@@ -32,16 +32,17 @@ struct DaySix {}
 impl Problem for DaySix {
     const YEAR: Year = 2023;
     const DAY: Day = 6;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 288;
     const PART_ONE_EXPECTED: Answer = 160816;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 71503;
     const PART_TWO_EXPECTED: Answer = 46561107;
 
-    fn example_input() -> ExampleInput {
-        "
-        Time:      7  15   30
-        Distance:  9  40  200
-        "
+    define_examples! {
+        (
+            "
+            Time:      7  15   30
+            Distance:  9  40  200
+            ",
+            Expect::PartsOneAndTwo(288, 71503),
+        )
     }
 
     fn solve_part_one(input: Input, is_example: bool) -> Answer {

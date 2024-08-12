@@ -26,7 +26,6 @@ dependencies = [
  "hex_color",
  "mut-binary-heap",
  "nom",
- "regex",
  "serde_json",
 ]
 

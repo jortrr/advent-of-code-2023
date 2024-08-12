@@ -293,7 +293,8 @@ mod tests {
 
     #[test]
     fn test_tilt_part_one() {
-        let mut example_platform = Platform::parse(DayFourteen::trimmed_example_input());
+        let mut example_platform =
+            Platform::parse(DayFourteen::define_examples().first().unwrap().get_input());
         dbg!(&example_platform);
         example_platform.tilt(North);
         dbg!(&example_platform);
@@ -329,7 +330,8 @@ mod tests {
 
     #[test]
     fn test_tilt_part_two() {
-        let mut example_platform = Platform::parse(DayFourteen::trimmed_example_input());
+        let mut example_platform =
+            Platform::parse(DayFourteen::define_examples().first().unwrap().get_input());
         let example_platform_1_cycle = Platform::from_strings(vec_of_strings![
             ".....#....",
             "....#...O#",
@@ -380,24 +382,25 @@ struct DayFourteen {}
 impl Problem for DayFourteen {
     const YEAR: Year = 2023;
     const DAY: Day = 14;
-    const PART_ONE_EXAMPLE_EXPECTED: Answer = 136;
     const PART_ONE_EXPECTED: Answer = 109098;
-    const PART_TWO_EXAMPLE_EXPECTED: Answer = 64;
     const PART_TWO_EXPECTED: Answer = 100064;
 
-    fn example_input() -> ExampleInput {
-        "
-        O....#....
-        O.OO#....#
-        .....##...
-        OO.#O....O
-        .O.....O#.
-        O.#..O.#.#
-        ..O..#O..O
-        .......O..
-        #....###..
-        #OO..#....
-        "
+    define_examples! {
+        (
+            "
+            O....#....
+            O.OO#....#
+            .....##...
+            OO.#O....O
+            .O.....O#.
+            O.#..O.#.#
+            ..O..#O..O
+            .......O..
+            #....###..
+            #OO..#....
+            ",
+            Expect::PartsOneAndTwo(136, 64),
+        )
     }
 
     fn solve_part_one(input: Input, _is_example: bool) -> Answer {

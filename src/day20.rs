@@ -1,11 +1,15 @@
 mod problem;
 
+use std::{fmt::LowerExp, num, ptr::slice_from_raw_parts};
+
+use mut_binary_heap::RefMut;
 use nom::character::complete::space1;
 use problem::*;
 
 type Name = String;
 type Modules = HashMap<Name, Module>;
 type Memory = HashMap<Name, PulseKind>;
+type RxSenders = Vec<Name>;
 static DEBUG: bool = false;
 
 #[derive(Copy, Clone, Debug)]
@@ -134,6 +138,7 @@ enum PulseKind {
     Low,
 }
 
+#[derive(Clone)]
 struct Pulse {
     from: Name,
     to: Name,
@@ -146,13 +151,22 @@ impl Debug for Pulse {
     }
 }
 
+#[derive(Debug, Clone)]
+struct PulseRecord {
+    pulse: Pulse,
+    at_button_press: Int,
+}
+
 /// A System of wired up Modules that can send pulses to eachother
 #[derive(Debug)]
 struct System {
     modules: Modules,
     pulses: Queue<Pulse>,
+    pulse_history: Vec<PulseRecord>,
     low_pulses: Int,
     high_pulses: Int,
+    rx_senders: Vec<Name>,
+    times_pressed: Int,
 }
 
 impl Parse for System {
@@ -166,8 +180,11 @@ impl Parse for System {
         System {
             modules,
             pulses: Queue::new(),
+            pulse_history: Vec::new(),
             low_pulses: 0,
             high_pulses: 0,
+            rx_senders: RxSenders::new(),
+            times_pressed: 0,
         }
     }
 }
@@ -179,6 +196,9 @@ impl System {
             to: to.to_string(),
             kind,
         });
+        if to == "rx" && !self.rx_senders.contains(&from.to_string()) {
+            self.rx_senders.push(from.to_string());
+        }
         // Increment the correct pulse kind
         match kind {
             PulseKind::High => self.high_pulses += 1,
@@ -202,6 +222,8 @@ impl System {
     fn press_button_repeatedly(&mut self, times: Int) {
         for i in 0..times {
             debug!(DEBUG, "Press button: {}", i);
+
+            self.times_pressed += 1;
             self.press_button();
             debug!(
                 DEBUG,
@@ -224,7 +246,11 @@ impl System {
                     destinations: Vec::new(),
                 })
                 .clone();
-            destination.handle_pulse(pulse, self);
+            destination.handle_pulse(pulse.clone(), self);
+            self.pulse_history.push(PulseRecord {
+                pulse,
+                at_button_press: self.times_pressed,
+            });
 
             // Overwrite the old destination module with the possibly changed one
             self.modules.insert(destination.name.clone(), destination);
@@ -253,7 +279,7 @@ impl Problem for DayTwenty {
     const YEAR: Year = 2023;
     const DAY: Day = 20;
     const PART_ONE_EXPECTED: Answer = 886701120;
-    const PART_TWO_EXPECTED: Answer = 0;
+    const PART_TWO_EXPECTED: Answer = 228134431501037;
 
     define_examples! {
         (
@@ -286,7 +312,53 @@ impl Problem for DayTwenty {
     }
 
     fn solve_part_two(input: Input, _is_example: bool) -> Answer {
-        0
+        let mut system = System::parse(input).initialize_conjunctions();
+        system.press_button_repeatedly(1000);
+        assert!(system.rx_senders.len() == 1);
+        let rx_sender = system.rx_senders.first().unwrap().clone();
+        let rx_sender_senders: Vec<_> = system
+            .modules
+            .clone()
+            .into_values()
+            .filter(|m| m.destinations.contains(&rx_sender))
+            .collect();
+        dbg!(&rx_sender_senders);
+        let mut high_pulses_to_rx_sender: Vec<PulseRecord> = Vec::new();
+        while !rx_sender_senders.iter().all(|m| {
+            high_pulses_to_rx_sender
+                .iter()
+                .any(|p| p.pulse.from == m.name)
+        }) {
+            system.times_pressed += 1;
+            system.press_button();
+            high_pulses_to_rx_sender.extend(
+                system
+                    .pulse_history
+                    .iter()
+                    .cloned()
+                    .filter(|p| p.pulse.to == *rx_sender && p.pulse.kind == PulseKind::High),
+            );
+            system.pulse_history.clear();
+        }
+
+        let mut lowest_high_pulses_to_rx_sender: Vec<PulseRecord> = Vec::new();
+        for record in high_pulses_to_rx_sender {
+            if !lowest_high_pulses_to_rx_sender
+                .iter()
+                .any(|p| p.pulse.from == record.pulse.from)
+            {
+                lowest_high_pulses_to_rx_sender.push(record);
+            }
+        }
+
+        let mut solution = 1;
+        for record in &lowest_high_pulses_to_rx_sender {
+            solution = lcm(solution, record.at_button_press as u64);
+        }
+
+        dbg!(lowest_high_pulses_to_rx_sender);
+
+        solution as Answer
     }
 }
 

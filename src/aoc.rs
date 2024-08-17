@@ -44,3 +44,17 @@ pub fn get(year: i32, day: u32) -> String {
         .get_input(true)
         .unwrap()
 }
+
+// Return the greatest common multiple of a and b
+pub fn gcd(a: u64, b: u64) -> u64 {
+    if b == 0 {
+        a
+    } else {
+        gcd(b, a % b)
+    }
+}
+
+/// Return the least common multiple of a and b
+pub fn lcm(a: u64, b: u64) -> u64 {
+    a * b / gcd(a, b)
+}

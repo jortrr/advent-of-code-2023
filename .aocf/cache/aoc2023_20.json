@@ -5,8 +5,8 @@
   "title": "Pulse Propagation",
   "stars": 2,
   "solution": {
-    "first": "886701120",
-    "second": "228134431501037"
+    "second": "228134431501037",
+    "first": "886701120"
   },
   "input": "%jb -> ps\n%cm -> ps, tm\n%sl -> ml, cp\n%qr -> ml\n%hf -> kh, jg\n%jg -> kk\n%jt -> pq\n%qv -> kv\n%rj -> mm, kh\n%kf -> xt\n%kx -> vk, mk\n%dq -> qn\n&ps -> xc, mq, jt, zs, sr, nt, pq\n%jk -> hh, ps\n%rr -> mk, nh\n%hs -> kh, mb\n%mg -> mk, kf\n%xt -> dq, mk\n&xc -> zh\n%mq -> nt\n%nh -> bm\n&ml -> bp, gd, qv, kq\n%md -> hs\n%vk -> mk, vl\n%mm -> kh\n&th -> zh\n&zh -> rx\n%kc -> ps, jk\n%kk -> dm\n%jn -> ll, ml\n&pd -> zh\n&kh -> jg, qx, md, th, hf, dm, kk\n%pp -> kh, md\n%zf -> ml, bd\n%qx -> pp\n&mk -> kf, qn, nh, pd, dq, mg, bm\n%qn -> rr\n%mb -> qb, kh\n%nt -> jt\n%vl -> zk, mk\n%gd -> ml, rm\n%hh -> ps, jb\n%tm -> ps, mq\n%kv -> jn, ml\n%zs -> kc\n%ll -> ml, kq\n%cp -> qv, ml\n%rm -> sl, ml\n%bd -> qr, ml\n%dm -> qx\n%qb -> rj, kh\n%pq -> zs\n%bm -> kx\n%sr -> cm, ps\n%zk -> mk\nbroadcaster -> sr, gd, mg, hf\n%kq -> zf\n&bp -> zh\n",
   "brief": {

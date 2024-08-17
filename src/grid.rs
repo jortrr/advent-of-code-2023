@@ -6,7 +6,7 @@ use std::fmt::Display;
 /// Generic 2D grid with helper functions to move around
 #[derive(Debug)]
 pub struct Map<T> {
-    grid: Grid<T>,
+    pub grid: Grid<T>,
 }
 
 impl<T> Map<T> {

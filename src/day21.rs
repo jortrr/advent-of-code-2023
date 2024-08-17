@@ -1,8 +1,7 @@
 mod grid;
-use std::{alloc::GlobalAlloc, any::Any};
+mod problem;
 
 use grid::*;
-mod problem;
 use problem::*;
 
 type GardenMap = grid::Map<Terrain>;

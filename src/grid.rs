@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 
 /// Generic 2D grid with helper functions to move around
-#[derive(Debug)]
+#[derive(Clone)]
 pub struct Map<T> {
     pub grid: Grid<T>,
 }

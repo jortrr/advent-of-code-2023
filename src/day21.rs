@@ -12,7 +12,6 @@ define_convertable_enum! {
         Start => 'S',
         GardenPlot => '.',
         Rock => '#',
-        PossibleLocation => 'O',
     }
 }
 
@@ -90,7 +89,7 @@ impl Problem for DayTwentyOne {
     const YEAR: Year = 2023;
     const DAY: Day = 21;
     const PART_ONE_EXPECTED: Answer = 3853;
-    const PART_TWO_EXPECTED: Answer = 0;
+    const PART_TWO_EXPECTED: Answer = 639051580070841;
 
     define_examples! {
         (
@@ -118,10 +117,29 @@ impl Problem for DayTwentyOne {
         garden.count_possible_locations(steps)
     }
 
-    fn solve_part_two(input: Input, is_example: bool) -> Answer {
-        let garden = Garden::parse(input);
+    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+        let garden = Garden::parse(input).run_breadth_first_search();
         // First, using breadth-first search on the Garden we found all distances
-        0
+        // Then, we use the explanation given at https://github.com/villuna/aoc23/wiki/A-Geometric-solution-to-advent-of-code-2023,-day-21 to solve (not mine)
+        let visited = garden.visited;
+        let even_corners = visited
+            .values()
+            .filter(|v| **v % 2 == 0 && **v > 65)
+            .count();
+        let odd_corners = visited
+            .values()
+            .filter(|v| **v % 2 == 1 && **v > 65)
+            .count();
+
+        let even_full = visited.values().filter(|v| **v % 2 == 0).count();
+        let odd_full = visited.values().filter(|v| **v % 2 == 1).count();
+
+        let n = ((26501365 - (garden.map.get_rows() / 2)) / garden.map.get_rows()) as usize;
+        assert_eq!(n, 202300);
+
+        let solution = (n + 1).pow(2) * odd_full + n.pow(2) * even_full - (n + 1) * odd_corners
+            + n * even_corners;
+        solution as Answer
     }
 }
 

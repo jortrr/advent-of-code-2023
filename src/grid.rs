@@ -69,6 +69,34 @@ impl<T> Map<T> {
             None
         };
     }
+
+    /// Return a list of Points for which the Predicate on T hold
+    pub fn find(&self, predicate: impl Fn(&T) -> bool) -> Vec<Point> {
+        let mut result = Vec::new();
+        for y in 0..self.get_rows() {
+            for x in 0..self.get_columns() {
+                let point = Point::new(x as Int, y as Int);
+                let value = self.point_get(&point).unwrap();
+                if predicate(value) {
+                    result.push(point);
+                }
+            }
+        }
+        result
+    }
+
+    /// Returns a list of Points within the Map that are adjacent to point
+    pub fn get_adjacent(&self, point: &Point) -> Vec<Point> {
+        if !self.point_within_grid(point) {
+            Vec::new()
+        } else {
+            vec![North, East, South, West]
+                .iter()
+                .map(|d| point.move_to(d))
+                .filter(|p| self.point_within_grid(p))
+                .collect()
+        }
+    }
 }
 
 // Deref and DerefMut allow us to extend a Grid<T> in Grid2D<T>

@@ -2,7 +2,7 @@ mod line_segment;
 mod problem;
 use std::cmp::{max, min};
 
-use line_segment::{intersects, LineSegment};
+use line_segment::LineSegment;
 use problem::*;
 
 type BrickID = Int;
@@ -90,6 +90,13 @@ impl Brick {
         ))
     }
 
+    fn intersects_in_xy_plane(&self, other: &Brick) -> bool {
+        line_segment::intersects(
+            &LineSegment::new(self.head.x, self.head.y, self.tail.x, self.tail.y),
+            &LineSegment::new(other.head.x, other.head.y, other.tail.x, other.tail.y),
+        )
+    }
+
     fn assign_id(mut self, id: BrickID) -> Brick {
         self.id = id;
         self
@@ -119,31 +126,38 @@ impl Brick {
         self.get_min('z') > 1 && self.support.is_empty()
     }
 
-    fn supported_by(&self, other: &Brick) -> bool {
-        let z_is_valid = self.get_min('z') == other.get_max('z') + 1;
-        let intersects = line_segment::intersects(
-            &LineSegment::new(self.head.x, self.head.y, self.tail.x, self.tail.y),
-            &LineSegment::new(other.head.x, other.head.y, other.tail.x, other.tail.y),
-        );
-        z_is_valid && intersects
-    }
-
     fn translate(&mut self, point: Point) {
         self.head.translate(&point);
         self.tail.translate(&point);
     }
 
+    fn fall_distance(&mut self, distance: Int) {
+        self.translate(Point {
+            x: 0,
+            y: 0,
+            z: -distance,
+        });
+    }
+
     /// Fall until !self.is_falling()
+    /// Optimized implementation, look in Git history for a more natural implementation :)
     fn fall(&mut self, bricks: &Queue<&mut Brick>) {
-        while self.is_falling() {
-            for other in bricks {
-                if other.id != self.id && self.supported_by(other) {
-                    self.support.push(other.id);
-                }
-            }
-            if self.is_falling() {
-                self.translate(Point { x: 0, y: 0, z: -1 });
-            }
+        let self_min_z = self.get_min('z');
+        let lower_bricks: Vec<_> = bricks
+            .iter()
+            .filter(|b| b.get_max('z') < self_min_z)
+            .filter(|b| self.intersects_in_xy_plane(b))
+            .collect();
+        if lower_bricks.is_empty() {
+            self.fall_distance(self_min_z - 1);
+        } else {
+            let other_max_z = lower_bricks.iter().map(|b| b.get_max('z')).max().unwrap();
+            self.support = lower_bricks
+                .iter()
+                .filter(|b| b.get_max('z') == other_max_z)
+                .map(|b| b.id)
+                .collect();
+            self.fall_distance(self_min_z - other_max_z - 1);
         }
     }
 }
@@ -181,7 +195,7 @@ impl Problem for DayTwentyTwo {
             if brick.is_falling() {
                 brick.fall(&supported_bricks);
             }
-            supported_bricks.push_back(brick);
+            supported_bricks.push_front(brick);
         }
         debug!(is_example, &supported_bricks);
         bricks

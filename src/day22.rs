@@ -162,6 +162,22 @@ impl Brick {
     }
 }
 
+/// Simulate the falling bricks until they have all found support
+fn let_fall(bricks: Bricks) -> Bricks {
+    let mut bricks = bricks;
+    let mut falling_bricks: Vec<_> = bricks.values_mut().collect();
+    falling_bricks.sort_by_key(|b| b.get_min('z'));
+    let mut falling_bricks: Queue<&mut Brick> = falling_bricks.into();
+    let mut supported_bricks: Queue<&mut Brick> = Queue::new();
+    while let Some(brick) = falling_bricks.pop_front() {
+        if brick.is_falling() {
+            brick.fall(&supported_bricks);
+        }
+        supported_bricks.push_front(brick);
+    }
+    bricks
+}
+
 struct DayTwentyTwo {}
 
 impl Problem for DayTwentyTwo {
@@ -186,18 +202,12 @@ impl Problem for DayTwentyTwo {
     }
 
     fn solve_part_one(input: Input, is_example: bool) -> Answer {
-        let mut bricks = Brick::parse_bricks(input);
-        let mut falling_bricks: Vec<_> = bricks.values_mut().collect();
-        falling_bricks.sort_by_key(|b| b.get_min('z'));
-        let mut falling_bricks: Queue<&mut Brick> = falling_bricks.into();
-        let mut supported_bricks: Queue<&mut Brick> = Queue::new();
-        while let Some(brick) = falling_bricks.pop_front() {
-            if brick.is_falling() {
-                brick.fall(&supported_bricks);
-            }
-            supported_bricks.push_front(brick);
+        let bricks = let_fall(Brick::parse_bricks(input));
+        if is_example {
+            let mut z_sorted_bricks: Vec<_> = bricks.values().collect();
+            z_sorted_bricks.sort_by_key(|b| b.get_min('z'));
+            debug!(is_example, z_sorted_bricks);
         }
-        debug!(is_example, &supported_bricks);
         bricks
             .values()
             .filter(|b| {

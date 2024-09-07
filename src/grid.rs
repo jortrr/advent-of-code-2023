@@ -2,6 +2,7 @@
 
 use aoc::Grid;
 use aoc::Int;
+use mut_binary_heap::MaxComparator;
 use std::fmt::Debug;
 use std::fmt::Display;
 
@@ -124,6 +125,8 @@ impl<T> FromIterator<Vec<T>> for Map<T> {
     }
 }
 
+use std::ops::Add;
+use std::ops::Sub;
 use std::ops::{Deref, DerefMut};
 
 use aoc::define_convertable_enum;
@@ -174,83 +177,83 @@ impl Display for Direction {
 }
 
 #[derive(PartialEq, Clone, Eq, Hash, Copy, PartialOrd)]
-pub struct Point {
-    pub x: Int,
-    pub y: Int,
+pub struct PointT<T> {
+    pub x: T,
+    pub y: T,
 }
 
-impl Debug for Point {
+impl<T: Display> Debug for PointT<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Point({}, {})", self.x, self.y)
     }
 }
 
-impl Display for Point {
+impl<T: Display> Display for PointT<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-impl Point {
-    pub fn move_to(&self, direction: &Direction) -> Point {
-        self.move_distance(direction, 1)
+impl<T: Display + Copy + num::Integer + num::ToPrimitive> PointT<T> {
+    pub fn move_to(&self, direction: &Direction) -> Self {
+        self.move_distance(direction, T::one())
     }
 
-    pub fn move_distance(&self, direction: &Direction, distance: Int) -> Point {
+    pub fn move_distance(&self, direction: &Direction, distance: T) -> Self {
         match direction {
-            North => Point {
+            North => Self {
                 x: self.x,
                 y: self.y - distance,
             },
-            East => Point {
+            East => Self {
                 x: self.x + distance,
                 y: self.y,
             },
-            South => Point {
+            South => Self {
                 x: self.x,
                 y: self.y + distance,
             },
-            West => Point {
+            West => Self {
                 x: self.x - distance,
                 y: self.y,
             },
         }
     }
 
-    pub fn moved_from(&self, direction: &Direction) -> Point {
+    pub fn moved_from(&self, direction: &Direction) -> Self {
         match direction {
-            North => Point {
+            North => PointT {
                 x: self.x,
-                y: self.y + 1,
+                y: self.y + T::one(),
             },
-            East => Point {
-                x: self.x - 1,
+            East => PointT {
+                x: self.x - T::one(),
                 y: self.y,
             },
-            South => Point {
+            South => PointT {
                 x: self.x,
-                y: self.y - 1,
+                y: self.y - T::one(),
             },
-            West => Point {
-                x: self.x + 1,
+            West => PointT {
+                x: self.x + T::one(),
                 y: self.y,
             },
         }
     }
 
-    pub fn new(x: Int, y: Int) -> Point {
-        Point { x, y }
+    pub fn new(x: T, y: T) -> Self {
+        Self { x, y }
     }
 
     /// Wrap around bounds: keep x and y within the desired range [0, max_x) and [0, max_y).
-    pub fn point_wrap_around_bounds(mut self, max_x: Int, max_y: Int) -> Point {
-        self.x = if self.x >= 0 {
+    pub fn point_wrap_around_bounds(mut self, max_x: T, max_y: T) -> Self {
+        self.x = if self.x >= T::zero() {
             self.x % max_x
         } else {
             (self.x % max_x + max_x) % max_x
         };
 
-        self.y = if self.y >= 0 {
+        self.y = if self.y >= T::zero() {
             self.y % max_y
         } else {
             (self.y % max_y + max_y) % max_y
@@ -258,13 +261,22 @@ impl Point {
         self
     }
 
-    pub fn translate(mut self, x: Int, y: Int) -> Point {
-        self.x += x;
-        self.y += y;
+    pub fn translate(mut self, x: T, y: T) -> Self {
+        self.x = self.x + x;
+        self.y = self.y + y;
         self
     }
 
-    pub fn distance_to(&self, other: &Point) -> f64 {
-        (((self.x - other.x).pow(2) + (self.y - other.y).pow(2)) as f64).sqrt()
+    pub fn distance_to(&self, other: &Self) -> f64 {
+        let x = self.x - other.x;
+        let y = self.y - other.y;
+        (x * x + y * y).to_f64().unwrap().sqrt()
+    }
+
+    /// Returns whether the point is within the grid bounded by top-left (0,0) and bottom_right (max_x,max_y)
+    pub fn in_grid(&self, max_x: T, max_y: T) -> bool {
+        self.x >= T::zero() && self.x <= max_x && self.y >= T::zero() && self.y <= max_y
     }
 }
+
+pub type Point = PointT<Int>;

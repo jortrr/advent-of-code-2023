@@ -123,11 +123,20 @@ macro_rules! string {
     ($($x:expr),* $(,)?) => (vec![$($x.to_string()),*].join("\n"));
 }
 
-/// A Vec<Vec<Char>> from a Vec<&str>
+/// A Vec<Vec<Char>> from a Vec<&str> or String
 #[macro_export]
 macro_rules! grid_of_chars {
-    ($($x:expr),* $(,)?) => (vec![$($x.chars().collect::<Vec<char>>()),*]);
-}
+    // Handle the case where input is a single string slice &str
+    ($x:expr) => {
+        $x.lines().map(|line| line.chars().collect::<Vec<char>>()).collect::<Vec<Vec<char>>>()
+    };
+
+    // Handle the case where input is a Vec of &str
+    ($($x:expr),* $(,)?) => {
+        vec![$($x.chars().collect::<Vec<char>>()),*]
+    };
+
+   }
 
 #[macro_export]
 macro_rules! clear_console {

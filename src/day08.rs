@@ -32,6 +32,7 @@ impl Parse for Instructions {
 
 #[derive(Debug)]
 struct Node {
+    #[allow(dead_code)]
     from_string: String,
     label: String,
     left: String,

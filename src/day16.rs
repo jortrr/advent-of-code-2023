@@ -87,11 +87,6 @@ impl ContraptionMap {
         }
     }
 
-    fn from_string_slices(input: &Vec<&str>) -> ContraptionMap {
-        let input: Vec<String> = input.iter().map(|s| s.to_string()).collect();
-        ContraptionMap::from_strings(&input)
-    }
-
     fn get_terrain(&self, point: &Point) -> &Terrain {
         &self.grid[point.y as usize][point.x as usize]
     }

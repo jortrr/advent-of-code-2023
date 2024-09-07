@@ -7,8 +7,12 @@ set -e
 cd "$(dirname "$0")/.." || exit
 WORK_DIR=$(pwd)
 
-for i in {1..25}
-do
-  printf "Run day%02d\n" "$i"
-  cargo run --release --bin "$(printf "day%02d\n" "$i")"
-done
+run_all() {
+  for i in {1..25}
+  do
+    printf "Run day%02d\n" "$i"
+    cargo run --release --bin "$(printf "day%02d\n" "$i")"
+  done
+}
+
+cargo build --release && time run_all

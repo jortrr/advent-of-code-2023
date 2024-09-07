@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use aoc::Grid;
 use aoc::Int;
 use std::fmt::Debug;

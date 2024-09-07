@@ -27,7 +27,8 @@ struct Brick {
     id: BrickID,
     head: Point,
     tail: Point,
-    support: Vec<BrickID>,
+    supported_by: Vec<BrickID>,
+    supports: Vec<BrickID>,
 }
 
 impl Parse for Brick {
@@ -48,7 +49,7 @@ impl Debug for Brick {
             self.tail.y,
             self.tail.z,
             self.id,
-            self.support
+            self.supported_by
         )
     }
 }
@@ -85,7 +86,8 @@ impl Brick {
                 id: -1,
                 head,
                 tail,
-                support: Vec::new(),
+                supported_by: Vec::new(),
+                supports: Vec::new(),
             },
         ))
     }
@@ -123,7 +125,7 @@ impl Brick {
     }
 
     fn is_falling(&self) -> bool {
-        self.get_min('z') > 1 && self.support.is_empty()
+        self.get_min('z') > 1 && self.supported_by.is_empty()
     }
 
     fn translate(&mut self, point: Point) {
@@ -141,7 +143,7 @@ impl Brick {
 
     /// Fall until !self.is_falling()
     /// Optimized implementation, look in Git history for a more natural implementation :)
-    fn fall(&mut self, bricks: &Queue<&mut Brick>) {
+    fn fall(&mut self, bricks: &mut Queue<&mut Brick>) {
         let self_min_z = self.get_min('z');
         let lower_bricks: Vec<_> = bricks
             .iter()
@@ -152,11 +154,16 @@ impl Brick {
             self.fall_distance(self_min_z - 1);
         } else {
             let other_max_z = lower_bricks.iter().map(|b| b.get_max('z')).max().unwrap();
-            self.support = lower_bricks
+            self.supported_by = lower_bricks
                 .iter()
                 .filter(|b| b.get_max('z') == other_max_z)
                 .map(|b| b.id)
                 .collect();
+            bricks
+                .iter_mut()
+                .filter(|b| self.supported_by.contains(&b.id))
+                .for_each(|b| b.supports.push(self.id));
+
             self.fall_distance(self_min_z - other_max_z - 1);
         }
     }
@@ -171,11 +178,17 @@ fn let_fall(bricks: Bricks) -> Bricks {
     let mut supported_bricks: Queue<&mut Brick> = Queue::new();
     while let Some(brick) = falling_bricks.pop_front() {
         if brick.is_falling() {
-            brick.fall(&supported_bricks);
+            brick.fall(&mut supported_bricks);
         }
         supported_bricks.push_front(brick);
     }
     bricks
+}
+
+fn sort_bricks(bricks: &Bricks) -> Vec<&Brick> {
+    let mut z_sorted_bricks: Vec<_> = bricks.values().collect();
+    z_sorted_bricks.sort_by_key(|b| b.get_min('z'));
+    z_sorted_bricks
 }
 
 struct DayTwentyTwo {}
@@ -184,7 +197,7 @@ impl Problem for DayTwentyTwo {
     const YEAR: Year = 2023;
     const DAY: Day = 22;
     const PART_ONE_EXPECTED: Answer = 465;
-    const PART_TWO_EXPECTED: Answer = 0;
+    const PART_TWO_EXPECTED: Answer = 79042;
 
     define_examples! {
         (
@@ -197,15 +210,14 @@ impl Problem for DayTwentyTwo {
             0,1,6~2,1,6
             1,1,8~1,1,9
             ",
-            Expect::PartOne(5),
+            Expect::PartsOneAndTwo(5,7),
         )
     }
 
     fn solve_part_one(input: Input, is_example: bool) -> Answer {
         let bricks = let_fall(Brick::parse_bricks(input));
         if is_example {
-            let mut z_sorted_bricks: Vec<_> = bricks.values().collect();
-            z_sorted_bricks.sort_by_key(|b| b.get_min('z'));
+            let z_sorted_bricks = sort_bricks(&bricks);
             debug!(is_example, z_sorted_bricks);
         }
         bricks
@@ -213,14 +225,47 @@ impl Problem for DayTwentyTwo {
             .filter(|b| {
                 bricks
                     .values()
-                    .filter(|o| o.support.contains(&b.id))
-                    .all(|o| o.support.len() > 1)
+                    .filter(|o| o.supported_by.contains(&b.id))
+                    .all(|o| o.supported_by.len() > 1)
             })
             .count() as Answer
     }
 
     fn solve_part_two(input: Input, is_example: bool) -> Answer {
-        todo!()
+        // Breadth-first search solution where we travel upwards from any brick that we
+        // remove, to see if those supported bricks have lost all of their support, which we sum,
+        // for each brick
+        let bricks = let_fall(Brick::parse_bricks(input));
+        let z_sorted_bricks = sort_bricks(&bricks);
+        let mut sum = 0;
+        for brick in z_sorted_bricks {
+            let mut fallen_bricks = vec![brick.id];
+            let mut q: Queue<BrickID> = Queue::from(fallen_bricks.clone());
+            while !q.is_empty() {
+                let f: BrickID = q.pop_front().unwrap();
+                let b: &Brick = &bricks[&f];
+                for n in &b.supports {
+                    if !fallen_bricks.contains(&n) {
+                        q.push_back(*n);
+                    }
+                }
+                if b.supported_by.iter().all(|id| fallen_bricks.contains(id))
+                    && !fallen_bricks.contains(&f)
+                {
+                    fallen_bricks.push(f);
+                }
+            }
+            fallen_bricks.remove(0);
+            debug!(
+                is_example,
+                "{}: {} fallen: {:?}",
+                brick.id,
+                fallen_bricks.len(),
+                fallen_bricks
+            );
+            sum += fallen_bricks.len();
+        }
+        sum as Answer
     }
 }
 

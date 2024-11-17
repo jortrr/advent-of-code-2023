@@ -1,7 +1,5 @@
-mod problem;
-
+use crate::*;
 use nom::character::complete::{space0, space1};
-use problem::*;
 
 struct Card {
     id: Int,
@@ -48,13 +46,21 @@ impl Card {
     }
 }
 
-struct DayFour {}
+pub struct DayFour {}
 
 impl Problem for DayFour {
-    const YEAR: Year = 2023;
-    const DAY: Day = 4;
-    const PART_ONE_EXPECTED: Answer = 20667;
-    const PART_TWO_EXPECTED: Answer = 5833065;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        4
+    }
+    fn expect_part_one(&self) -> Answer {
+        20667
+    }
+    fn expect_part_two(&self) -> Answer {
+        5833065
+    }
 
     define_examples! {
         (
@@ -70,14 +76,14 @@ impl Problem for DayFour {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let lines: Vec<String> = InputLines::from(input).into();
         let cards: Vec<Card> = lines.into_iter().map(Card::parse).collect();
         let total = cards.iter().map(Card::get_value).sum();
         total
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let lines: Vec<String> = InputLines::from(input).into();
         let cards: Vec<Card> = lines.into_iter().map(Card::parse).collect();
         let mut card_count: HashMap<Int, Int> = HashMap::new();
@@ -94,5 +100,3 @@ impl Problem for DayFour {
         total
     }
 }
-
-run!(DayFour);

@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 
 type Key = (String, Vec<Int>);
 type Memo = HashMap<Key, Int>;
@@ -151,13 +150,21 @@ mod tests {
     }
 }
 
-struct DayTwelve {}
+pub struct DayTwelve {}
 
 impl Problem for DayTwelve {
-    const YEAR: Year = 2023;
-    const DAY: Day = 12;
-    const PART_ONE_EXPECTED: Answer = 6935;
-    const PART_TWO_EXPECTED: Answer = 3920437278260;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        12
+    }
+    fn expect_part_one(&self) -> Answer {
+        6935
+    }
+    fn expect_part_two(&self) -> Answer {
+        3920437278260
+    }
 
     define_examples! {
         (
@@ -173,7 +180,7 @@ impl Problem for DayTwelve {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let mut memo = Memo::new();
         let sum: Int = input
             .lines()
@@ -183,7 +190,7 @@ impl Problem for DayTwelve {
         sum
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let mut memo = Memo::new();
         let sum: Int = input
             .lines()
@@ -193,5 +200,3 @@ impl Problem for DayTwelve {
         sum
     }
 }
-
-run!(DayTwelve);

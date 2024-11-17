@@ -1,9 +1,7 @@
-mod line_segment;
-mod problem;
 use std::cmp::{max, min};
 
-use line_segment::LineSegment;
-use problem::*;
+use crate::line_segment::LineSegment;
+use crate::*;
 
 type BrickID = Int;
 type Bricks = HashMap<BrickID, Brick>;
@@ -191,13 +189,21 @@ fn sort_bricks(bricks: &Bricks) -> Vec<&Brick> {
     z_sorted_bricks
 }
 
-struct DayTwentyTwo {}
+pub struct DayTwentyTwo {}
 
 impl Problem for DayTwentyTwo {
-    const YEAR: Year = 2023;
-    const DAY: Day = 22;
-    const PART_ONE_EXPECTED: Answer = 465;
-    const PART_TWO_EXPECTED: Answer = 79042;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        22
+    }
+    fn expect_part_one(&self) -> Answer {
+        465
+    }
+    fn expect_part_two(&self) -> Answer {
+        79042
+    }
 
     define_examples! {
         (
@@ -214,7 +220,7 @@ impl Problem for DayTwentyTwo {
         )
     }
 
-    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer {
         let bricks = let_fall(Brick::parse_bricks(input));
         if is_example {
             let z_sorted_bricks = sort_bricks(&bricks);
@@ -231,7 +237,7 @@ impl Problem for DayTwentyTwo {
             .count() as Answer
     }
 
-    fn solve_part_two(input: Input, is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, is_example: bool) -> Answer {
         // Breadth-first search solution where we travel upwards from any brick that we
         // remove, to see if those supported bricks have lost all of their support, which we sum,
         // for each brick
@@ -268,5 +274,3 @@ impl Problem for DayTwentyTwo {
         sum as Answer
     }
 }
-
-run!(DayTwentyTwo);

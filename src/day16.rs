@@ -1,7 +1,4 @@
-mod grid;
-mod macros;
-mod problem;
-use problem::*;
+use crate::*;
 
 use std::{cmp::max, collections::HashSet};
 
@@ -85,11 +82,6 @@ impl ContraptionMap {
             grid,
             visited: Points::new(),
         }
-    }
-
-    fn from_string_slices(input: &Vec<&str>) -> ContraptionMap {
-        let input: Vec<String> = input.iter().map(|s| s.to_string()).collect();
-        ContraptionMap::from_strings(&input)
     }
 
     fn get_terrain(&self, point: &Point) -> &Terrain {
@@ -186,13 +178,21 @@ impl ContraptionMap {
     }
 }
 
-struct DaySixteen {}
+pub struct DaySixteen {}
 
 impl Problem for DaySixteen {
-    const YEAR: Year = 2023;
-    const DAY: Day = 16;
-    const PART_ONE_EXPECTED: Answer = 6906;
-    const PART_TWO_EXPECTED: Answer = 7330;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        16
+    }
+    fn expect_part_one(&self) -> Answer {
+        6906
+    }
+    fn expect_part_two(&self) -> Answer {
+        7330
+    }
 
     define_examples! {
         (
@@ -212,7 +212,7 @@ impl Problem for DaySixteen {
         )
     }
 
-    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer {
         let mut map = ContraptionMap::parse(input);
         map.shoot_beam(&Point::new(0, 0), East);
         let amount_of_energized_tiles = map.get_amount_of_energized_tiles(&Point::new(0, 0), East);
@@ -242,11 +242,9 @@ impl Problem for DaySixteen {
         amount_of_energized_tiles
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let mut map = ContraptionMap::parse(input);
         let most_amount_energized = map.get_most_amount_of_energized_tiles();
         most_amount_energized
     }
 }
-
-run!(DaySixteen);

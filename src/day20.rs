@@ -1,10 +1,5 @@
-mod problem;
-
-use std::{fmt::LowerExp, num, ptr::slice_from_raw_parts};
-
-use mut_binary_heap::RefMut;
+use crate::*;
 use nom::character::complete::space1;
-use problem::*;
 
 type Name = String;
 type Modules = HashMap<Name, Module>;
@@ -273,13 +268,21 @@ impl System {
     }
 }
 
-struct DayTwenty {}
+pub struct DayTwenty {}
 
 impl Problem for DayTwenty {
-    const YEAR: Year = 2023;
-    const DAY: Day = 20;
-    const PART_ONE_EXPECTED: Answer = 886701120;
-    const PART_TWO_EXPECTED: Answer = 228134431501037;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        20
+    }
+    fn expect_part_one(&self) -> Answer {
+        886701120
+    }
+    fn expect_part_two(&self) -> Answer {
+        228134431501037
+    }
 
     define_examples! {
         (
@@ -304,14 +307,14 @@ impl Problem for DayTwenty {
         )
     }
 
-    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer {
         debug!(is_example, InputLines::from(input.clone()));
         let mut system = System::parse(input).initialize_conjunctions();
         system.press_button_repeatedly(1000);
         system.high_pulses * system.low_pulses
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let mut system = System::parse(input).initialize_conjunctions();
         system.press_button_repeatedly(1000);
         assert!(system.rx_senders.len() == 1);
@@ -361,5 +364,3 @@ impl Problem for DayTwenty {
         solution as Answer
     }
 }
-
-run!(DayTwenty);

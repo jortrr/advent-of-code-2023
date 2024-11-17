@@ -79,91 +79,76 @@ fn trim_example_input(input: ExampleInput) -> Input {
 
 /// Trait for implementing an Advent of Code problem
 pub trait Problem {
-    // Advent of Code year and day, used to fetch AoC input
-    const YEAR: Year;
-    const DAY: Day;
-
-    // Expected values for the inputs, will be tested
-    const PART_ONE_EXPECTED: Answer;
-    const PART_TWO_EXPECTED: Answer;
-
     /// Solve AoC(`YEAR`, `DAY`) part one
-    fn solve_part_one(input: Input, is_example: bool) -> Answer;
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer;
 
     /// Solve AoC(`YEAR`, `DAY`) part two
-    fn solve_part_two(input: Input, is_example: bool) -> Answer;
+    fn solve_part_two(&self, input: Input, is_example: bool) -> Answer;
+
+    fn year(&self) -> Year;
+
+    fn day(&self) -> Day;
+
+    fn expect_part_one(&self) -> Answer;
+
+    fn expect_part_two(&self) -> Answer;
 
     /// Define Advent of Code examples
-    fn define_examples() -> Vec<Example> {
+    fn define_examples(&self) -> Vec<Example> {
         Vec::new()
     }
 
-    fn part_one() -> Answer {
-        let input = aoc::get(Self::YEAR, Self::DAY);
-        let solution = Self::solve_part_one(input, false);
-        test!(Self::PART_ONE_EXPECTED, solution, "part_one");
+    fn part_one(&self) -> Answer {
+        let input = aoc::get(self.year(), self.day());
+        let solution = self.solve_part_one(input, false);
+        test!(self.expect_part_one(), solution, "part_one");
         solution
     }
 
-    fn part_two() -> Answer {
-        let input = aoc::get(Self::YEAR, Self::DAY);
-        let solution = Self::solve_part_two(input, false);
-        test!(Self::PART_TWO_EXPECTED, solution, "part_two");
+    fn part_two(&self) -> Answer {
+        let input = aoc::get(self.year(), self.day());
+        let solution = self.solve_part_two(input, false);
+        test!(self.expect_part_two(), solution, "part_two");
         solution
     }
 
     /// Run all given examples
-    fn run_examples() -> bool {
+    fn run_examples(&self) -> bool {
         static NAME_ONE: &str = "example_part_one()";
         static NAME_TWO: &str = "example_part_two()";
         let format = |part: &str, i: usize| {
-            format!("{} [{}/{}]", part, i + 1, Self::define_examples().len(),)
+            format!("{} [{}/{}]", part, i + 1, self.define_examples().len(),)
         };
 
-        for (i, example) in Self::define_examples().iter().enumerate() {
+        for (i, example) in self.define_examples().iter().enumerate() {
             let input = trim_example_input(example.input);
             match example.expect {
                 Expect::PartOne(one) => {
-                    test!(one, Self::solve_part_one(input, true), format(NAME_ONE, i));
+                    test!(one, self.solve_part_one(input, true), format(NAME_ONE, i));
                 }
                 Expect::PartTwo(two) => {
-                    test!(two, Self::solve_part_two(input, true), format(NAME_TWO, i));
+                    test!(two, self.solve_part_two(input, true), format(NAME_TWO, i));
                 }
                 Expect::PartsOneAndTwo(one, two) => {
                     test!(
                         one,
-                        Self::solve_part_one(input.clone(), true),
+                        self.solve_part_one(input.clone(), true),
                         format(NAME_ONE, i)
                     );
-                    test!(two, Self::solve_part_two(input, true), format(NAME_TWO, i));
+                    test!(two, self.solve_part_two(input, true), format(NAME_TWO, i));
                 }
                 Expect::Any => (),
             }
         }
         true
     }
-}
 
-/// Benchmark and run all parts of an Advent of Code problem
-/// Also runs all examples specified inside the run_examples function or define_examples() macro
-#[macro_export]
-macro_rules! run {
-    ($problem:ty) => {
-        fn main() {
-            // Ensure that the type implements the Problem trait
-            fn assert_impl_problem<T: Problem>() {}
-
-            // Assert at compile-time that $problem implements Problem
-            assert_impl_problem::<$problem>();
-
-            // Use the benchmark_functions macro to benchmark all parts
-            benchmark_functions!(
-                <$problem>::run_examples,
-                <$problem>::part_one,
-                <$problem>::part_two
-            );
-        }
-    };
+    fn run(&self) {
+        // Use the benchmark_functions macro to benchmark all parts
+        self.run_examples();
+        self.part_one();
+        self.part_two();
+    }
 }
 
 /// Trait to allow a type to be parsed from Problem Input
@@ -207,7 +192,7 @@ macro_rules! define_examples {
             )
         ),* $(,)?
     ) => {
-        fn define_examples() -> Vec<Example> {
+        fn define_examples(&self) -> Vec<Example> {
             vec![
                 $(
                     Example {
@@ -216,6 +201,21 @@ macro_rules! define_examples {
                     },
                 )*
             ]
+        }
+    };
+}
+
+// Macro to generate a vector of Boxed problems
+#[macro_export]
+macro_rules! problems {
+    ($($problem_type:ident),*) => {
+        {
+            let problems: Vec<Box<dyn Problem>> = vec![
+                $(
+                    Box::new($problem_type {}),
+                )*
+            ];
+            problems
         }
     };
 }

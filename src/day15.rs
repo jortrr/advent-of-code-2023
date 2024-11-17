@@ -1,6 +1,4 @@
-mod macros;
-mod problem;
-use problem::*;
+use crate::*;
 use std::fmt::Debug;
 
 type Int = i32;
@@ -229,13 +227,21 @@ mod tests {
     }
 }
 
-struct DayFifteen {}
+pub struct DayFifteen {}
 
 impl Problem for DayFifteen {
-    const YEAR: Year = 2023;
-    const DAY: Day = 15;
-    const PART_ONE_EXPECTED: Answer = 507769;
-    const PART_TWO_EXPECTED: Answer = 269747;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        15
+    }
+    fn expect_part_one(&self) -> Answer {
+        507769
+    }
+    fn expect_part_two(&self) -> Answer {
+        269747
+    }
 
     define_examples! {
         (
@@ -246,13 +252,13 @@ impl Problem for DayFifteen {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let sequence = Step::from_string_list(&input);
         let steps_sum = sum_steps(&sequence);
         steps_sum as Answer
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let sequence = Step::from_string_list(&input);
         let mut box_sequence = BoxSequence::new();
         sequence.iter().for_each(|s| box_sequence.execute(&s));
@@ -260,5 +266,3 @@ impl Problem for DayFifteen {
         total_focussing_power as Answer
     }
 }
-
-run!(DayFifteen);

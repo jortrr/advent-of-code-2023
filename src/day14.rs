@@ -1,6 +1,5 @@
-mod macros;
-mod problem;
-use problem::*;
+use crate::define_examples;
+use crate::*;
 
 static NUMBER_OF_CYCLES: Int = 1000000000;
 
@@ -287,14 +286,63 @@ fn grid_to_string(grid: &Grid<Terrain>) -> String {
     result
 }
 
+pub struct DayFourteen {}
+
+impl Problem for DayFourteen {
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        14
+    }
+    fn expect_part_one(&self) -> Answer {
+        109098
+    }
+    fn expect_part_two(&self) -> Answer {
+        100064
+    }
+
+    define_examples! {
+        (
+            "
+            O....#....
+            O.OO#....#
+            .....##...
+            OO.#O....O
+            .O.....O#.
+            O.#..O.#.#
+            ..O..#O..O
+            .......O..
+            #....###..
+            #OO..#....
+            ",
+            Expect::PartsOneAndTwo(136, 64),
+        )
+    }
+
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
+        let mut platform = Platform::parse(input);
+        platform.tilt(North);
+        let total_load = platform.get_total_load();
+        total_load
+    }
+
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
+        let total_load_after_many_cycles =
+            Platform::parse(input).get_total_load_after_cycles(NUMBER_OF_CYCLES);
+        total_load_after_many_cycles
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_tilt_part_one() {
+        let d14 = DayFourteen {};
         let mut example_platform =
-            Platform::parse(DayFourteen::define_examples().first().unwrap().get_input());
+            Platform::parse(d14.define_examples().first().unwrap().get_input());
         dbg!(&example_platform);
         example_platform.tilt(North);
         dbg!(&example_platform);
@@ -330,8 +378,9 @@ mod tests {
 
     #[test]
     fn test_tilt_part_two() {
+        let d14 = DayFourteen {};
         let mut example_platform =
-            Platform::parse(DayFourteen::define_examples().first().unwrap().get_input());
+            Platform::parse(d14.define_examples().first().unwrap().get_input());
         let example_platform_1_cycle = Platform::from_strings(vec_of_strings![
             ".....#....",
             "....#...O#",
@@ -376,45 +425,3 @@ mod tests {
         test!(example_platform_3_cycle, example_platform);
     }
 }
-
-struct DayFourteen {}
-
-impl Problem for DayFourteen {
-    const YEAR: Year = 2023;
-    const DAY: Day = 14;
-    const PART_ONE_EXPECTED: Answer = 109098;
-    const PART_TWO_EXPECTED: Answer = 100064;
-
-    define_examples! {
-        (
-            "
-            O....#....
-            O.OO#....#
-            .....##...
-            OO.#O....O
-            .O.....O#.
-            O.#..O.#.#
-            ..O..#O..O
-            .......O..
-            #....###..
-            #OO..#....
-            ",
-            Expect::PartsOneAndTwo(136, 64),
-        )
-    }
-
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
-        let mut platform = Platform::parse(input);
-        platform.tilt(North);
-        let total_load = platform.get_total_load();
-        total_load
-    }
-
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
-        let total_load_after_many_cycles =
-            Platform::parse(input).get_total_load_after_cycles(NUMBER_OF_CYCLES);
-        total_load_after_many_cycles
-    }
-}
-
-run!(DayFourteen);

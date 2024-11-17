@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 
 #[derive(Debug)]
 enum Instruction {
@@ -159,13 +158,21 @@ impl Network {
     }
 }
 
-struct DayEight {}
+pub struct DayEight {}
 
 impl Problem for DayEight {
-    const YEAR: Year = 2023;
-    const DAY: Day = 8;
-    const PART_ONE_EXPECTED: Answer = 14257;
-    const PART_TWO_EXPECTED: Answer = 16187743689077;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        8
+    }
+    fn expect_part_one(&self) -> Answer {
+        14257
+    }
+    fn expect_part_two(&self) -> Answer {
+        16187743689077
+    }
 
     define_examples! {
         (
@@ -180,7 +187,7 @@ impl Problem for DayEight {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let instructions = Instructions::parse(input.clone());
         let network = Network::parse(input);
         let camel_steps_until_zzz_is_reached =
@@ -188,7 +195,7 @@ impl Problem for DayEight {
         camel_steps_until_zzz_is_reached as Answer
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let instructions = Instructions::parse(input.clone());
         let network = Network::parse(input);
         let ghost_steps_until_zzz_is_reached =
@@ -196,5 +203,3 @@ impl Problem for DayEight {
         ghost_steps_until_zzz_is_reached as Answer
     }
 }
-
-run!(DayEight);

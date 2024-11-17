@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 
 type Almanac = Vec<Vec<Transform>>;
 
@@ -191,13 +190,21 @@ fn parse(e: &Vec<String>, seeds_is_range: bool) -> (Vec<Interval>, Almanac) {
     (s, a)
 }
 
-struct DayFive {}
+pub struct DayFive {}
 
 impl Problem for DayFive {
-    const YEAR: Year = 2023;
-    const DAY: Day = 5;
-    const PART_ONE_EXPECTED: Answer = 251346198;
-    const PART_TWO_EXPECTED: Answer = 72263011;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        5
+    }
+    fn expect_part_one(&self) -> Answer {
+        251346198
+    }
+    fn expect_part_two(&self) -> Answer {
+        72263011
+    }
 
     define_examples! {
         (
@@ -241,7 +248,7 @@ impl Problem for DayFive {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let input = input.lines().map(|s| s.to_string()).collect(); // Todo: Make Input convertible to Vec<String>, and vice versa
         let (s, a) = parse(&input, false);
         let mut s = apply_almanac(s, &a);
@@ -249,7 +256,7 @@ impl Problem for DayFive {
         s[0].a
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let input = input.lines().map(|s| s.to_string()).collect();
         let (s, a) = parse(&input, true);
         let mut s = apply_almanac(s, &a);
@@ -257,5 +264,3 @@ impl Problem for DayFive {
         s[0].a
     }
 }
-
-run!(DayFive);

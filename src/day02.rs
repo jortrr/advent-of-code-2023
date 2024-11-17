@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 
 struct Game {
     id: Int,
@@ -45,15 +44,23 @@ impl Game {
     }
 }
 
-struct DayTwo {}
+pub struct DayTwo {}
 
 impl Problem for DayTwo {
-    const YEAR: Year = 2023;
-    const DAY: Day = 2;
-    const PART_ONE_EXPECTED: Answer = 1867;
-    const PART_TWO_EXPECTED: Answer = 84538;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        2
+    }
+    fn expect_part_one(&self) -> Answer {
+        1867
+    }
+    fn expect_part_two(&self) -> Answer {
+        84538
+    }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let input: Vec<String> = InputLines::from(input).filter_empty_lines().into();
         let solution = input
             .into_iter()
@@ -64,7 +71,7 @@ impl Problem for DayTwo {
         solution
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let input: Vec<String> = InputLines::from(input).filter_empty_lines().into();
         let solution = input
             .into_iter()
@@ -74,5 +81,3 @@ impl Problem for DayTwo {
         solution
     }
 }
-
-run!(DayTwo);

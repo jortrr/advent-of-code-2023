@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 
 /// The amount of part numbers a symbol needs to be adjacent to
 enum Adjacent {
@@ -61,13 +60,21 @@ fn solve(g: Grid<char>, adjacent: Adjacent) -> Int {
     sum
 }
 
-struct DayThree {}
+pub struct DayThree {}
 
 impl Problem for DayThree {
-    const YEAR: Year = 2023;
-    const DAY: Day = 3;
-    const PART_ONE_EXPECTED: Answer = 540131;
-    const PART_TWO_EXPECTED: Answer = 86879020;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        3
+    }
+    fn expect_part_one(&self) -> Answer {
+        540131
+    }
+    fn expect_part_two(&self) -> Answer {
+        86879020
+    }
 
     define_examples! {
         (
@@ -87,15 +94,13 @@ impl Problem for DayThree {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let grid: Grid<char> = InputLines::from(input).into();
         solve(grid, Adjacent::Any)
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let grid: Grid<char> = InputLines::from(input).into();
         solve(grid, Adjacent::Two)
     }
 }
-
-run!(DayThree);

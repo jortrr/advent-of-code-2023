@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 
-mod problem;
-use problem::*;
+use crate::*;
 
 type Int = i32;
 type Sequence = VecDeque<Int>;
@@ -124,13 +123,21 @@ impl OASIS {
     }
 }
 
-struct DayNine {}
+pub struct DayNine {}
 
 impl Problem for DayNine {
-    const YEAR: Year = 2023;
-    const DAY: Day = 9;
-    const PART_ONE_EXPECTED: Answer = 2005352194;
-    const PART_TWO_EXPECTED: Answer = 1077;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        9
+    }
+    fn expect_part_one(&self) -> Answer {
+        2005352194
+    }
+    fn expect_part_two(&self) -> Answer {
+        1077
+    }
 
     define_examples! {
         (
@@ -143,19 +150,17 @@ impl Problem for DayNine {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let mut oasis = OASIS::parse(input);
         oasis.extrapolate_histories();
         let sum_of_histories_last_values = oasis.sum_of_histories_last_values();
         sum_of_histories_last_values as Answer
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let mut oasis = OASIS::parse(input);
         oasis.extrapolate_histories();
         let sum_of_histories_first_values = oasis.sum_of_histories_first_values();
         sum_of_histories_first_values as Answer
     }
 }
-
-run!(DayNine);

@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 type Workflows = HashMap<String, Workflow>;
 type Path = Vec<Condition>;
 
@@ -262,13 +261,21 @@ fn get_workflows(input: &String) -> (&str, Workflows) {
     (rest, workflows)
 }
 
-struct DayNineteen {}
+pub struct DayNineteen {}
 
 impl Problem for DayNineteen {
-    const YEAR: Year = 2023;
-    const DAY: Day = 19;
-    const PART_ONE_EXPECTED: Answer = 348378;
-    const PART_TWO_EXPECTED: Answer = 121158073425385;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        19
+    }
+    fn expect_part_one(&self) -> Answer {
+        348378
+    }
+    fn expect_part_two(&self) -> Answer {
+        121158073425385
+    }
 
     define_examples! {
         (
@@ -295,7 +302,7 @@ impl Problem for DayNineteen {
         )
     }
 
-    fn solve_part_one(input: Input, example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, example: bool) -> Answer {
         let (rest, workflows) = get_workflows(&input);
         debug!(example, &workflows);
         let (_, parts) = separated_list1(tag("\n"), Part::parse)(rest.trim()).unwrap();
@@ -310,7 +317,7 @@ impl Problem for DayNineteen {
         sum_total_ratings
     }
 
-    fn solve_part_two(input: Input, example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, example: bool) -> Answer {
         let workflows = get_workflows(&input).1;
         let mut paths = Vec::new();
         generate_accepted_paths(&mut paths, Path::new(), "in", &workflows);
@@ -319,5 +326,3 @@ impl Problem for DayNineteen {
         sum
     }
 }
-
-run!(DayNineteen);

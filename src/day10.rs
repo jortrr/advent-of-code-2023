@@ -1,8 +1,7 @@
 use core::panic;
 use std::cmp::{max, min};
 
-mod problem;
-use problem::*;
+use crate::*;
 
 static PRINT_DISTANCES: bool = false;
 
@@ -443,26 +442,32 @@ mod tests {
     }
 }
 
-struct DayTen {}
+pub struct DayTen {}
 
 impl Problem for DayTen {
-    const YEAR: Year = 2023;
-    const DAY: Day = 10;
-    const PART_ONE_EXPECTED: Answer = 6951;
-    const PART_TWO_EXPECTED: Answer = 563;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        10
+    }
+    fn expect_part_one(&self) -> Answer {
+        6951
+    }
+    fn expect_part_two(&self) -> Answer {
+        563
+    }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let mut maze = Maze::parse(input);
         let distance = maze.find_longest_distance_from_animal_starting_position();
         distance as Answer
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let mut maze = Maze::parse(input);
         maze.find_longest_distance_from_animal_starting_position();
         let interior_points = maze.get_interior_points();
         interior_points as Answer
     }
 }
-
-run!(DayTen);

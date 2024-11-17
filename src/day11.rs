@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 
 #[derive(Debug, PartialEq, Clone)]
 struct Position {
@@ -336,13 +335,21 @@ mod tests {
     }
 }
 
-struct DayEleven {}
+pub struct DayEleven {}
 
 impl Problem for DayEleven {
-    const YEAR: Year = 2023;
-    const DAY: Day = 11;
-    const PART_ONE_EXPECTED: Answer = 9918828;
-    const PART_TWO_EXPECTED: Answer = 692506533832;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        11
+    }
+    fn expect_part_one(&self) -> Answer {
+        9918828
+    }
+    fn expect_part_two(&self) -> Answer {
+        692506533832
+    }
 
     define_examples! {
         (
@@ -362,14 +369,14 @@ impl Problem for DayEleven {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let image = Image::parse(input);
         let expanded_image = image.expand_universe();
         let sum_of_distances = expanded_image.compute_sum_of_distances_between_all_galaxies();
         sum_of_distances
     }
 
-    fn solve_part_two(input: Input, is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, is_example: bool) -> Answer {
         let image = Image::parse(input);
         let scale = if is_example { 100 } else { 1_000_000 };
         let scaled_image = image.expand_universe_with_factor(scale);
@@ -377,5 +384,3 @@ impl Problem for DayEleven {
         sum_of_distances
     }
 }
-
-run!(DayEleven);

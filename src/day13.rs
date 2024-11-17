@@ -1,7 +1,6 @@
 use colored::Colorize;
 
-mod problem;
-use problem::*;
+use crate::{define_examples, problem::*};
 
 type Int = i32;
 type Grid<T> = Vec<Vec<T>>;
@@ -187,13 +186,21 @@ impl Pattern {
     }
 }
 
-struct DayThirteen {}
+pub struct DayThirteen {}
 
 impl Problem for DayThirteen {
-    const YEAR: Year = 2023;
-    const DAY: Day = 13;
-    const PART_ONE_EXPECTED: Answer = 30535;
-    const PART_TWO_EXPECTED: Answer = 30844;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        13
+    }
+    fn expect_part_one(&self) -> Answer {
+        30535
+    }
+    fn expect_part_two(&self) -> Answer {
+        30844
+    }
 
     define_examples! {
         (
@@ -219,7 +226,7 @@ impl Problem for DayThirteen {
         )
     }
 
-    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer {
         debug!(is_example, &input);
         let part_1_patterns = Pattern::parse(input, 0);
         debug!(is_example, &part_1_patterns);
@@ -227,11 +234,9 @@ impl Problem for DayThirteen {
         sum as Answer
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let part_2_patterns = Pattern::parse(input, 1);
         let sum: Int = part_2_patterns.iter().map(|p| p.summary.unwrap()).sum();
         sum as Answer
     }
 }
-
-run!(DayThirteen);

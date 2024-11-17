@@ -7,10 +7,7 @@ use colored::{Colorize, CustomColor};
 use grid::*;
 use hex_color::HexColor;
 
-mod grid;
-mod macros;
-mod problem;
-use problem::*;
+use crate::*;
 
 type Int = i64;
 
@@ -180,13 +177,21 @@ impl Polygon {
     }
 }
 
-struct DayEighteen {}
+pub struct DayEighteen {}
 
 impl Problem for DayEighteen {
-    const YEAR: Year = 2023;
-    const DAY: Day = 18;
-    const PART_ONE_EXPECTED: Answer = 48652;
-    const PART_TWO_EXPECTED: Answer = 45757884535661;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        18
+    }
+    fn expect_part_one(&self) -> Answer {
+        48652
+    }
+    fn expect_part_two(&self) -> Answer {
+        45757884535661
+    }
 
     define_examples! {
     (
@@ -210,7 +215,7 @@ impl Problem for DayEighteen {
     )
     }
 
-    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer {
         let dig_plan = input.lines().map(|s| s.to_string()).collect();
         let polygon = Polygon::from_dig_plan(&dig_plan, false);
         debug!(is_example, &polygon);
@@ -221,12 +226,10 @@ impl Problem for DayEighteen {
         a
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let dig_plan = input.lines().map(|s| s.to_string()).collect();
         let polygon = Polygon::from_dig_plan(&dig_plan, true);
         let a = polygon.calc_area();
         a
     }
 }
-
-run!(DayEighteen);

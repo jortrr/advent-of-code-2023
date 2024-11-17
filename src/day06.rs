@@ -1,5 +1,4 @@
-mod problem;
-use problem::*;
+use crate::*;
 
 type Uint = u64;
 
@@ -27,13 +26,21 @@ impl Race {
     }
 }
 
-struct DaySix {}
+pub struct DaySix {}
 
 impl Problem for DaySix {
-    const YEAR: Year = 2023;
-    const DAY: Day = 6;
-    const PART_ONE_EXPECTED: Answer = 160816;
-    const PART_TWO_EXPECTED: Answer = 46561107;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        6
+    }
+    fn expect_part_one(&self) -> Answer {
+        160816
+    }
+    fn expect_part_two(&self) -> Answer {
+        46561107
+    }
 
     define_examples! {
         (
@@ -45,7 +52,7 @@ impl Problem for DaySix {
         )
     }
 
-    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer {
         let input: Vec<String> = input.lines().map(|s| s.to_string()).collect();
         let times = input.get(0).unwrap().split_ascii_whitespace().skip(1);
         let distances = input.get(1).unwrap().split_ascii_whitespace().skip(1);
@@ -75,7 +82,7 @@ impl Problem for DaySix {
         number_of_ways_to_beat_record as Answer
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let input: Vec<String> = input.lines().map(|s| s.to_string()).collect();
         let convert_to_number = |s: &String| -> Uint {
             s.split_ascii_whitespace()
@@ -99,5 +106,3 @@ impl Problem for DaySix {
         number_of_ways_to_beat_second_record as Answer
     }
 }
-
-run!(DaySix);

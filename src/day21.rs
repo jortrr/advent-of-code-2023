@@ -1,7 +1,5 @@
-mod grid;
-mod problem;
-use grid::*;
-use problem::*;
+use crate::grid::*;
+use crate::*;
 
 type GardenMap = Map<Terrain>;
 type Visited = HashMap<Point, Distance>;
@@ -83,13 +81,21 @@ impl Garden {
     }
 }
 
-struct DayTwentyOne {}
+pub struct DayTwentyOne {}
 
 impl Problem for DayTwentyOne {
-    const YEAR: Year = 2023;
-    const DAY: Day = 21;
-    const PART_ONE_EXPECTED: Answer = 3853;
-    const PART_TWO_EXPECTED: Answer = 639051580070841;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        21
+    }
+    fn expect_part_one(&self) -> Answer {
+        3853
+    }
+    fn expect_part_two(&self) -> Answer {
+        639051580070841
+    }
 
     define_examples! {
         (
@@ -110,14 +116,14 @@ impl Problem for DayTwentyOne {
         )
     }
 
-    fn solve_part_one(input: Input, is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, is_example: bool) -> Answer {
         let garden = Garden::parse(input).run_breadth_first_search();
         let steps = if is_example { 6 } else { 64 };
         debug!(is_example, garden);
         garden.count_possible_locations(steps)
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let garden = Garden::parse(input).run_breadth_first_search();
         // First, using breadth-first search on the Garden we found all distances
         // Then, we use the explanation given at https://github.com/villuna/aoc23/wiki/A-Geometric-solution-to-advent-of-code-2023,-day-21 to solve (not mine)
@@ -142,5 +148,3 @@ impl Problem for DayTwentyOne {
         solution as Answer
     }
 }
-
-run!(DayTwentyOne);

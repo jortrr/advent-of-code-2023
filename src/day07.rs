@@ -1,8 +1,6 @@
 use core::panic;
 
-mod macros;
-mod problem;
-use problem::*;
+use crate::*;
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 enum Card {
@@ -264,13 +262,21 @@ fn get_total_winnings(plays: &Plays) -> u32 {
     winnings
 }
 
-struct DaySeven {}
+pub struct DaySeven {}
 
 impl Problem for DaySeven {
-    const YEAR: Year = 2023;
-    const DAY: Day = 7;
-    const PART_ONE_EXPECTED: Answer = 251806792;
-    const PART_TWO_EXPECTED: Answer = 252113488;
+    fn year(&self) -> Year {
+        2023
+    }
+    fn day(&self) -> Day {
+        7
+    }
+    fn expect_part_one(&self) -> Answer {
+        251806792
+    }
+    fn expect_part_two(&self) -> Answer {
+        252113488
+    }
 
     define_examples! {
         (
@@ -285,14 +291,14 @@ impl Problem for DaySeven {
         )
     }
 
-    fn solve_part_one(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_one(&self, input: Input, _is_example: bool) -> Answer {
         let mut plays = Plays::parse(input);
         plays.sort();
         let total_winnings = get_total_winnings(&plays);
         total_winnings as Answer
     }
 
-    fn solve_part_two(input: Input, _is_example: bool) -> Answer {
+    fn solve_part_two(&self, input: Input, _is_example: bool) -> Answer {
         let mut plays = Plays::parse(input);
         plays = plays
             .iter()
@@ -306,5 +312,3 @@ impl Problem for DaySeven {
         total_winnings_with_jokers as Answer
     }
 }
-
-run!(DaySeven);

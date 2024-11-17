@@ -1,5 +1,0 @@
-{
-  "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
-  "editor.formatOnSaveMode": "file",
-  "editor.formatOnSave": true
-}

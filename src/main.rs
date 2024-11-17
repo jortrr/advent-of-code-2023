@@ -51,9 +51,22 @@ use day21::DayTwentyOne;
 use day22::DayTwentyTwo;
 use problem::*;
 
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(name = "advent-of-code-2023")]
+#[command(about = "Advent of Code 2023 - By jortrr", long_about = None)]
+struct Cli {
+    /// Day to run, one of {1, ..., 25}
+    #[arg(short, long)]
+    day: Option<Day>,
+}
+
 type ProblemPtr = Box<dyn Problem>;
 
 fn main() {
+    let cli = Cli::parse();
+
     let problems: Vec<ProblemPtr> = problems!(
         DayOne,
         DayTwo,
@@ -77,7 +90,16 @@ fn main() {
         DayTwentyOne,
         DayTwentyTwo
     );
+
+    let mut ran_a_problem: bool = false;
+
     for (i, problem) in problems.iter().enumerate() {
+        if let Some(day) = cli.day {
+            if day != problem.day() {
+                continue;
+            }
+        }
+
         println!(
             "[{}/{}] Running AoC: {}-{:02}",
             i,
@@ -87,5 +109,11 @@ fn main() {
         );
         problem.run();
         println!();
+
+        if !ran_a_problem {
+            ran_a_problem = true;
+        }
     }
+
+    assert!(ran_a_problem);
 }

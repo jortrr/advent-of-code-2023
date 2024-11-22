@@ -9,10 +9,13 @@ pub use nom::multi::separated_list1;
 pub use nom::sequence::{preceded, terminated, tuple};
 pub use nom::IResult;
 
+use colored::Colorize;
 pub use std::collections::HashMap;
+use std::fmt::write;
 pub use std::fmt::Debug;
 use std::iter;
 pub use std::iter::once;
+use std::time::Duration;
 pub use std::time::Instant;
 
 pub type Answer = Int;
@@ -77,6 +80,43 @@ fn trim_example_input(input: ExampleInput) -> Input {
         .join("\n")
 }
 
+#[derive(PartialEq, Eq)]
+pub enum TestStatus {
+    Failed(Duration),
+    Error(Duration),
+    Success(Duration),
+    Unknown,
+}
+
+impl Debug for TestStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Failed(arg0) => write!(f, "[FAILED] {:.2?}", arg0),
+            Self::Error(arg0) => write!(f, "[ERROR] {:.2?}", arg0),
+            Self::Success(arg0) => write!(f, "[SUCCESS] {:.2?}", arg0),
+            Self::Unknown => write!(f, "[UNKNOWN]"),
+        }
+    }
+}
+
+pub struct TestResult {
+    pub year: i32,
+    pub day: u32,
+    pub p1: TestStatus,
+    pub p2: TestStatus,
+    pub examples: TestStatus,
+}
+
+impl Debug for TestResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "TestResult {{\n\t[{}] [{}]\n\t[p1] {:.2?}\n\t[p2] {:.2?}\n\t[examples] {:.2?}\n}}",
+            self.year, self.day, self.examples, self.p1, self.p2
+        )
+    }
+}
+
 /// Trait for implementing an Advent of Code problem
 pub trait Problem {
     /// Solve AoC(`YEAR`, `DAY`) part one
@@ -98,18 +138,18 @@ pub trait Problem {
         Vec::new()
     }
 
-    fn part_one(&self) -> Answer {
+    fn run_part_one(&self) -> bool {
         let input = aoc::get(self.year(), self.day());
         let solution = self.solve_part_one(input, false);
-        test!(self.expect_part_one(), solution, "part_one");
-        solution
+
+        self.expect_part_one() == solution
     }
 
-    fn part_two(&self) -> Answer {
+    fn run_part_two(&self) -> bool {
         let input = aoc::get(self.year(), self.day());
         let solution = self.solve_part_two(input, false);
-        test!(self.expect_part_two(), solution, "part_two");
-        solution
+
+        self.expect_part_two() == solution
     }
 
     /// Run all given examples
@@ -143,11 +183,31 @@ pub trait Problem {
         true
     }
 
-    fn run(&self) {
-        // Use the benchmark_functions macro to benchmark all parts
-        self.run_examples();
-        self.part_one();
-        self.part_two();
+    fn run(&self) -> TestResult {
+        let mut test_result: TestResult = TestResult {
+            day: self.day(),
+            year: self.year(),
+            p1: TestStatus::Unknown,
+            p2: TestStatus::Unknown,
+            examples: TestStatus::Unknown,
+        };
+        let mut instant = Instant::now();
+        test_result.examples = match self.run_examples() {
+            true => TestStatus::Success(instant.elapsed()),
+            false => TestStatus::Failed(instant.elapsed()),
+        };
+        instant = Instant::now();
+        test_result.p1 = match self.run_part_one() {
+            true => TestStatus::Success(instant.elapsed()),
+            false => TestStatus::Failed(instant.elapsed()),
+        };
+        instant = Instant::now();
+        test_result.p2 = match self.run_part_two() {
+            true => TestStatus::Success(instant.elapsed()),
+            false => TestStatus::Failed(instant.elapsed()),
+        };
+
+        test_result
     }
 }
 

@@ -91,7 +91,7 @@ fn main() {
         DayTwentyTwo
     );
 
-    let mut ran_a_problem: bool = false;
+    let mut results: Vec<TestResult> = Vec::new();
 
     for (i, problem) in problems.iter().enumerate() {
         if let Some(day) = cli.day {
@@ -107,13 +107,11 @@ fn main() {
             problem.year(),
             problem.day()
         );
-        problem.run();
+        results.push(problem.run());
         println!();
-
-        if !ran_a_problem {
-            ran_a_problem = true;
-        }
     }
 
-    assert!(ran_a_problem);
+    dbg!(&results);
+    assert!(!results.is_empty());
+    assert!(results.iter().any(|result| result.p1 != TestStatus::Failed));
 }

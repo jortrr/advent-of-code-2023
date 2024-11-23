@@ -81,9 +81,10 @@ impl Garden {
     }
 }
 
-pub struct DayTwentyOne {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayTwentyOne {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

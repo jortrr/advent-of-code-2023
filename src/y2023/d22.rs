@@ -189,9 +189,10 @@ fn sort_bricks(bricks: &Bricks) -> Vec<&Brick> {
     z_sorted_bricks
 }
 
-pub struct DayTwentyTwo {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayTwentyTwo {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

@@ -159,9 +159,10 @@ impl Network {
     }
 }
 
-pub struct DayEight {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayEight {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

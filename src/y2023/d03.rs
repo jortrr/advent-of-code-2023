@@ -60,9 +60,10 @@ fn solve(g: Grid<char>, adjacent: Adjacent) -> Int {
     sum
 }
 
-pub struct DayThree {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayThree {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

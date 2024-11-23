@@ -140,7 +140,7 @@ impl Debug for TestResult {
 }
 
 /// Trait for implementing an Advent of Code problem
-pub trait Problem {
+pub trait Solution {
     /// Solve AoC(`YEAR`, `DAY`) part one
     fn solve_part_one(&self, input: Input, is_example: bool) -> Answer;
 
@@ -235,6 +235,13 @@ pub trait Problem {
 
         test_result
     }
+
+    fn create_box() -> Box<Self>
+    where
+        Self: Sized + Default,
+    {
+        Box::new(Default::default())
+    }
 }
 
 /// Trait to allow a type to be parsed from Problem Input
@@ -287,21 +294,6 @@ macro_rules! define_examples {
                     },
                 )*
             ]
-        }
-    };
-}
-
-// Macro to generate a vector of Boxed problems
-#[macro_export]
-macro_rules! problems {
-    ($($problem_type:ident),*) => {
-        {
-            let problems: Vec<Box<dyn Problem>> = vec![
-                $(
-                    Box::new($problem_type {}),
-                )*
-            ];
-            problems
         }
     };
 }

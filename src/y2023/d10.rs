@@ -442,9 +442,10 @@ mod tests {
     }
 }
 
-pub struct DayTen {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayTen {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

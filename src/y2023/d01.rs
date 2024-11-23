@@ -7,9 +7,10 @@ fn get_calibration_value(input: &String) -> Int {
         .unwrap()
 }
 
-pub struct DayOne {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayOne {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

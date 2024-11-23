@@ -1,55 +1,10 @@
-mod day01;
-mod day02;
-mod day03;
-mod day04;
-mod day05;
-mod day06;
-mod day07;
-mod day08;
-mod day09;
-mod day10;
-mod day11;
-mod day12;
-mod day13;
-mod day14;
-mod day15;
-mod day16;
-mod day17;
-mod day18;
-mod day19;
-mod day20;
-mod day21;
-mod day22;
-mod day23;
-mod day24;
-mod day25;
 mod grid;
 mod line_segment;
 mod macros;
-mod problem;
+mod solution;
+mod y2023;
 
-use day01::DayOne;
-use day02::DayTwo;
-use day03::DayThree;
-use day04::DayFour;
-use day05::DayFive;
-use day06::DaySix;
-use day07::DaySeven;
-use day08::DayEight;
-use day09::DayNine;
-use day10::DayTen;
-use day11::DayEleven;
-use day12::DayTwelve;
-use day13::DayThirteen;
-use day14::DayFourteen;
-use day15::DayFifteen;
-use day16::DaySixteen;
-use day18::DayEighteen;
-use day19::DayNineteen;
-use day20::DayTwenty;
-use day21::DayTwentyOne;
-use day22::DayTwentyTwo;
-use problem::*;
+use solution::*;
 
 use clap::Parser;
 
@@ -62,41 +17,41 @@ struct Cli {
     day: Option<Day>,
 }
 
-type ProblemPtr = Box<dyn Problem>;
+type SolutionBox = Box<dyn Solution>;
 
 fn main() {
     let instant = Instant::now();
     let cli = Cli::parse();
 
-    let aoc_problems: Vec<ProblemPtr> = problems!(
-        DayOne,
-        DayTwo,
-        DayThree,
-        DayFour,
-        DayFive,
-        DaySix,
-        DaySeven,
-        DayEight,
-        DayNine,
-        DayTen,
-        DayEleven,
-        DayTwelve,
-        DayThirteen,
-        DayFourteen,
-        DayFifteen,
-        DaySixteen,
-        DayEighteen,
-        DayNineteen,
-        DayTwenty,
-        DayTwentyOne,
-        DayTwentyTwo
-    );
+    let aoc_solutions: Vec<SolutionBox> = vec![
+        y2023::d01::Problem::create_box(),
+        y2023::d02::Problem::create_box(),
+        y2023::d03::Problem::create_box(),
+        y2023::d04::Problem::create_box(),
+        y2023::d05::Problem::create_box(),
+        y2023::d06::Problem::create_box(),
+        y2023::d07::Problem::create_box(),
+        y2023::d08::Problem::create_box(),
+        y2023::d09::Problem::create_box(),
+        y2023::d10::Problem::create_box(),
+        y2023::d11::Problem::create_box(),
+        y2023::d12::Problem::create_box(),
+        y2023::d13::Problem::create_box(),
+        y2023::d14::Problem::create_box(),
+        y2023::d15::Problem::create_box(),
+        y2023::d16::Problem::create_box(),
+        y2023::d18::Problem::create_box(),
+        y2023::d19::Problem::create_box(),
+        y2023::d20::Problem::create_box(),
+        y2023::d21::Problem::create_box(),
+        y2023::d22::Problem::create_box(),
+    ];
 
     let mut test_results: Vec<TestResult> = Vec::new();
 
-    for (i, aoc_problem) in aoc_problems.iter().enumerate() {
+    for (i, aoc_solution) in aoc_solutions.iter().enumerate() {
         if let Some(day) = cli.day {
-            if day != aoc_problem.day() {
+            if day != aoc_solution.day() {
                 continue;
             }
         }
@@ -104,17 +59,17 @@ fn main() {
         println!(
             "[{}/{}] Running AoC: {}-{:02}",
             i,
-            aoc_problems.len(),
-            aoc_problem.year(),
-            aoc_problem.day()
+            aoc_solutions.len(),
+            aoc_solution.year(),
+            aoc_solution.day()
         );
-        test_results.push(aoc_problem.run());
+        test_results.push(aoc_solution.run());
         println!();
     }
 
     dbg!(&test_results);
     println!(
-        "Ran {} AoC problems in {:.2?}.",
+        "Ran {} AoC solutions in {:.2?}.",
         test_results.len(),
         instant.elapsed()
     );

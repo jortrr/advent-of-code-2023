@@ -190,9 +190,10 @@ fn parse(e: &Vec<String>, seeds_is_range: bool) -> (Vec<Interval>, Almanac) {
     (s, a)
 }
 
-pub struct DayFive {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayFive {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

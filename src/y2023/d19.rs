@@ -261,9 +261,10 @@ fn get_workflows(input: &String) -> (&str, Workflows) {
     (rest, workflows)
 }
 
-pub struct DayNineteen {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayNineteen {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

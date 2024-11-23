@@ -286,9 +286,10 @@ fn grid_to_string(grid: &Grid<Terrain>) -> String {
     result
 }
 
-pub struct DayFourteen {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayFourteen {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }
@@ -340,7 +341,7 @@ mod tests {
 
     #[test]
     fn test_tilt_part_one() {
-        let d14 = DayFourteen {};
+        let d14 = Problem {};
         let mut example_platform =
             Platform::parse(d14.define_examples().first().unwrap().get_input());
         dbg!(&example_platform);
@@ -378,7 +379,7 @@ mod tests {
 
     #[test]
     fn test_tilt_part_two() {
-        let d14 = DayFourteen {};
+        let d14 = Problem {};
         let mut example_platform =
             Platform::parse(d14.define_examples().first().unwrap().get_input());
         let example_platform_1_cycle = Platform::from_strings(vec_of_strings![

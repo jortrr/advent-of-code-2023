@@ -123,9 +123,10 @@ impl OASIS {
     }
 }
 
-pub struct DayNine {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayNine {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

@@ -1,6 +1,6 @@
 use colored::Colorize;
 
-use crate::{define_examples, problem::*};
+use crate::{define_examples, solution::*};
 
 type Int = i32;
 type Grid<T> = Vec<Vec<T>>;
@@ -186,9 +186,10 @@ impl Pattern {
     }
 }
 
-pub struct DayThirteen {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DayThirteen {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

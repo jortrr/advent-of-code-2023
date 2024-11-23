@@ -26,9 +26,10 @@ impl Race {
     }
 }
 
-pub struct DaySix {}
+#[derive(Default)]
+pub struct Problem {}
 
-impl Problem for DaySix {
+impl Solution for Problem {
     fn year(&self) -> Year {
         2023
     }

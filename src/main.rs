@@ -65,9 +65,10 @@ struct Cli {
 type ProblemPtr = Box<dyn Problem>;
 
 fn main() {
+    let instant = Instant::now();
     let cli = Cli::parse();
 
-    let problems: Vec<ProblemPtr> = problems!(
+    let aoc_problems: Vec<ProblemPtr> = problems!(
         DayOne,
         DayTwo,
         DayThree,
@@ -91,11 +92,11 @@ fn main() {
         DayTwentyTwo
     );
 
-    let mut results: Vec<TestResult> = Vec::new();
+    let mut test_results: Vec<TestResult> = Vec::new();
 
-    for (i, problem) in problems.iter().enumerate() {
+    for (i, aoc_problem) in aoc_problems.iter().enumerate() {
         if let Some(day) = cli.day {
-            if day != problem.day() {
+            if day != aoc_problem.day() {
                 continue;
             }
         }
@@ -103,15 +104,25 @@ fn main() {
         println!(
             "[{}/{}] Running AoC: {}-{:02}",
             i,
-            problems.len(),
-            problem.year(),
-            problem.day()
+            aoc_problems.len(),
+            aoc_problem.year(),
+            aoc_problem.day()
         );
-        results.push(problem.run());
+        test_results.push(aoc_problem.run());
         println!();
     }
 
-    dbg!(&results);
-    assert!(!results.is_empty());
-    assert!(results.iter().any(|result| result.p1 != TestStatus::Failed));
+    dbg!(&test_results);
+    println!(
+        "Ran {} AoC problems in {:.2?}.",
+        test_results.len(),
+        instant.elapsed()
+    );
+
+    assert!(!test_results.is_empty());
+    let all_test_results_succeed = test_results.iter().all(|result| match result.p1 {
+        TestStatus::Success(_, _) => true,
+        _ => false,
+    });
+    assert!(all_test_results_succeed);
 }

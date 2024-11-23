@@ -24,6 +24,8 @@ pub type Day = u32;
 pub type Input = String;
 pub type ExampleInput = &'static str;
 
+use colored::*;
+
 /// Use the newtype pattern to implement `From` and `Into` for `Input` and `Vec<String>`. \
 /// `InputLines` is only a wrapper for `Vec<String>`.
 ///
@@ -82,19 +84,35 @@ fn trim_example_input(input: ExampleInput) -> Input {
 
 #[derive(PartialEq, Eq)]
 pub enum TestStatus {
-    Failed(Duration),
+    Failed(Duration, Answer),
     Error(Duration),
-    Success(Duration),
+    Success(Duration, Answer),
     Unknown,
 }
 
 impl Debug for TestStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Failed(arg0) => write!(f, "[FAILED] {:.2?}", arg0),
-            Self::Error(arg0) => write!(f, "[ERROR] {:.2?}", arg0),
-            Self::Success(arg0) => write!(f, "[SUCCESS] {:.2?}", arg0),
-            Self::Unknown => write!(f, "[UNKNOWN]"),
+            Self::Failed(duration, answer) => {
+                write!(
+                    f,
+                    "[TestStatus::{}] [{}] {:.2?}",
+                    "Failed".red(),
+                    answer,
+                    duration
+                )
+            }
+            Self::Error(duration) => write!(f, "[TestStatus::{}] {:.2?}", "Error".red(), duration),
+            Self::Success(duration, answer) => {
+                write!(
+                    f,
+                    "[TestStatus::{}] [{}] {:.2?}",
+                    "Success".green(),
+                    answer,
+                    duration
+                )
+            }
+            Self::Unknown => write!(f, "[TestStatus::Unknown]"),
         }
     }
 }
@@ -109,11 +127,15 @@ pub struct TestResult {
 
 impl Debug for TestResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TestResult {{\n",).unwrap();
         write!(
             f,
-            "TestResult {{\n\t[{}] [{}]\n\t[p1] {:.2?}\n\t[p2] {:.2?}\n\t[examples] {:.2?}\n}}",
-            self.year, self.day, self.examples, self.p1, self.p2
+            "\t[Ex] [{}] [{}] {:?}\n",
+            self.year, self.day, self.examples
         )
+        .unwrap();
+        write!(f, "\t[P1] [{}] [{}] {:?}\n", self.year, self.day, self.p1).unwrap();
+        write!(f, "\t[P2] [{}] [{}] {:?}\n}}", self.year, self.day, self.p2)
     }
 }
 
@@ -138,18 +160,18 @@ pub trait Problem {
         Vec::new()
     }
 
-    fn run_part_one(&self) -> bool {
+    fn run_part_one(&self) -> Answer {
         let input = aoc::get(self.year(), self.day());
         let solution = self.solve_part_one(input, false);
 
-        self.expect_part_one() == solution
+        solution
     }
 
-    fn run_part_two(&self) -> bool {
+    fn run_part_two(&self) -> Answer {
         let input = aoc::get(self.year(), self.day());
         let solution = self.solve_part_two(input, false);
 
-        self.expect_part_two() == solution
+        solution
     }
 
     /// Run all given examples
@@ -193,18 +215,22 @@ pub trait Problem {
         };
         let mut instant = Instant::now();
         test_result.examples = match self.run_examples() {
-            true => TestStatus::Success(instant.elapsed()),
-            false => TestStatus::Failed(instant.elapsed()),
+            true => TestStatus::Success(instant.elapsed(), 1),
+            false => TestStatus::Failed(instant.elapsed(), 0),
         };
+
         instant = Instant::now();
-        test_result.p1 = match self.run_part_one() {
-            true => TestStatus::Success(instant.elapsed()),
-            false => TestStatus::Failed(instant.elapsed()),
+        let mut answer = self.run_part_one();
+        test_result.p1 = match answer == self.expect_part_one() {
+            true => TestStatus::Success(instant.elapsed(), answer),
+            false => TestStatus::Failed(instant.elapsed(), answer),
         };
+
         instant = Instant::now();
-        test_result.p2 = match self.run_part_two() {
-            true => TestStatus::Success(instant.elapsed()),
-            false => TestStatus::Failed(instant.elapsed()),
+        answer = self.run_part_two();
+        test_result.p2 = match answer == self.expect_part_two() {
+            true => TestStatus::Success(instant.elapsed(), answer),
+            false => TestStatus::Failed(instant.elapsed(), answer),
         };
 
         test_result

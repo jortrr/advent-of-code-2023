@@ -176,28 +176,26 @@ pub trait Solution {
 
     /// Run all given examples
     fn run_examples(&self) -> bool {
-        static NAME_ONE: &str = "example_part_one()";
-        static NAME_TWO: &str = "example_part_two()";
-        let format = |part: &str, i: usize| {
-            format!("{} [{}/{}]", part, i + 1, self.define_examples().len(),)
+        let format = |part: usize| {
+            format!("[Ex] [{}] [{}] [{}]", self.year(), self.day(), part)
         };
 
         for (i, example) in self.define_examples().iter().enumerate() {
             let input = trim_example_input(example.input);
             match example.expect {
                 Expect::PartOne(one) => {
-                    test!(one, self.solve_part_one(input, true), format(NAME_ONE, i));
+                    test!(one, self.solve_part_one(input, true), format(1));
                 }
                 Expect::PartTwo(two) => {
-                    test!(two, self.solve_part_two(input, true), format(NAME_TWO, i));
+                    test!(two, self.solve_part_two(input, true), format(2));
                 }
                 Expect::PartsOneAndTwo(one, two) => {
                     test!(
                         one,
                         self.solve_part_one(input.clone(), true),
-                        format(NAME_ONE, i)
+                        format(1)
                     );
-                    test!(two, self.solve_part_two(input, true), format(NAME_TWO, i));
+                    test!(two, self.solve_part_two(input, true), format(2));
                 }
                 Expect::Any => (),
             }
